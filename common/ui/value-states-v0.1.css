@@ -1,0 +1,29 @@
+/*
+ * Common FE value-state presentation.
+ * Consumers define --value-result and --value-dependent-change in their theme.
+ */
+
+.value-result {
+  color: var(--value-result);
+}
+
+.value-dependent-change {
+  color: var(--value-dependent-change) !important;
+  transition: color 1.2s ease;
+}
+
+svg .value-result {
+  fill: var(--value-result);
+}
+
+svg .value-dependent-change {
+  fill: var(--value-dependent-change) !important;
+  transition: fill 1.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .value-dependent-change,
+  svg .value-dependent-change {
+    transition: none;
+  }
+}

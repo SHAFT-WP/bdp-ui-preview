@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BDP Common UI Preview · V2 Provider</title>
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css">
+  <link rel="stylesheet" href="./bdp-ui.css">
+</head>
+<body>
+<main class="app" id="app" data-status="work">
+  <header class="topbar">
+    <div class="title-wrap">
+      <h1>Dive Bomb Profile Calculator <span class="preview-badge">UI PREVIEW</span></h1>
+      <div class="subtitle">Common UI draft · value-text highlights / cross-section dependency indication / Essential + Advanced</div>
+    </div>
+    <div class="toolbar">
+      <button id="advancedToggle" class="toggle" type="button" aria-pressed="false">Advanced: Off</button>
+      <button id="defaultBtn" class="btn" type="button">Default</button>
+    </div>
+    <span class="sr-only" id="provider-status" role="status">Provider 연결 대기</span>
+  </header>
+
+  <section class="section">
+    <div class="section-head"><h2>Input</h2><span class="mode" id="solveMode" data-mode="initialAltitude">Initial Altitude 기준</span></div>
+    <div class="input-groups">
+      <details class="panel" open>
+        <summary>Bomb · Target</summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Bomb</span>
+            <select data-key="weapon" data-bdp-input="weaponId">
+              <option value="M82">Mk-82 (LD)</option>
+              <option value="B49">Mk-82 AIR (HD)</option>
+              <option value="M83">Mk-83 (LD)</option>
+              <option value="B85">Mk-83 AIR (HD)</option>
+              <option value="M84">Mk-84 (LD)</option>
+              <option value="B50">Mk-84 AIR (HD)</option>
+            </select><span class="unit">weapon data source</span>
+          </label>
+          <label class="field"><span class="field-label">Target Elevation (ft msl)</span>
+            <input data-key="targetElevation" data-bdp-input="targetElevationMslFt" value="31" inputmode="decimal"><span class="unit">Target altitude</span>
+          </label>
+          <label class="field advanced-only"><span class="field-label">Wind Direction (deg) <span class="adv-tag">ADV</span></span>
+            <input data-key="windDirection" data-bdp-input="windDirectionDeg" value="0" inputmode="decimal"><span class="unit">from · attack axis relative</span>
+          </label>
+          <label class="field advanced-only"><span class="field-label">Wind Speed (kt) <span class="adv-tag">ADV</span></span>
+            <input data-key="windSpeed" data-bdp-input="windSpeedKt" value="0" inputmode="decimal"><span class="unit">V2 canonical unit</span>
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel advanced-only">
+        <summary>MINALT · NLT <span class="adv-tag">ADV</span></summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Fragment Height Margin (%)</span>
+            <input data-key="fragmentMargin" data-bdp-input="fragmentHeightMarginPercent" value="20" inputmode="decimal"><span class="unit">default 20%</span>
+          </label>
+          <div class="field"><span class="field-label">MINALT (ft msl)</span>
+            <output class="readout" data-bdp-output="minAltMslFt">—</output><span class="unit">calculated result</span>
+          </div>
+          <div class="field"><span class="field-label" data-safety-release-label>NLT Release (ft msl)</span>
+            <output class="readout" data-bdp-output="safetyReleaseMslFt">—</output><span class="unit">V2 recovery model result</span>
+          </div>
+          <div class="field"><span class="field-label">Recovery G (G)</span>
+            <output class="readout" data-bdp-output="recoveryG">5.0</output><span class="unit">CSEM authority · isolated fallback 5 G</span>
+          </div>
+          <label class="field"><span class="field-label">Speed Overshoot (kcas)</span>
+            <input data-key="speedOvershoot" data-bdp-input="speedOvershootKcas" value="50" inputmode="decimal"><span class="unit">default 50 kcas</span>
+          </label>
+          <label class="field"><span class="field-label">G Onset Time (sec)</span>
+            <input data-key="gOnsetTime" data-bdp-input="gOnsetTimeSec" value="2" inputmode="decimal"><span class="unit">default 2 sec</span>
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Dive Profile Information</summary>
+        <div class="panel-body"><div class="grid profile">
+          <label class="field"><span class="field-label">Initial Speed (mach/kcas)</span>
+            <span class="compound"><input data-key="initialSpeed" data-bdp-input="initialSpeedValue" value="350" inputmode="decimal">
+            <select data-key="initialSpeedMode" data-bdp-input="initialSpeedMode"><option value="CAS">kcas</option><option value="MACH">mach</option></select></span>
+            <span class="unit">module / BDP entry condition</span>
+          </label>
+          <label class="field"><span class="field-label">Initial Altitude (ft msl)</span>
+            <input data-key="initialAltitude" data-bdp-input="rollInStartAltitudeMslFt" value="16000" inputmode="decimal"><span class="unit">module / BDP entry condition</span>
+          </label>
+          <label class="field"><span class="field-label">Dive Angle (deg)</span>
+            <input data-key="diveAngle" data-bdp-input="diveAngleDeg" value="45" inputmode="decimal"><span class="unit">down</span>
+          </label>
+          <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal"><span class="unit">synchronized with Roll-in Information</span>
+          </label>
+          <label class="field"><span class="field-label">Tracking Time (sec)</span>
+            <input data-key="trackingTime" data-bdp-input="trackingTimeSec" value="18" inputmode="decimal"><span class="unit">Track Point → Release</span>
+          </label>
+          <label class="field"><span class="field-label">Release Altitude (ft msl)</span>
+            <input data-key="releaseAltitude" data-bdp-input="releaseAltitudeMslFt" value="6800" inputmode="decimal"><span class="unit">entered release condition</span>
+          </label>
+          <label class="field"><span class="field-label">Release Speed (kcas)</span>
+            <input data-key="releaseSpeed" data-bdp-input="releaseSpeedKcas" value="450" inputmode="decimal"><span class="unit">weapon release speed</span>
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Roll-in Information</summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal"><span class="unit">same parameter · mirrored control</span>
+          </label>
+          <label class="field"><span class="field-label">Roll-in Bank Angle (deg)</span>
+            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="113" inputmode="decimal"><span class="unit">auto-linked until manually edited</span>
+          </label>
+          <label class="field"><span class="field-label">Roll-in Bank G (G)</span>
+            <input data-key="rollG" data-bdp-input="rollInG" value="4.0" inputmode="decimal"><span class="unit">default 4 G</span>
+          </label>
+          <div class="field"><span class="field-label">Lead Angle (deg)</span>
+            <output class="readout" data-bdp-output="leadAngleDeg">—</output><span class="unit">calculated result</span>
+          </div>
+          <div class="field advanced-only"><span class="field-label">Roll-in Altitude Loss (ft) <span class="adv-tag">ADV</span></span>
+            <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output><span class="unit">calculated result</span>
+          </div>
+          <div class="field advanced-only"><span class="field-label">Roll-in Distance (Long.) (nm) <span class="adv-tag">ADV</span></span>
+            <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output><span class="unit">Long. = Longitudinal · OA1 → Track Point forward displacement</span>
+          </div>
+        </div></div>
+      </details>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Z-Diagram</h2><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button></div>
+    <div class="card">
+      <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
+      <div class="canvas" style="margin-top:10px">
+        <svg id="z-diagram" viewBox="0 0 650 620" role="img" aria-label="Z-Diagram"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Profile</h2><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button></div>
+    <div class="card"><div class="canvas">
+      <svg id="profile-diagram" viewBox="0 0 900 620" role="img" aria-label="Profile"></svg>
+    </div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Top View</h2><div class="toolbar" data-zoom-target="top-diagram"><button class="btn" data-zoom="out" type="button">−</button><button class="btn" data-zoom="reset" type="button">100%</button><button class="btn" data-zoom="in" type="button">＋</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button></div></div>
+    <div class="card"><div class="canvas">
+      <svg id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
+    </div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Remark</h2></div>
+    <div class="remark">
+      <div class="remark-item"><b>MAP · Ground Range</b><span>Track Point → Target horizontal straight-line distance.</span></div>
+      <div class="remark-item"><b>Tracking Distance</b><span>Track Point → Release horizontal travel.</span></div>
+      <div class="remark-item"><b>Bomb Range</b><span>Release → Impact horizontal range.</span></div>
+      <div class="remark-item"><b>Vertical Tracking Distance</b><span>Track Point altitude → Release altitude vertical difference.</span></div>
+      <div class="remark-item"><b>IAA · Aim-off Angle</b><span>Tracking ray and Track Point → Target LOS geometry.</span></div>
+      <div class="remark-item"><b>Dive Angle</b><span>Final tracking flight-path angle, down positive by UI convention.</span></div>
+    </div>
+  </section>
+
+  <section class="section advanced-only">
+    <div class="section-head"><h2>Result <span class="adv-tag">ADV</span></h2></div>
+    <div class="card">
+      <div class="note">Result는 Advanced. 값 자체에 Result 전용 색을 사용하며, 다른 변수 때문에 바뀌면 같은 값의 모든 표시 위치에서 잠시 별도 변경색으로 표시.</div>
+      <table class="result-table" style="margin-top:10px">
+        <tr><td>Initial Altitude</td><td class="result-value" data-bdp-output="resolvedInitialAltitudeMslFt">—</td></tr>
+        <tr><td>Roll-in Start Altitude</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
+        <tr><td>Track Point Altitude</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
+        <tr><td>Roll-in Range</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
+        <tr><td>Roll-in Slant Range</td><td class="result-value" data-bdp-output="rollInSlantNm">—</td></tr>
+        <tr><td>Base Distance</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
+        <tr><td>Roll-in Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
+        <tr><td>Roll-in Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
+        <tr><td>Ground Range</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
+        <tr><td>MINALT</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
+        <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="sr-only" id="provider-error" role="alert"></div>
+</main>
+
+<script type="module" src="./bdp-app.mjs"></script>
+</body>
+</html>
