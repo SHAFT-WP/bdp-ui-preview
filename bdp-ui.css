@@ -80,7 +80,9 @@ body.show-advanced section.advanced-only,body.show-advanced details.advanced-onl
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .card-title{margin:0;font-size:15px;color:var(--muted);font-weight:850}
 .canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
-svg{display:block;width:100%;min-width:760px;background:#fff}
+.canvas>svg{display:block;width:100%;height:auto;min-width:0;margin-inline:auto;background:#fff}
+#z-diagram{max-width:650px}
+#profile-diagram,#top-diagram{max-width:900px}
 svg text{font-family:inherit}
 .movable-label{cursor:grab;touch-action:none;user-select:none}
 .movable-label.dragging{cursor:grabbing}
