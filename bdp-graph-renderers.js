@@ -7,17 +7,16 @@
   }
   var TERMINOLOGY = Object.freeze({
     USAF: Object.freeze({
-      rollInRange: "Base Distance",
       rollInSlant: "Base Distance(S)",
       groundRange: "MAP",
       aimOffAngle: "IAA",
       baseDistance: "Base Distance",
+      baseLongitudinalDistance: "Base Longitudinal Distance",
       baseLeg: "Base",
       rollInStart: "Roll-in Point",
-      trackPoint: "Track Point / Rollout",
+      trackPoint: "Track Point",
       leadAngle: "Roll-in Lead",
-      angleOff: "Angle-off (Heading)",
-      rollInLateralDistance: "Roll-in Lateral Distance"
+      angleOff: "Angle-off (Heading)"
     }),
     Shaft: Object.freeze({
       rollInRange: "Roll-in Range",
@@ -121,6 +120,20 @@
     }, attrs || {}));
   }
 
+  function dimensionValue(parent, x, y, label, value, group, attrs) {
+    var labelAttrs = Object.assign({
+      "text-anchor": "middle",
+      "font-size": 12,
+      class: "label-halo"
+    }, attrs || {});
+    var valueAttrs = Object.assign({}, labelAttrs, {
+      "font-size": 11,
+      "font-weight": 850
+    });
+    movableText(parent, x, y, label, group, labelAttrs);
+    movableText(parent, x, y + 20, value, group, valueAttrs);
+  }
+
   function renderZ(svg, view) {
     svg.replaceChildren();
     var input = view.input || {};
@@ -142,7 +155,7 @@
     append(svg, "rect", { width: 650, height: 620, fill: "#fff" });
 
     var left = 50;
-    var topX = 478;
+    var topX = 360;
     var topY = 98;
     var baseY = 442;
     var plannedY = 224;
@@ -155,16 +168,16 @@
     var terms = TERMINOLOGY.USAF;
     var one = function (label, value) { return label + ": " + value; };
 
-    movableText(svg, 325, 30, profileTitle(view), "z-title", {
+    movableText(svg, 325, 38, profileTitle(view), "z-title", {
       "text-anchor": "middle",
       "font-size": 27,
       "font-weight": 900
     });
-    movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + "ft MSL", "z-initial", {
+    movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + " ft msl", "z-initial", {
       "font-size": 15,
       "font-weight": 900
     });
-    movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " KCAS", "z-initial", {
+    movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " kcas", "z-initial", {
       "font-size": 15,
       "font-weight": 900
     });
@@ -173,44 +186,44 @@
     line(svg, left, baseY, topX, topY, { "stroke-width": 3.5, "stroke-linecap": "square" });
     line(svg, left, baseY, topX, baseY, { "stroke-width": 3.5, "stroke-linecap": "square" });
 
-    movableText(svg, 638, 82, one("Angle-off", format(input.angleOffDeg, 0) + "°"), "z-right", {
-      "text-anchor": "end",
+    movableText(svg, 390, 72, one(terms.angleOff, format(input.angleOffDeg, 0) + " deg"), "z-right", {
+      "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 638, 110, one(terms.rollInRange, format(result.rollInRangeNm, 1) + "nm"), "z-right", {
-      "text-anchor": "end",
+    movableText(svg, 390, 100, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " nm"), "z-right", {
+      "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 638, 138, one(terms.rollInSlant, format(local.rollInSlantNm, 1) + "nm"), "z-right", {
-      "text-anchor": "end",
+    movableText(svg, 390, 128, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " nm"), "z-right", {
+      "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 638, 166, one(terms.groundRange, format(result.groundRangeNm, 1) + "nm"), "z-right", {
-      "text-anchor": "end",
+    movableText(svg, 390, 156, one(terms.groundRange, format(result.groundRangeNm, 1) + " nm"), "z-right", {
+      "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 276, 132, one("Dive Angle", format(angle, 0) + "°"), "z-center", {
+    movableText(svg, 60, 145, one("Dive Angle", format(angle, 0) + " deg"), "z-center", {
       "font-size": 15,
       "font-weight": 900
     });
-    movableText(svg, 276, 159, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + "°"), "z-center", {
+    movableText(svg, 60, 178, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + " deg"), "z-center", {
       "font-size": 15,
       "font-weight": 900
     });
 
     line(svg, plannedX - 100, plannedY, 356, plannedY, { "stroke-width": 3 });
-    movableText(svg, 382, plannedY + 6, one("Planned Release", format(result.effectiveReleaseAltitudeMslFt, 0) + "ft MSL"), "z-release", {
+    movableText(svg, 382, plannedY + 6, one("Planned Release", format(result.effectiveReleaseAltitudeMslFt, 0) + " ft msl"), "z-release", {
       "font-size": 14,
       "font-weight": 900
     });
 
     line(svg, safetyX - 76, safetyY, 356, safetyY, { "stroke-width": 3 });
-    movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + "ft MSL"), "z-release", {
+    movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + " ft msl"), "z-release", {
       "font-size": 14,
       "font-weight": 900
     });
@@ -219,25 +232,25 @@
       "font-size": 15,
       "font-weight": 900
     });
-    movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " KCAS", "z-speed", {
+    movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " kcas", "z-speed", {
       "font-size": 15,
       "font-weight": 900
     });
 
-    movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + "ft MSL"), "z-minalt", {
+    movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + " ft msl"), "z-minalt", {
       "font-size": 15,
       "font-weight": 900
     });
 
-    movableText(svg, 60, 500, one("Roll-in Lead", format(result.leadAngleDeg, 0) + "°"), "z-bottom", {
+    movableText(svg, 60, 500, one("Roll-in Lead", format(result.leadAngleDeg, 0) + " deg"), "z-bottom", {
       "font-size": 15,
       "font-weight": 900
     });
-    movableText(svg, 60, 536, one("Tracking Time", format(result.trackingTimeSec, 0) + " s"), "z-bottom", {
+    movableText(svg, 60, 536, one("Tracking Time", format(result.trackingTimeSec, 0) + " sec"), "z-bottom", {
       "font-size": 15,
       "font-weight": 900
     });
-    movableText(svg, 60, 572, one("Bomb TOF", format(result.bombTofSec, 0) + " s"), "z-bottom", {
+    movableText(svg, 60, 572, one("Bomb TOF", format(result.bombTofSec, 0) + " sec"), "z-bottom", {
       "font-size": 15,
       "font-weight": 900
     });
@@ -337,6 +350,12 @@
     var dimensionY = 500;
     var mapY = 570;
     var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
+    var isLevel = Math.abs(finite(view.input && view.input.diveAngleDeg, 0)) < 0.001;
+    var trackPointLabel = "Track Point" + (isLevel
+      ? ""
+      : ": " + format(view.public.trackPointAltitudeMslFt, 0) + " ft msl");
+    var releaseLabel = (isLevel ? "Initial" : "Release") + ": " +
+      format(view.public.effectiveReleaseAltitudeMslFt, 0) + " ft msl";
 
     line(svg, 48, groundY, 852, groundY, {
       stroke: "#556270",
@@ -395,17 +414,10 @@
     point(svg, p.target, "#087b4c", 7);
     if (hasAod) point(svg, p.aimOff, "#176dac", 5);
 
-    text(svg, p.trackPoint.x, p.trackPoint.y - 21, "Track Point (Rollout)", { "text-anchor": "middle", class: "label-halo" });
-    text(svg, p.release.x, p.release.y - 21, "Release", { "text-anchor": "middle", class: "label-halo" });
-    text(svg, p.target.x - 12, p.target.y - 16, "Target / Impact", { "text-anchor": "end", class: "label-halo" });
+    text(svg, p.trackPoint.x, p.trackPoint.y - 21, trackPointLabel, { "text-anchor": "start", class: "label-halo" });
+    text(svg, p.release.x, p.release.y - 21, releaseLabel, { "text-anchor": "middle", class: "label-halo" });
+    text(svg, p.target.x - 12, p.target.y - 16, "Target", { "text-anchor": "end", class: "label-halo" });
     if (hasAod) text(svg, p.aimOff.x, p.aimOff.y + 28, "Aim-off Point", { "text-anchor": "middle", class: "label-halo" });
-
-    text(svg, 42, 34, "Track Point Altitude: " + format(view.public.trackPointAltitudeMslFt, 0) + "ft MSL", {
-      fill: "#203a63",
-      "font-size": 13,
-      "font-weight": 850,
-      class: "label-halo"
-    });
 
     var fpaAngle = Math.atan2(p.aimOff.y - p.trackPoint.y, p.aimOff.x - p.trackPoint.x);
     var losAngle = Math.atan2(p.target.y - p.trackPoint.y, p.target.x - p.trackPoint.x);
@@ -413,7 +425,7 @@
       angleArc(svg, p.trackPoint, 70, fpaAngle, losAngle, "iaa", "#a35d00");
     }
     text(svg, p.trackPoint.x + 170, p.trackPoint.y + 58,
-      "IAA (Initial Aim-off Angle): " + format(view.local.aimOffAngleDeg, 1) + "°", {
+      "IAA: " + format(view.local.aimOffAngleDeg, 0) + " deg", {
         "text-anchor": "middle",
         fill: "#a35d00",
         "font-size": 12,
@@ -426,7 +438,7 @@
         Math.atan2(p.trackPoint.y - p.aimOff.y, p.trackPoint.x - p.aimOff.x),
         "dive-angle", "#176dac");
       text(svg, p.aimOff.x - 128, p.aimOff.y - 54,
-        "Dive Angle: " + format(view.input.diveAngleDeg, 0) + "°", {
+        "Dive Angle: " + format(view.input.diveAngleDeg, 0) + " deg", {
           "text-anchor": "middle",
           fill: "#176dac",
           "font-size": 13,
@@ -456,24 +468,15 @@
         "marker-end": "url(#profile-amber-arrow)",
         "data-profile-dimension": "aod"
       });
-    text(svg, (p.trackPoint.x + p.release.x) / 2, dimensionY - 10, "Tracking Distance", {
-      "text-anchor": "middle",
-      fill: "#176dac",
-      "font-size": 12,
-      class: "label-halo"
-    });
-    text(svg, (p.release.x + p.target.x) / 2, dimensionY - 10, "Bomb Range", {
-      "text-anchor": "middle",
-      fill: "#087b4c",
-      "font-size": 12,
-      class: "label-halo"
-    });
-    if (hasAod) text(svg, (p.target.x + p.aimOff.x) / 2, dimensionY - 10, "AOD", {
-      "text-anchor": "middle",
-      fill: "#a35d00",
-      "font-size": 11,
-      class: "label-halo"
-    });
+    dimensionValue(svg, (p.trackPoint.x + p.release.x) / 2, dimensionY - 36,
+      "Tracking Distance", format(view.public.downRangeTravelNm, 1) + " nm",
+      "profile-tracking-distance", { fill: "#176dac" });
+    dimensionValue(svg, (p.release.x + p.target.x) / 2, dimensionY - 36,
+      "Bomb Range", format(view.public.bombRangeNm, 1) + " nm",
+      "profile-bomb-range", { fill: "#087b4c" });
+    if (hasAod) dimensionValue(svg, (p.target.x + p.aimOff.x) / 2, dimensionY - 36,
+      "AOD", format(view.local.aimOffDistanceNm, 1) + " nm",
+      "profile-aod", { fill: "#a35d00" });
     line(svg, p.trackPoint.x, mapY, p.target.x, mapY, {
       stroke: "#d64b4b",
       "stroke-width": 1.7,
@@ -481,13 +484,9 @@
       "marker-end": "url(#profile-map-arrow)",
       "data-profile-dimension": "map-ground-range"
     });
-    text(svg, (p.trackPoint.x + p.target.x) / 2, mapY - 10, "MAP (Ground Range)", {
-      "text-anchor": "middle",
-      fill: "#d64b4b",
-      "font-size": 12,
-      "font-weight": 850,
-      class: "label-halo"
-    });
+    dimensionValue(svg, (p.trackPoint.x + p.target.x) / 2, mapY - 36,
+      "MAP", format(view.public.groundRangeNm, 1) + " nm",
+      "profile-map", { fill: "#d64b4b" });
     enableLabelDrag(svg);
     return true;
   }
@@ -550,12 +549,12 @@
     append(svg, "circle", { cx: p.target.x, cy: p.target.y, r: 7, fill: "#d64b4b" });
 
     text(svg, 48, 46, terms.baseLeg, { fill: "#2f6fc2", "font-size": 16, class: "label-halo" });
-    text(svg, 48, 69, format(view.public.resolvedInitialAltitudeMslFt, 0) + "ft MSL · " + format(view.public.resolvedInitialSpeedKcas, 0) + " KCAS", {
+    text(svg, 48, 69, format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl · " + format(view.public.resolvedInitialSpeedKcas, 0) + " kcas", {
       fill: "#203a63",
       "font-size": 13,
       class: "label-halo"
     });
-    text(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + "°", {
+    text(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg", {
       "text-anchor": "end",
       fill: "#203a63",
       "font-size": 14,
@@ -564,25 +563,24 @@
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
     text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", class: "label-halo" });
-    text(svg, p.target.x, p.target.y - 34, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + "°", {
-      "text-anchor": "middle",
+    text(svg, 852, p.target.y - 37, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg", {
+      "text-anchor": "end",
       fill: "#203a63",
       "font-size": 17,
       class: "label-halo"
     });
-    text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 1) + "°", {
+    text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
       fill: "#d64b4b",
       "font-size": 13,
       class: "label-halo"
     });
-    text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, terms.groundRange + ": " + format(view.public.groundRangeNm, 2) + "nm", {
+    text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
       "text-anchor": "middle",
       fill: "#b77d00",
       "font-size": 12,
       class: "label-halo"
     });
 
-    var dimNear = finite(visual.dimensionNearX, 810);
     var dimFar = finite(visual.dimensionFarX, 866);
     [p.rollInStart, p.trackPoint, p.target].forEach(function (value) {
       line(svg, value.x, value.y, dimFar, value.y, {
@@ -591,30 +589,35 @@
         "stroke-dasharray": "5 4"
       });
     });
-    line(svg, dimNear, p.rollInStart.y, dimNear, p.trackPoint.y, {
-      stroke: "#2f6fc2",
-      "stroke-width": 1.5,
-      "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)"
-    });
     line(svg, dimFar, p.rollInStart.y, dimFar, p.target.y, {
       stroke: "#2f6fc2",
       "stroke-width": 1.5,
       "marker-start": "url(#top-dim-arrow)",
       "marker-end": "url(#top-dim-arrow)"
     });
-    text(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2, terms.rollInLateralDistance, {
-      "text-anchor": "end",
-      fill: "#2f6fc2",
-      "font-size": 12,
-      class: "label-halo"
+    dimensionValue(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2 - 10,
+      terms.baseDistance,
+      format(view.public.rollInLateralSeparationNm, 1) + " nm",
+      "top-base-distance", { "text-anchor": "end", fill: "#2f6fc2" });
+
+    var longitudinalY = 570;
+    [p.rollInStart, p.trackPoint].forEach(function (value) {
+      line(svg, value.x, value.y, value.x, longitudinalY, {
+        stroke: "#6f98d8",
+        "stroke-width": 1.2,
+        "stroke-dasharray": "5 4"
+      });
     });
-    text(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2, terms.baseDistance, {
-      "text-anchor": "end",
-      fill: "#2f6fc2",
-      "font-size": 12,
-      class: "label-halo"
+    line(svg, p.rollInStart.x, longitudinalY, p.trackPoint.x, longitudinalY, {
+      stroke: "#2f6fc2",
+      "stroke-width": 1.5,
+      "marker-start": "url(#top-dim-arrow)",
+      "marker-end": "url(#top-dim-arrow)"
     });
+    dimensionValue(svg, (p.rollInStart.x + p.trackPoint.x) / 2, longitudinalY - 42,
+      terms.baseLongitudinalDistance,
+      format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
+      "top-base-longitudinal", { fill: "#2f6fc2" });
     enableLabelDrag(svg);
     return true;
   }

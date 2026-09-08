@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=e1a12cacf9df">
-  <link rel="stylesheet" href="./bdp-ui.css?v=e1a12cacf9df">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=103d2b6d8c02">
+  <link rel="stylesheet" href="./bdp-ui.css?v=103d2b6d8c02">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -28,8 +28,8 @@
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .plot-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
     .control-group{display:inline-flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--field)}
-    .control-label{padding:0 5px;color:var(--muted);font-size:11px;font-weight:850}
-    .control-group .btn{min-width:38px;min-height:32px;padding:5px 8px;background:var(--panel)}
+    .control-label{padding:0 5px;color:var(--muted);font-size:200%;line-height:1;font-weight:850}
+    .control-group .btn{min-width:38px;min-height:32px;padding:5px 8px;background:var(--panel);font-size:200%;line-height:1}
     .control-group .scale-value{min-width:58px;font-variant-numeric:tabular-nums}
     .btn,.toggle{min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel);color:var(--text);font-weight:800;cursor:pointer}
     .btn:disabled,.toggle:disabled{opacity:.45;cursor:not-allowed}
@@ -56,7 +56,6 @@
     input,select,.readout{width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;color:var(--text);background:var(--field);font-size:18px;font-variant-numeric:tabular-nums;outline:none}
     input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(121,189,240,.14)}
     .readout{display:flex;align-items:center;border-style:dashed;color:var(--blue);background:var(--blue-soft);font-weight:850}
-    .unit{font-size:11px;color:var(--muted);min-height:15px}
     .compound{display:grid;grid-template-columns:minmax(0,1fr) 88px}
     .compound input{border-radius:11px 0 0 11px}
     .compound select{border-left:0;border-radius:0 11px 11px 0}
@@ -124,19 +123,19 @@
               <option value="B85">Mk-83 AIR (HD)</option>
               <option value="M84">Mk-84 (LD)</option>
               <option value="B50">Mk-84 AIR (HD)</option>
-            </select><span class="unit">weapon data source</span>
+            </select>
           </label>
           <label class="field"><span class="field-label">Target Elevation (ft msl)</span>
-            <input data-key="targetElevation" data-bdp-input="targetElevationMslFt" value="31" inputmode="decimal"><span class="unit">Target altitude</span>
+            <input data-key="targetElevation" data-bdp-input="targetElevationMslFt" value="31" inputmode="decimal">
           </label>
           <label class="field advanced-only"><span class="field-label">Attack Heading (deg) <span class="adv-tag">ADV</span></span>
-            <input data-key="attackHeading" data-bdp-input="attackHeadingDeg" value="0" inputmode="decimal"><span class="unit">absolute · final weapon-delivery axis</span>
+            <input data-key="attackHeading" data-bdp-input="attackHeadingDeg" value="0" inputmode="decimal">
           </label>
           <label class="field advanced-only"><span class="field-label">Wind Direction (deg) <span class="adv-tag">ADV</span></span>
-            <input data-key="windDirection" data-bdp-input="windDirectionDeg" value="0" inputmode="decimal"><span class="unit">from · attack axis relative</span>
+            <input data-key="windDirection" data-bdp-input="windDirectionDeg" value="0" inputmode="decimal">
           </label>
           <label class="field advanced-only"><span class="field-label">Wind Speed (kt) <span class="adv-tag">ADV</span></span>
-            <input data-key="windSpeed" data-bdp-input="windSpeedKt" value="0" inputmode="decimal"><span class="unit">V2 canonical unit</span>
+            <input data-key="windSpeed" data-bdp-input="windSpeedKt" value="0" inputmode="decimal">
           </label>
         </div></div>
       </details>
@@ -145,22 +144,22 @@
         <summary>MINALT · NLT <span class="adv-tag">ADV</span></summary>
         <div class="panel-body"><div class="grid">
           <label class="field"><span class="field-label">Fragment Height Margin (%)</span>
-            <input data-key="fragmentMargin" data-bdp-input="fragmentHeightMarginPercent" value="20" inputmode="decimal"><span class="unit">default 20%</span>
+            <input data-key="fragmentMargin" data-bdp-input="fragmentHeightMarginPercent" value="20" inputmode="decimal">
           </label>
           <div class="field"><span class="field-label">MINALT (ft msl)</span>
-            <output class="readout" data-bdp-output="minAltMslFt">—</output><span class="unit">calculated result</span>
+            <output class="readout" data-bdp-output="minAltMslFt">—</output>
           </div>
           <div class="field"><span class="field-label" data-safety-release-label>NLT Release (ft msl)</span>
-            <output class="readout" data-bdp-output="safetyReleaseMslFt">—</output><span class="unit">V2 recovery model result</span>
+            <output class="readout" data-bdp-output="safetyReleaseMslFt">—</output>
           </div>
           <div class="field"><span class="field-label">Recovery G (G)</span>
-            <output class="readout" data-bdp-output="recoveryG">5.0</output><span class="unit">CSEM authority · isolated fallback 5 G</span>
+            <output class="readout" data-bdp-output="recoveryG">5.0</output>
           </div>
           <label class="field"><span class="field-label">Speed Overshoot (kcas)</span>
-            <input data-key="speedOvershoot" data-bdp-input="speedOvershootKcas" value="50" inputmode="decimal"><span class="unit">default 50 kcas</span>
+            <input data-key="speedOvershoot" data-bdp-input="speedOvershootKcas" value="50" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">G Onset Time (sec)</span>
-            <input data-key="gOnsetTime" data-bdp-input="gOnsetTimeSec" value="2" inputmode="decimal"><span class="unit">default 2 sec</span>
+            <input data-key="gOnsetTime" data-bdp-input="gOnsetTimeSec" value="2" inputmode="decimal">
           </label>
         </div></div>
       </details>
@@ -171,25 +170,24 @@
           <label class="field"><span class="field-label">Initial Speed (mach/kcas)</span>
             <span class="compound"><input data-key="initialSpeed" data-bdp-input="initialSpeedValue" value="350" inputmode="decimal">
             <select data-key="initialSpeedMode" data-bdp-input="initialSpeedMode"><option value="CAS">kcas</option><option value="MACH">mach</option></select></span>
-            <span class="unit">module / BDP entry condition</span>
           </label>
           <label class="field"><span class="field-label">Initial Altitude (ft msl)</span>
-            <input data-key="initialAltitude" data-bdp-input="rollInStartAltitudeMslFt" value="16000" inputmode="decimal"><span class="unit">module / BDP entry condition</span>
+            <input data-key="initialAltitude" data-bdp-input="rollInStartAltitudeMslFt" value="16000" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Dive Angle (deg)</span>
-            <input data-key="diveAngle" data-bdp-input="diveAngleDeg" value="45" inputmode="decimal"><span class="unit">down</span>
+            <input data-key="diveAngle" data-bdp-input="diveAngleDeg" value="45" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
-            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal"><span class="unit">synchronized with Roll-in Information</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Tracking Time (sec)</span>
-            <input data-key="trackingTime" data-bdp-input="trackingTimeSec" value="18" inputmode="decimal"><span class="unit">Track Point → Release</span>
+            <input data-key="trackingTime" data-bdp-input="trackingTimeSec" value="18" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Release Altitude (ft msl)</span>
-            <input data-key="releaseAltitude" data-bdp-input="releaseAltitudeMslFt" value="6800" inputmode="decimal"><span class="unit">entered release condition</span>
+            <input data-key="releaseAltitude" data-bdp-input="releaseAltitudeMslFt" value="6800" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Release Speed (kcas)</span>
-            <input data-key="releaseSpeed" data-bdp-input="releaseSpeedKcas" value="450" inputmode="decimal"><span class="unit">weapon release speed</span>
+            <input data-key="releaseSpeed" data-bdp-input="releaseSpeedKcas" value="450" inputmode="decimal">
           </label>
         </div></div>
       </details>
@@ -198,22 +196,22 @@
         <summary>Roll-in Information</summary>
         <div class="panel-body"><div class="grid">
           <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
-            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal"><span class="unit">same parameter · mirrored control</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Roll-in Bank Angle (deg)</span>
-            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="113" inputmode="decimal"><span class="unit">auto-linked until manually edited</span>
+            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="113" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Roll-in Bank G (G)</span>
-            <input data-key="rollG" data-bdp-input="rollInG" value="4.0" inputmode="decimal"><span class="unit">default 4 G</span>
+            <input data-key="rollG" data-bdp-input="rollInG" value="4.0" inputmode="decimal">
           </label>
           <div class="field"><span class="field-label">Lead Angle (deg)</span>
-            <output class="readout" data-bdp-output="leadAngleDeg">—</output><span class="unit">calculated result</span>
+            <output class="readout" data-bdp-output="leadAngleDeg">—</output>
           </div>
           <div class="field advanced-only"><span class="field-label">Roll-in Altitude Loss (ft) <span class="adv-tag">ADV</span></span>
-            <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output><span class="unit">calculated result</span>
+            <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output>
           </div>
-          <div class="field advanced-only"><span class="field-label">Roll-in Distance (Long.) (nm) <span class="adv-tag">ADV</span></span>
-            <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output><span class="unit">Long. = Longitudinal · OA1 → Track Point forward displacement</span>
+          <div class="field advanced-only"><span class="field-label">Base Longitudinal Distance (nm) <span class="adv-tag">ADV</span></span>
+            <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output>
           </div>
         </div></div>
       </details>
@@ -223,9 +221,12 @@
   <section class="section">
     <div class="section-head"><h2>Z-Diagram</h2><div class="plot-controls">
       <div class="control-group" data-font-target="z-diagram" aria-label="Z-Diagram text size">
-        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Z-Diagram text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Z-Diagram text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Z-Diagram text">A＋</button>
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Z-Diagram text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Z-Diagram text size">150%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Z-Diagram text">+</button>
       </div>
-      <button class="btn" data-reset-labels="z-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button>
+      <div class="control-group" data-zoom-target="z-diagram" aria-label="Z-Diagram size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Z-Diagram">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Z-Diagram zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Z-Diagram">+</button>
+      </div>
+      <button class="btn" data-reset-plot="z-diagram" type="button">Reset Plot</button><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button>
     </div></div>
     <div class="card">
       <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
@@ -238,12 +239,12 @@
   <section class="section">
     <div class="section-head"><h2>Profile</h2><div class="plot-controls">
       <div class="control-group" data-font-target="profile-diagram" aria-label="Profile text size">
-        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">A＋</button>
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">150%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">+</button>
       </div>
-      <div class="control-group" data-zoom-target="profile-diagram" aria-label="Profile view zoom">
-        <span class="control-label">View</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Profile">−</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Profile zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Profile">＋</button>
+      <div class="control-group" data-zoom-target="profile-diagram" aria-label="Profile size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Profile">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Profile zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Profile">+</button>
       </div>
-      <button class="btn" data-reset-labels="profile-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
+      <button class="btn" data-reset-plot="profile-diagram" type="button">Reset Plot</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
     </div></div>
     <div class="card"><div class="canvas">
       <svg id="profile-diagram" viewBox="0 0 900 620" role="img" aria-label="Profile"></svg>
@@ -253,12 +254,12 @@
   <section class="section">
     <div class="section-head"><h2>Top View</h2><div class="plot-controls">
       <div class="control-group" data-font-target="top-diagram" aria-label="Top View text size">
-        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">A＋</button>
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">150%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">+</button>
       </div>
-      <div class="control-group" data-zoom-target="top-diagram" aria-label="Top View zoom">
-        <span class="control-label">View</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Top View">−</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Top View zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Top View">＋</button>
+      <div class="control-group" data-zoom-target="top-diagram" aria-label="Top View size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Top View">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Top View zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Top View">+</button>
       </div>
-      <button class="btn" data-reset-labels="top-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button>
+      <button class="btn" data-reset-plot="top-diagram" type="button">Reset Plot</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button>
     </div></div>
     <div class="card"><div class="canvas">
       <svg id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
@@ -273,7 +274,7 @@
       <tr><td>Roll-in Start Altitude (ft msl)</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
       <tr><td>Track Altitude (ft msl)</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
       <tr><td>Planned Release Altitude (ft msl)</td><td class="result-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</td></tr>
-      <tr><td>Roll-in Range (nm)</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
+      <tr><td>Base Distance (nm)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
       <tr><td>MAP (nm)</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
       <tr><td>IAA (deg)</td><td class="result-value" data-bdp-output="aimOffAngleDeg">—</td></tr>
       <tr><td>Roll-in Lead (deg)</td><td class="result-value" data-bdp-output="leadAngleDeg">—</td></tr>
@@ -282,7 +283,8 @@
       <tr><td>Bomb TOF (sec)</td><td class="result-value" data-bdp-output="bombTofSec">—</td></tr>
       <tr><td>MINALT (ft msl)</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
       <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
-    </table></div>
+    </table>
+    <div class="note" style="margin-top:10px">USAF Base Distance = Target-to-Base/Attack-Axis perpendicular distance. It is not the Shaft legacy Roll-in Distance (= Roll-in Range − Ground Range).</div></div>
   </section>
 
   <section class="section advanced-only">
@@ -295,8 +297,9 @@
         <tr><td>Track Point Altitude</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
         <tr><td>Roll-in Range</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
         <tr><td>Roll-in Slant Range</td><td class="result-value" data-bdp-output="rollInSlantNm">—</td></tr>
-        <tr><td>Base Distance</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
-        <tr><td>Roll-in Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
+        <tr><td>Base Distance (USAF)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
+        <tr><td>Roll-in Distance (Shaft legacy)</td><td class="result-value" data-bdp-output="rollInRangeProfileFitNm">—</td></tr>
+        <tr><td>Base Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
         <tr><td>Roll-in Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
         <tr><td>Ground Range</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
         <tr><td>MINALT</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
@@ -308,6 +311,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=e1a12cacf9df"></script>
+<script type="module" src="./bdp-app.mjs?v=103d2b6d8c02"></script>
 </body>
 </html>

@@ -155,11 +155,15 @@
     var targetElevationMslFt = raw.canonicalInputs.targetElevationMslFt;
     var initialAglFt = raw.public.resolvedInitialAltitudeMslFt - targetElevationMslFt;
     var rollInSlantNm = Math.hypot(initialAglFt / FTNM, raw.public.rollInRangeNm);
+    var baseDistanceSlantNm = Math.hypot(initialAglFt / FTNM, raw.public.rollInLateralSeparationNm);
     var publicResult = Object.assign({}, raw.public, {
       safetyReleaseMslFt: raw.public.nltReleaseMslFt,
       releaseSpeedKcas: raw.canonicalInputs.releaseSpeedKcas
     });
-    var localResult = Object.assign({}, raw.local, { rollInSlantNm: rollInSlantNm });
+    var localResult = Object.assign({}, raw.local, {
+      rollInSlantNm: rollInSlantNm,
+      baseDistanceSlantNm: baseDistanceSlantNm
+    });
 
     return {
       profileTitle: global.BDPV2Core.profileTitle(raw),

@@ -36,11 +36,12 @@
     changeTimers: {},
     bankLinked: true,
     fontScale: {
-      "z-diagram": 1,
-      "profile-diagram": 1,
-      "top-diagram": 1
+      "z-diagram": 1.5,
+      "profile-diagram": 1.5,
+      "top-diagram": 1.5
     },
     zoom: {
+      "z-diagram": 1,
       "profile-diagram": 1,
       "top-diagram": 1
     }
@@ -125,9 +126,10 @@
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
-    state.fontScale["z-diagram"] = 1;
-    state.fontScale["profile-diagram"] = 1;
-    state.fontScale["top-diagram"] = 1;
+    state.fontScale["z-diagram"] = 1.5;
+    state.fontScale["profile-diagram"] = 1.5;
+    state.fontScale["top-diagram"] = 1.5;
+    state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
     saveInput();
@@ -290,6 +292,7 @@
   }
 
   function applyAllZoom() {
+    applyZoom("z-diagram");
     applyZoom("profile-diagram");
     applyZoom("top-diagram");
   }
@@ -298,7 +301,7 @@
     var svg = document.getElementById(targetId);
     var toolbar = document.querySelector('[data-font-target="' + targetId + '"]');
     if (!svg || !toolbar) return;
-    var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1));
+    var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1.5));
     state.fontScale[targetId] = scale;
     if (typeof svg.querySelectorAll === "function") {
       Array.prototype.slice.call(svg.querySelectorAll("text")).forEach(function (element) {
@@ -338,6 +341,23 @@
     if (zExport) zExport.disabled = !availability.zAvailable;
     applyAllZoom();
     applyAllFontScale();
+  }
+
+  function resetPlot(targetId) {
+    if (!state.lastView) return;
+    var svg = document.getElementById(targetId);
+    if (!svg) return;
+    state.fontScale[targetId] = 1.5;
+    state.zoom[targetId] = 1;
+    if (targetId === "z-diagram") {
+      var zAvailable = global.BDPGraphRenderers.renderZ(svg, state.lastView);
+      var zExport = document.querySelector('[data-export-svg="z-diagram"]');
+      if (zExport) zExport.disabled = !zAvailable;
+    }
+    if (targetId === "profile-diagram") global.BDPGraphRenderers.renderProfile(svg, state.lastView);
+    if (targetId === "top-diagram") global.BDPGraphRenderers.renderTop(svg, state.lastView);
+    applyZoom(targetId);
+    applyFontScale(targetId);
   }
 
   async function calculate() {
@@ -446,7 +466,7 @@
       var targetId = toolbar.getAttribute("data-font-target");
       if (action === "out") state.fontScale[targetId] -= 0.1;
       if (action === "in") state.fontScale[targetId] += 0.1;
-      if (action === "reset") state.fontScale[targetId] = 1;
+      if (action === "reset") state.fontScale[targetId] = 1.5;
       applyFontScale(targetId);
     });
   });
@@ -458,9 +478,9 @@
     });
   });
 
-  Array.prototype.slice.call(document.querySelectorAll("[data-reset-labels]")).forEach(function (button) {
+  Array.prototype.slice.call(document.querySelectorAll("[data-reset-plot]")).forEach(function (button) {
     button.addEventListener("click", function () {
-      if (state.lastView) renderView(state.lastView);
+      resetPlot(button.getAttribute("data-reset-plot"));
     });
   });
 
