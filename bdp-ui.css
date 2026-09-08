@@ -28,14 +28,18 @@ button,input,select{font:inherit}
 .title-wrap h1{margin:0;font-size:clamp(22px,2.7vw,32px);letter-spacing:-.03em}
 .subtitle{margin-top:5px;color:var(--muted);font-size:12px}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.plot-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
-.control-group{
-  display:inline-flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--line);
-  border-radius:11px;background:var(--field)
+.plot-controls{
+  display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-end;align-items:center;
+  min-width:0;white-space:nowrap
 }
-.control-label{padding:0 5px;color:var(--muted);font-size:200%;line-height:1;font-weight:850}
-.control-group .btn{min-width:38px;min-height:32px;padding:5px 8px;background:var(--panel);font-size:200%;line-height:1}
-.control-group .scale-value{min-width:58px;font-variant-numeric:tabular-nums}
+.control-group{
+  display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);
+  border-radius:9px;background:var(--field)
+}
+.control-label{padding:0 2px;color:var(--muted);font-size:11px;line-height:1;font-weight:850}
+.control-group .btn{min-width:24px;min-height:28px;padding:2px 4px;background:var(--panel);font-size:12px;line-height:1}
+.control-group .scale-value{min-width:42px;font-variant-numeric:tabular-nums}
+.plot-controls>.btn{min-height:28px;padding:4px 6px;font-size:11px}
 .btn,.toggle{
   min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
   background:var(--panel);color:var(--text);font-weight:800;cursor:pointer
@@ -93,6 +97,8 @@ body.show-advanced section.advanced-only,body.show-advanced details.advanced-onl
 .card-title{margin:0;font-size:15px;color:var(--muted);font-weight:850}
 .canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
 .canvas>svg{display:block;width:100%;height:auto;min-width:0;margin-inline:auto;background:#fff}
+.canvas>svg.plot-pan-enabled{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.canvas>svg.plot-panning{cursor:grabbing}
 #z-diagram{max-width:650px}
 #profile-diagram,#top-diagram{max-width:900px}
 svg text{font-family:inherit}
@@ -113,6 +119,8 @@ svg text{font-family:inherit}
   .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
   .grid,.grid.profile{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
   input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
-  .section-head{align-items:flex-start}.plot-controls{justify-content:flex-start}
+  .section-head{align-items:flex-start}
+  .plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
 }
 @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-change{transition:none}}

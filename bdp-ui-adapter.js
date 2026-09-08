@@ -2,6 +2,7 @@
   "use strict";
 
   var STORAGE_KEY = "bdp-common-ui-preview-v2-provider-v1";
+  var FONT_BASE_MULTIPLIER = 1.5;
   var DEFAULTS = Object.freeze({
     weaponId: "M82",
     targetElevationMslFt: "31",
@@ -36,14 +37,19 @@
     changeTimers: {},
     bankLinked: true,
     fontScale: {
-      "z-diagram": 1.5,
-      "profile-diagram": 1.5,
-      "top-diagram": 1.5
+      "z-diagram": 1,
+      "profile-diagram": 1,
+      "top-diagram": 1
     },
     zoom: {
       "z-diagram": 1,
       "profile-diagram": 1,
       "top-diagram": 1
+    },
+    pan: {
+      "z-diagram": { x: 0, y: 0 },
+      "profile-diagram": { x: 0, y: 0 },
+      "top-diagram": { x: 0, y: 0 }
     }
   };
 
@@ -126,12 +132,15 @@
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
-    state.fontScale["z-diagram"] = 1.5;
-    state.fontScale["profile-diagram"] = 1.5;
-    state.fontScale["top-diagram"] = 1.5;
+    state.fontScale["z-diagram"] = 1;
+    state.fontScale["profile-diagram"] = 1;
+    state.fontScale["top-diagram"] = 1;
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
+    state.pan["z-diagram"] = { x: 0, y: 0 };
+    state.pan["profile-diagram"] = { x: 0, y: 0 };
+    state.pan["top-diagram"] = { x: 0, y: 0 };
     saveInput();
     calculate();
   }
@@ -280,9 +289,24 @@
     state.zoom[targetId] = zoom;
     var width = base[2] / zoom;
     var height = base[3] / zoom;
-    var x = base[0] + (base[2] - width) / 2;
-    var y = base[1] + (base[3] - height) / 2;
+    var pan = state.pan[targetId] || { x: 0, y: 0 };
+    var maxPanX = Math.max(0, (base[2] - width) / 2);
+    var maxPanY = Math.max(0, (base[3] - height) / 2);
+    if (zoom <= 1) {
+      pan.x = 0;
+      pan.y = 0;
+    }
+    pan.x = Math.max(-maxPanX, Math.min(maxPanX, Number(pan.x) || 0));
+    pan.y = Math.max(-maxPanY, Math.min(maxPanY, Number(pan.y) || 0));
+    state.pan[targetId] = pan;
+    var x = base[0] + (base[2] - width) / 2 + pan.x;
+    var y = base[1] + (base[3] - height) / 2 + pan.y;
     svg.setAttribute("viewBox", [x, y, width, height].join(" "));
+    if (zoom > 1) svg.classList.add("plot-pan-enabled");
+    else {
+      svg.classList.remove("plot-pan-enabled");
+      svg.classList.remove("plot-panning");
+    }
     var valueButton = toolbar.querySelector('[data-zoom="reset"]');
     var outButton = toolbar.querySelector('[data-zoom="out"]');
     var inButton = toolbar.querySelector('[data-zoom="in"]');
@@ -297,11 +321,67 @@
     applyZoom("top-diagram");
   }
 
+  function bindPlotPan(targetId) {
+    var svg = document.getElementById(targetId);
+    if (!svg || svg.__bdpPlotPanBound) return;
+    svg.__bdpPlotPanBound = true;
+    var active = null;
+
+    svg.addEventListener("pointerdown", function (event) {
+      if ((state.zoom[targetId] || 1) <= 1) return;
+      if (event.button !== undefined && event.button !== 0) return;
+      var eventTarget = event.target;
+      if (eventTarget && typeof eventTarget.closest === "function" && eventTarget.closest(".movable-label")) return;
+      var viewport = (svg.getAttribute("viewBox") || "").split(/\s+/).map(Number);
+      var bounds = typeof svg.getBoundingClientRect === "function"
+        ? svg.getBoundingClientRect()
+        : { width: viewport[2], height: viewport[3] };
+      if (viewport.length !== 4 || !bounds.width || !bounds.height) return;
+      var pan = state.pan[targetId] || { x: 0, y: 0 };
+      active = {
+        pointerId: event.pointerId,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        panX: pan.x,
+        panY: pan.y,
+        unitsPerPixelX: viewport[2] / bounds.width,
+        unitsPerPixelY: viewport[3] / bounds.height
+      };
+      if (event.preventDefault) event.preventDefault();
+      svg.classList.add("plot-panning");
+      if (typeof svg.setPointerCapture === "function") {
+        try { svg.setPointerCapture(event.pointerId); } catch (error) { /* pointer stream may already be ending */ }
+      }
+    });
+
+    svg.addEventListener("pointermove", function (event) {
+      if (!active || event.pointerId !== active.pointerId) return;
+      if (event.preventDefault) event.preventDefault();
+      state.pan[targetId] = {
+        x: active.panX - (event.clientX - active.clientX) * active.unitsPerPixelX,
+        y: active.panY - (event.clientY - active.clientY) * active.unitsPerPixelY
+      };
+      applyZoom(targetId);
+    });
+
+    function finish(event) {
+      if (!active || event.pointerId !== active.pointerId) return;
+      active = null;
+      svg.classList.remove("plot-panning");
+      if (typeof svg.releasePointerCapture === "function") {
+        try { svg.releasePointerCapture(event.pointerId); } catch (error) { /* capture may already be released */ }
+      }
+    }
+
+    svg.addEventListener("pointerup", finish);
+    svg.addEventListener("pointercancel", finish);
+  }
+
   function applyFontScale(targetId) {
     var svg = document.getElementById(targetId);
     var toolbar = document.querySelector('[data-font-target="' + targetId + '"]');
     if (!svg || !toolbar) return;
-    var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1.5));
+    var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1));
     state.fontScale[targetId] = scale;
     if (typeof svg.querySelectorAll === "function") {
       Array.prototype.slice.call(svg.querySelectorAll("text")).forEach(function (element) {
@@ -311,7 +391,7 @@
           if (!Number.isFinite(baseSize)) baseSize = 14;
           if (element.dataset) element.dataset.baseFontSize = String(baseSize);
         }
-        element.setAttribute("font-size", (baseSize * scale).toFixed(2));
+        element.setAttribute("font-size", (baseSize * FONT_BASE_MULTIPLIER * scale).toFixed(2));
       });
     }
     var valueButton = toolbar.querySelector('[data-font-scale="reset"]');
@@ -347,8 +427,9 @@
     if (!state.lastView) return;
     var svg = document.getElementById(targetId);
     if (!svg) return;
-    state.fontScale[targetId] = 1.5;
+    state.fontScale[targetId] = 1;
     state.zoom[targetId] = 1;
+    state.pan[targetId] = { x: 0, y: 0 };
     if (targetId === "z-diagram") {
       var zAvailable = global.BDPGraphRenderers.renderZ(svg, state.lastView);
       var zExport = document.querySelector('[data-export-svg="z-diagram"]');
@@ -454,7 +535,10 @@
       var targetId = toolbar.getAttribute("data-zoom-target");
       if (action === "out") state.zoom[targetId] -= 0.25;
       if (action === "in") state.zoom[targetId] += 0.25;
-      if (action === "reset") state.zoom[targetId] = 1;
+      if (action === "reset") {
+        state.zoom[targetId] = 1;
+        state.pan[targetId] = { x: 0, y: 0 };
+      }
       applyZoom(targetId);
     });
   });
@@ -466,7 +550,7 @@
       var targetId = toolbar.getAttribute("data-font-target");
       if (action === "out") state.fontScale[targetId] -= 0.1;
       if (action === "in") state.fontScale[targetId] += 0.1;
-      if (action === "reset") state.fontScale[targetId] = 1.5;
+      if (action === "reset") state.fontScale[targetId] = 1;
       applyFontScale(targetId);
     });
   });
@@ -483,6 +567,8 @@
       resetPlot(button.getAttribute("data-reset-plot"));
     });
   });
+
+  ["z-diagram", "profile-diagram", "top-diagram"].forEach(bindPlotPan);
 
   loadInput();
   solveModeNode.dataset.mode = "initialAltitude";

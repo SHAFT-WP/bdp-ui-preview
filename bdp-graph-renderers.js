@@ -12,7 +12,8 @@
       aimOffAngle: "IAA",
       baseDistance: "Base Distance",
       baseLongitudinalDistance: "Base Longitudinal Distance",
-      baseLeg: "Base",
+      baseLateralDistance: "Base Lateral Distance",
+      initialSpeed: "Initial Speed",
       rollInStart: "Roll-in Point",
       trackPoint: "Track Point",
       leadAngle: "Roll-in Lead",
@@ -98,7 +99,7 @@
   function renderUnavailable(svg, titleValue, detail) {
     svg.setAttribute("viewBox", "0 0 650 220");
     svg.dataset.baseViewBox = "0 0 650 220";
-    append(svg, "rect", { width: 650, height: 220, fill: "#fff" });
+    append(svg, "rect", { width: 650, height: 220, fill: "#fff", "data-plot-background": "true" });
     text(svg, 325, 88, titleValue, {
       "text-anchor": "middle",
       "font-size": 24,
@@ -152,7 +153,7 @@
 
     svg.setAttribute("viewBox", "0 0 650 620");
     svg.dataset.baseViewBox = "0 0 650 620";
-    append(svg, "rect", { width: 650, height: 620, fill: "#fff" });
+    append(svg, "rect", { width: 650, height: 620, fill: "#fff", "data-plot-background": "true" });
 
     var left = 50;
     var topX = 360;
@@ -316,7 +317,7 @@
   }
 
   function placeholder(svg, label) {
-    append(svg, "rect", { width: "100%", height: "100%", fill: "#fff" });
+    append(svg, "rect", { width: "100%", height: "100%", fill: "#fff", "data-plot-background": "true" });
     text(svg, 450, 300, label, {
       "text-anchor": "middle",
       "font-size": 20,
@@ -329,7 +330,7 @@
     svg.replaceChildren();
     svg.setAttribute("viewBox", "0 0 900 620");
     svg.dataset.baseViewBox = "0 0 900 620";
-    append(svg, "rect", { width: 900, height: 620, fill: "#fff" });
+    append(svg, "rect", { width: 900, height: 620, fill: "#fff", "data-plot-background": "true" });
 
     var visual = view.visualization && view.visualization.profile;
     if (!visual || !visual.points) {
@@ -495,7 +496,7 @@
     svg.replaceChildren();
     svg.setAttribute("viewBox", "0 0 900 620");
     svg.dataset.baseViewBox = "0 0 900 620";
-    append(svg, "rect", { width: 900, height: 620, fill: "#fff" });
+    append(svg, "rect", { width: 900, height: 620, fill: "#fff", "data-plot-background": "true" });
 
     var visual = view.visualization && view.visualization.top;
     if (!visual || !visual.points) {
@@ -548,27 +549,40 @@
     point(svg, p.trackPoint, "#c85ac8", 6);
     append(svg, "circle", { cx: p.target.x, cy: p.target.y, r: 7, fill: "#d64b4b" });
 
-    text(svg, 48, 46, terms.baseLeg, { fill: "#2f6fc2", "font-size": 16, class: "label-halo" });
-    text(svg, 48, 69, format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl · " + format(view.public.resolvedInitialSpeedKcas, 0) + " kcas", {
+    movableText(svg, (p.initial.x + p.rollInStart.x) / 2, p.rollInStart.y - 20,
+      terms.initialSpeed + ": " + format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
+      "top-initial-speed", {
+      "text-anchor": "middle",
       fill: "#203a63",
       "font-size": 13,
       class: "label-halo"
     });
-    text(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg", {
+    movableText(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg", "top-context", {
       "text-anchor": "end",
       fill: "#203a63",
-      "font-size": 14,
+      "font-size": 13,
       class: "label-halo"
     });
+    movableText(svg, 852, 70, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg", "top-context", {
+      "text-anchor": "end",
+      fill: "#203a63",
+      "font-size": 13,
+      class: "label-halo"
+    });
+    var windSpeedKt = finite(view.input.windSpeedKt, 0);
+    if (Math.abs(windSpeedKt) > 0.0001) {
+      movableText(svg, 852, 94,
+        "Wind: " + format(view.input.windDirectionDeg, 0) + " deg from · " + format(Math.abs(windSpeedKt), 0) + " kt",
+        "top-context", {
+          "text-anchor": "end",
+          fill: "#203a63",
+          "font-size": 13,
+          class: "label-halo"
+        });
+    }
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
     text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", class: "label-halo" });
-    text(svg, 852, p.target.y - 37, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg", {
-      "text-anchor": "end",
-      fill: "#203a63",
-      "font-size": 17,
-      class: "label-halo"
-    });
     text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
       fill: "#d64b4b",
       "font-size": 13,
@@ -582,23 +596,46 @@
     });
 
     var dimFar = finite(visual.dimensionFarX, 866);
-    [p.rollInStart, p.trackPoint, p.target].forEach(function (value) {
+    [p.rollInStart, p.target].forEach(function (value) {
       line(svg, value.x, value.y, dimFar, value.y, {
         stroke: "#6f98d8",
         "stroke-width": 1.2,
-        "stroke-dasharray": "5 4"
+        "stroke-dasharray": "5 4",
+        "data-top-guide": "base-distance"
       });
     });
     line(svg, dimFar, p.rollInStart.y, dimFar, p.target.y, {
       stroke: "#2f6fc2",
       "stroke-width": 1.5,
       "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)"
+      "marker-end": "url(#top-dim-arrow)",
+      "data-top-dimension": "base-distance"
     });
-    dimensionValue(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2 - 10,
+    dimensionValue(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2 - 70,
       terms.baseDistance,
       format(view.public.rollInLateralSeparationNm, 1) + " nm",
       "top-base-distance", { "text-anchor": "end", fill: "#2f6fc2" });
+
+    var dimNear = finite(visual.dimensionNearX, 810);
+    [p.rollInStart, p.trackPoint].forEach(function (value) {
+      line(svg, value.x, value.y, dimNear, value.y, {
+        stroke: "#6f98d8",
+        "stroke-width": 1.2,
+        "stroke-dasharray": "5 4",
+        "data-top-guide": "base-lateral-distance"
+      });
+    });
+    line(svg, dimNear, p.rollInStart.y, dimNear, p.trackPoint.y, {
+      stroke: "#2f6fc2",
+      "stroke-width": 1.5,
+      "marker-start": "url(#top-dim-arrow)",
+      "marker-end": "url(#top-dim-arrow)",
+      "data-top-dimension": "base-lateral-distance"
+    });
+    dimensionValue(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2 + 32,
+      terms.baseLateralDistance,
+      format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
+      "top-base-lateral", { "text-anchor": "end", fill: "#2f6fc2" });
 
     var longitudinalY = 570;
     [p.rollInStart, p.trackPoint].forEach(function (value) {
@@ -612,7 +649,8 @@
       stroke: "#2f6fc2",
       "stroke-width": 1.5,
       "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)"
+      "marker-end": "url(#top-dim-arrow)",
+      "data-top-dimension": "base-longitudinal-distance"
     });
     dimensionValue(svg, (p.rollInStart.x + p.trackPoint.x) / 2, longitudinalY - 42,
       terms.baseLongitudinalDistance,
