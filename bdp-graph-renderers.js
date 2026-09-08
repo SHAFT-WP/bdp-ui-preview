@@ -264,6 +264,32 @@
     });
   }
 
+  function angleArc(parent, center, radius, startAngle, endAngle, role, color) {
+    var tau = Math.PI * 2;
+    var delta = endAngle - startAngle;
+    while (delta <= -Math.PI) delta += tau;
+    while (delta > Math.PI) delta -= tau;
+    var resolvedEnd = startAngle + delta;
+    var start = {
+      x: center.x + radius * Math.cos(startAngle),
+      y: center.y + radius * Math.sin(startAngle)
+    };
+    var end = {
+      x: center.x + radius * Math.cos(resolvedEnd),
+      y: center.y + radius * Math.sin(resolvedEnd)
+    };
+    return append(parent, "path", {
+      d: "M" + start.x.toFixed(1) + "," + start.y.toFixed(1) +
+        " A" + radius + "," + radius + " 0 0 " + (delta >= 0 ? 1 : 0) +
+        " " + end.x.toFixed(1) + "," + end.y.toFixed(1),
+      fill: "none",
+      stroke: color,
+      "stroke-width": 2.2,
+      "stroke-linecap": "round",
+      "data-profile-angle": role
+    });
+  }
+
   function placeholder(svg, label) {
     append(svg, "rect", { width: "100%", height: "100%", fill: "#fff" });
     text(svg, 450, 300, label, {
@@ -290,10 +316,47 @@
     marker(defs, "profile-blue-arrow", "#176dac", 12);
     marker(defs, "profile-green-arrow", "#087b4c", 12);
     marker(defs, "profile-amber-arrow", "#a35d00", 12);
-    marker(defs, "profile-violet-arrow", "#7a4cb1", 12);
+    marker(defs, "profile-map-arrow", "#d64b4b", 12);
     addGrid(svg, 900, 620, 80, 70);
 
     var p = visual.points;
+    var groundY = p.target.y;
+    var dimensionY = 500;
+    var mapY = 570;
+    var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
+
+    line(svg, 48, groundY, 852, groundY, {
+      stroke: "#556270",
+      "stroke-width": 2,
+      "data-profile-line": "ground"
+    });
+
+    [
+      { point: p.trackPoint, endY: mapY },
+      { point: p.release, endY: dimensionY },
+      { point: p.target, endY: mapY },
+      { point: p.aimOff, endY: dimensionY, optional: true }
+    ].forEach(function (station) {
+      if (station.optional && !hasAod) return;
+      line(svg, station.point.x, station.point.y + 9, station.point.x, station.endY + 8, {
+        stroke: "#b45a5a",
+        "stroke-width": 1.1,
+        "stroke-dasharray": "5 5",
+        opacity: 0.58,
+        "data-profile-line": "station-projection"
+      });
+    });
+
+    line(svg, p.trackPoint.x, p.trackPoint.y, p.aimOff.x, p.aimOff.y, {
+      stroke: "#374151",
+      "stroke-width": 2.1,
+      "data-profile-line": "flight-path-reference"
+    });
+    line(svg, p.trackPoint.x, p.trackPoint.y, p.target.x, p.target.y, {
+      stroke: "#111827",
+      "stroke-width": 1.8,
+      "data-profile-line": "target-los"
+    });
     append(svg, "path", {
       d: pathFromPoints(visual.flightPath || [p.trackPoint, p.release]),
       fill: "none",
@@ -301,7 +364,7 @@
       "stroke-width": 4,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
-      "marker-end": "url(#profile-blue-arrow)"
+      "data-profile-path": "tracking"
     });
     append(svg, "path", {
       d: pathFromPoints(visual.bombPath || [p.release, p.target]),
@@ -310,23 +373,19 @@
       "stroke-width": 4,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
-      "marker-end": "url(#profile-green-arrow)"
-    });
-    line(svg, p.release.x, p.release.y, p.aimOff.x, p.aimOff.y, {
-      stroke: "#a35d00",
-      "stroke-width": 2.4,
-      "marker-end": "url(#profile-amber-arrow)"
+      "marker-end": "url(#profile-green-arrow)",
+      "data-profile-path": "bomb"
     });
 
     point(svg, p.trackPoint, "#176dac", 6);
     point(svg, p.release, "#a35d00", 6);
     point(svg, p.target, "#087b4c", 7);
-    point(svg, p.aimOff, "#176dac", 5);
+    if (hasAod) point(svg, p.aimOff, "#176dac", 5);
 
-    text(svg, p.trackPoint.x, p.trackPoint.y - 21, "Track Point", { "text-anchor": "middle", class: "label-halo" });
+    text(svg, p.trackPoint.x, p.trackPoint.y - 21, "Track Point (Rollout)", { "text-anchor": "middle", class: "label-halo" });
     text(svg, p.release.x, p.release.y - 21, "Release", { "text-anchor": "middle", class: "label-halo" });
     text(svg, p.target.x - 12, p.target.y - 16, "Target / Impact", { "text-anchor": "end", class: "label-halo" });
-    text(svg, 850, p.aimOff.y - 35, "Aim-off Point", { "text-anchor": "end", class: "label-halo" });
+    if (hasAod) text(svg, p.aimOff.x, p.aimOff.y + 28, "Aim-off Point", { "text-anchor": "middle", class: "label-halo" });
 
     text(svg, 42, 34, "Track Point Altitude: " + format(view.public.trackPointAltitudeMslFt, 0) + "ft MSL", {
       fill: "#203a63",
@@ -334,74 +393,86 @@
       "font-weight": 850,
       class: "label-halo"
     });
-    text(svg, 335, 225, "Dive Angle: " + format(view.input.diveAngleDeg, 0) + "°", {
-      fill: "#176dac",
-      "font-size": 13,
-      "font-weight": 850,
-      class: "label-halo"
-    });
-    text(svg, 545, 310, "Aim-off Angle (IAA): " + format(view.local.aimOffAngleDeg, 1) + "°", {
-      fill: "#a35d00",
-      "font-size": 12,
-      "font-weight": 850,
-      class: "label-halo"
-    });
 
-    line(svg, 72, p.trackPoint.y, 72, p.release.y, {
-      stroke: "#7a4cb1",
-      "stroke-width": 1.7,
-      "marker-start": "url(#profile-violet-arrow)",
-      "marker-end": "url(#profile-violet-arrow)"
-    });
-    text(svg, 88, (p.trackPoint.y + p.release.y) / 2, "Vertical Tracking Distance", {
-      transform: "rotate(-90 88 " + ((p.trackPoint.y + p.release.y) / 2) + ")",
-      "text-anchor": "middle",
-      fill: "#7a4cb1",
-      "font-size": 11.5,
-      class: "label-halo"
-    });
+    var fpaAngle = Math.atan2(p.aimOff.y - p.trackPoint.y, p.aimOff.x - p.trackPoint.x);
+    var losAngle = Math.atan2(p.target.y - p.trackPoint.y, p.target.x - p.trackPoint.x);
+    if (Math.abs(fpaAngle - losAngle) > 0.001) {
+      angleArc(svg, p.trackPoint, 70, fpaAngle, losAngle, "iaa", "#a35d00");
+    }
+    text(svg, p.trackPoint.x + 170, p.trackPoint.y + 58,
+      "IAA (Initial Aim-off Angle): " + format(view.local.aimOffAngleDeg, 1) + "°", {
+        "text-anchor": "middle",
+        fill: "#a35d00",
+        "font-size": 12,
+        "font-weight": 850,
+        class: "label-halo"
+      });
 
-    var dimY = 576;
-    line(svg, p.trackPoint.x, dimY, p.release.x, dimY, {
+    if (finite(view.input.diveAngleDeg, 0) > 0) {
+      angleArc(svg, p.aimOff, 56, Math.PI,
+        Math.atan2(p.trackPoint.y - p.aimOff.y, p.trackPoint.x - p.aimOff.x),
+        "dive-angle", "#176dac");
+      text(svg, p.aimOff.x - 128, p.aimOff.y - 54,
+        "Dive Angle: " + format(view.input.diveAngleDeg, 0) + "°", {
+          "text-anchor": "middle",
+          fill: "#176dac",
+          "font-size": 13,
+          "font-weight": 850,
+          class: "label-halo"
+        });
+    }
+
+    line(svg, p.trackPoint.x, dimensionY, p.release.x, dimensionY, {
       stroke: "#176dac",
       "stroke-width": 1.7,
       "marker-start": "url(#profile-blue-arrow)",
-      "marker-end": "url(#profile-blue-arrow)"
+      "marker-end": "url(#profile-blue-arrow)",
+      "data-profile-dimension": "tracking-distance"
     });
-    line(svg, p.release.x, dimY, p.target.x, dimY, {
+    line(svg, p.release.x, dimensionY, p.target.x, dimensionY, {
       stroke: "#087b4c",
       "stroke-width": 1.7,
       "marker-start": "url(#profile-green-arrow)",
-      "marker-end": "url(#profile-green-arrow)"
+      "marker-end": "url(#profile-green-arrow)",
+      "data-profile-dimension": "bomb-range"
     });
-    line(svg, p.target.x, dimY, p.aimOff.x, dimY, {
-      stroke: "#a35d00",
-      "stroke-width": 1.7,
-      "marker-start": "url(#profile-amber-arrow)",
-      "marker-end": "url(#profile-amber-arrow)"
-    });
-    text(svg, (p.trackPoint.x + p.release.x) / 2, dimY - 10, "Tracking Distance", {
+    if (hasAod) line(svg, p.target.x, dimensionY, p.aimOff.x, dimensionY, {
+        stroke: "#a35d00",
+        "stroke-width": 1.7,
+        "marker-start": "url(#profile-amber-arrow)",
+        "marker-end": "url(#profile-amber-arrow)",
+        "data-profile-dimension": "aod"
+      });
+    text(svg, (p.trackPoint.x + p.release.x) / 2, dimensionY - 10, "Tracking Distance", {
       "text-anchor": "middle",
       fill: "#176dac",
       "font-size": 12,
       class: "label-halo"
     });
-    text(svg, (p.release.x + p.target.x) / 2, dimY - 10, "Bomb Range", {
+    text(svg, (p.release.x + p.target.x) / 2, dimensionY - 10, "Bomb Range", {
       "text-anchor": "middle",
       fill: "#087b4c",
       "font-size": 12,
       class: "label-halo"
     });
-    text(svg, (p.target.x + p.aimOff.x) / 2, dimY - 10, "AOD", {
+    if (hasAod) text(svg, (p.target.x + p.aimOff.x) / 2, dimensionY - 10, "AOD", {
       "text-anchor": "middle",
       fill: "#a35d00",
       "font-size": 11,
       class: "label-halo"
     });
-    text(svg, 620, 608, "Ground Range (MAP): " + format(view.public.groundRangeNm, 2) + "nm", {
+    line(svg, p.trackPoint.x, mapY, p.target.x, mapY, {
+      stroke: "#d64b4b",
+      "stroke-width": 1.7,
+      "marker-start": "url(#profile-map-arrow)",
+      "marker-end": "url(#profile-map-arrow)",
+      "data-profile-dimension": "map-ground-range"
+    });
+    text(svg, (p.trackPoint.x + p.target.x) / 2, mapY - 10, "MAP (Ground Range)", {
       "text-anchor": "middle",
-      fill: "#687787",
-      "font-size": 11.5,
+      fill: "#d64b4b",
+      "font-size": 12,
+      "font-weight": 850,
       class: "label-halo"
     });
     return true;

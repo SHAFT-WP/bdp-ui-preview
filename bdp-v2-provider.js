@@ -43,29 +43,25 @@
     var result = raw.public;
     var local = raw.local;
     var input = raw.canonicalInputs;
-    var plot = { left: 105, right: 825, top: 80, bottom: 535 };
+    var plot = { left: 80, right: 830, top: 95, bottom: 390 };
     var trackAglFt = result.trackPointAltitudeMslFt - input.targetElevationMslFt;
     var releaseAglFt = result.effectiveReleaseAltitudeMslFt - input.targetElevationMslFt;
-    var trackingNm = result.downRangeTravelNm;
-    var groundRangeNm = result.groundRangeNm;
-    var aimOffDistanceNm = Number.isFinite(local.aimOffDistanceNm) ? local.aimOffDistanceNm : 0;
-    var aimOffRangeNm = groundRangeNm + aimOffDistanceNm;
-    var maxDistanceNm = Math.max(groundRangeNm, aimOffRangeNm, trackingNm + result.bombRangeNm, 0.001);
+    var trackingFt = result.downRangeTravelNm * FTNM;
+    var groundRangeFt = result.groundRangeNm * FTNM;
+    var bombRangeFt = result.bombRangeNm * FTNM;
+    var aimOffDistanceFt = Number.isFinite(local.aimOffDistanceNm) ? local.aimOffDistanceNm * FTNM : 0;
+    var aimOffRangeFt = groundRangeFt + aimOffDistanceFt;
+    var maxDistanceFt = Math.max(groundRangeFt, aimOffRangeFt, trackingFt + bombRangeFt, 1);
     var maxAltitudeFt = Math.max(trackAglFt, releaseAglFt, 1);
-    var scale = Math.min(
-      (plot.right - plot.left) / maxDistanceNm,
-      (plot.bottom - plot.top) / maxAltitudeFt
-    );
-    var usedWidth = maxDistanceNm * scale;
-    var usedHeight = maxAltitudeFt * scale;
-    var originX = plot.left + ((plot.right - plot.left) - usedWidth) / 2;
-    var groundY = plot.top + usedHeight;
-    var x = function (distanceNm) { return originX + distanceNm * scale; };
-    var y = function (altitudeAglFt) { return groundY - altitudeAglFt * scale; };
+    var horizontalScale = (plot.right - plot.left) / maxDistanceFt;
+    var verticalScale = (plot.bottom - plot.top) / maxAltitudeFt;
+    var groundY = plot.bottom;
+    var x = function (distanceFt) { return plot.left + distanceFt * horizontalScale; };
+    var y = function (altitudeAglFt) { return groundY - altitudeAglFt * verticalScale; };
     var trackPoint = { x: x(0), y: y(trackAglFt) };
-    var release = { x: x(trackingNm), y: y(releaseAglFt) };
-    var target = { x: x(groundRangeNm), y: groundY };
-    var aimOff = { x: x(aimOffRangeNm), y: groundY };
+    var release = { x: x(trackingFt), y: y(releaseAglFt) };
+    var target = { x: x(groundRangeFt), y: groundY };
+    var aimOff = { x: x(aimOffRangeFt), y: groundY };
     var bombSamples = raw.visualization.bombTrajectorySamples || [];
 
     return {
@@ -76,9 +72,11 @@
         aimOff: aimOff
       },
       flightPath: [trackPoint, release],
+      flightPathReference: [trackPoint, aimOff],
+      targetLineOfSight: [trackPoint, target],
       bombPath: bombSamples.map(function (sample) {
         return {
-          x: x(trackingNm + sample.downRangeNm),
+          x: x(trackingFt + sample.downRangeNm * FTNM),
           y: y(sample.altitudeAglFt)
         };
       })
