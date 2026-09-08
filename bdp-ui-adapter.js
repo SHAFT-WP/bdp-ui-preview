@@ -41,6 +41,9 @@
       "profile-diagram": 1,
       "top-diagram": 1
     },
+    resultFontScale: {
+      "result-layout-2": 1
+    },
     zoom: {
       "z-diagram": 1,
       "profile-diagram": 1,
@@ -72,11 +75,14 @@
   function dependentFlash(element) {
     global.clearTimeout(element.__bdpDependentTimer);
     element.classList.remove("value-dependent-change");
-    void element.offsetWidth;
-    element.classList.add("value-dependent-change");
-    element.__bdpDependentTimer = global.setTimeout(function () {
-      element.classList.remove("value-dependent-change");
-    }, 1250);
+    element.classList.add("value-dependent-input");
+  }
+
+  function confirmDependentInput(key) {
+    controls(key).forEach(function (element) {
+      global.clearTimeout(element.__bdpDependentTimer);
+      element.classList.remove("value-dependent-input");
+    });
   }
 
   function setControls(key, value, except, flash) {
@@ -135,12 +141,16 @@
     state.fontScale["z-diagram"] = 1;
     state.fontScale["profile-diagram"] = 1;
     state.fontScale["top-diagram"] = 1;
+    state.resultFontScale["result-layout-2"] = 1;
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
     state.pan["z-diagram"] = { x: 0, y: 0 };
     state.pan["profile-diagram"] = { x: 0, y: 0 };
     state.pan["top-diagram"] = { x: 0, y: 0 };
+    Array.prototype.slice.call(document.querySelectorAll(".value-dependent-input")).forEach(function (element) {
+      element.classList.remove("value-dependent-input");
+    });
     saveInput();
     calculate();
   }
@@ -216,9 +226,9 @@
     setOutput("groundRangeNm", numberText(result.groundRangeNm, 1, "nm"));
     setOutput("downRangeTravelNm", numberText(result.downRangeTravelNm, 3, "nm"));
     setOutput("bombRangeNm", numberText(result.bombRangeNm, 3, "nm"));
-    setOutput("trackingTimeSec", numberText(result.trackingTimeSec, 2, "sec"));
-    setOutput("bombTofSec", numberText(result.bombTofSec, 2, "sec"));
-    setOutput("rollInRadiusTime", numberText(result.rollInRadiusNm, 3, "nm") + " / " + numberText(result.rollInTimeSec, 2, "sec"));
+    setOutput("trackingTimeSec", numberText(result.trackingTimeSec, 0, "sec"));
+    setOutput("bombTofSec", numberText(result.bombTofSec, 0, "sec"));
+    setOutput("rollInRadiusTime", numberText(result.rollInRadiusNm, 3, "nm") + " / " + numberText(result.rollInTimeSec, 0, "sec"));
     setOutput("rollInGroundArcNm", numberText(result.rollInGroundArcNm, 3, "nm"));
     setOutput("rollInDisplacement", numberText(result.rollInDisplacement && result.rollInDisplacement.forwardNm, 3, "") + " / " + numberText(result.rollInDisplacement && result.rollInDisplacement.turnSideNm, 3, "nm"));
     setOutput("rollInLateralSeparationNm", numberText(result.rollInLateralSeparationNm, 3, "nm"));
@@ -247,7 +257,7 @@
     }
     var trackingTime = Number(result.trackingTimeSec);
     if (Number.isFinite(trackingTime)) {
-      setControls("trackingTimeSec", trackingTime.toFixed(2), null, state.hasRendered);
+      setControls("trackingTimeSec", Math.round(trackingTime), null, state.hasRendered);
     }
   }
 
@@ -408,6 +418,25 @@
     applyFontScale("top-diagram");
   }
 
+  function applyResultFontScale(targetId) {
+    var target = document.getElementById(targetId);
+    var toolbar = document.querySelector('[data-result-font-target="' + targetId + '"]');
+    if (!target || !toolbar) return;
+    var scale = Math.max(0.5, Math.min(2, state.resultFontScale[targetId] || 1));
+    state.resultFontScale[targetId] = scale;
+    target.style.fontSize = (13 * scale).toFixed(2) + "px";
+    var valueButton = toolbar.querySelector('[data-result-font-scale="reset"]');
+    var outButton = toolbar.querySelector('[data-result-font-scale="out"]');
+    var inButton = toolbar.querySelector('[data-result-font-scale="in"]');
+    if (valueButton) valueButton.textContent = Math.round(scale * 100) + "%";
+    if (outButton) outButton.disabled = scale <= 0.5;
+    if (inButton) inButton.disabled = scale >= 2;
+  }
+
+  function applyAllResultFontScale() {
+    applyResultFontScale("result-layout-2");
+  }
+
   function renderView(view) {
     state.lastView = view;
     syncSolvedInputs(view);
@@ -421,6 +450,7 @@
     if (zExport) zExport.disabled = !availability.zAvailable;
     applyAllZoom();
     applyAllFontScale();
+    applyAllResultFontScale();
   }
 
   function resetPlot(targetId) {
@@ -498,6 +528,16 @@
   if (defaultButton) defaultButton.addEventListener("click", resetInput);
   if (calculateButton) calculateButton.addEventListener("click", calculate);
 
+  app.addEventListener("keydown", function (event) {
+    if (!event || event.key !== "Enter") return;
+    var key = event.target && event.target.getAttribute("data-bdp-input");
+    if (!key) return;
+    confirmDependentInput(key);
+    global.clearTimeout(app.__bdpInputTimer);
+    saveInput();
+    calculate();
+  });
+
   app.addEventListener("input", function (event) {
     var key = event.target && event.target.getAttribute("data-bdp-input");
     if (!key) return;
@@ -552,6 +592,18 @@
       if (action === "in") state.fontScale[targetId] += 0.1;
       if (action === "reset") state.fontScale[targetId] = 1;
       applyFontScale(targetId);
+    });
+  });
+
+  Array.prototype.slice.call(document.querySelectorAll("[data-result-font-target]")).forEach(function (toolbar) {
+    toolbar.addEventListener("click", function (event) {
+      var action = event.target && event.target.getAttribute("data-result-font-scale");
+      if (!action) return;
+      var targetId = toolbar.getAttribute("data-result-font-target");
+      if (action === "out") state.resultFontScale[targetId] -= 0.1;
+      if (action === "in") state.resultFontScale[targetId] += 0.1;
+      if (action === "reset") state.resultFontScale[targetId] = 1;
+      applyResultFontScale(targetId);
     });
   });
 

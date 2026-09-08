@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=36ac73d6020e">
-  <link rel="stylesheet" href="./bdp-ui.css?v=36ac73d6020e">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=7ef70141bb95">
+  <link rel="stylesheet" href="./bdp-ui.css?v=7ef70141bb95">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
       color-scheme:dark;
       --bg:#0f141b;--panel:#18212b;--field:#202b37;--text:#edf3f8;
       --muted:#9aa8b6;--line:#314151;--blue:#79bdf0;--blue-soft:#15354e;
-      --violet:#b9a6df;--violet-soft:#2b2637;--green:#65d49d;--amber:#ffbd62;
+      --violet:#b9a6df;--violet-soft:#2b2637;--green:#65d49d;--amber:#ffbd62;--amber-soft:#3a2a12;
       --value-input:var(--text);--value-result:var(--blue);--value-result-bg:var(--blue-soft);
+      --value-dependent-input:var(--amber);--value-dependent-input-bg:var(--amber-soft);
       --value-dependent-change:var(--violet);--value-dependent-change-bg:var(--violet-soft);--radius:14px;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif
     }
@@ -65,7 +66,8 @@
     section.advanced-only,details.advanced-only{display:none}
     body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
     .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
-    .dep-flash,.value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
+    .dep-flash,.value-dependent-input{color:var(--amber)!important;background:var(--amber-soft)!important}
+    .value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
     svg .value-dependent-change{fill:var(--violet)!important;transition:fill 1.25s ease}
     .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:14px}
     .canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -83,11 +85,17 @@
     .result-table td:first-child{width:38%;color:var(--muted)}
     .result-value,.value-result{color:var(--blue);font-weight:850;background:var(--blue-soft)}
     .result-summary td:first-child{width:52%}
+    .result-layout-2{font-size:13px}
+    .result-layout-2-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)}
+    .result-compact-item{display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,auto);align-items:center;gap:8px;min-height:58px;padding:8px 10px;background:var(--panel)}
+    .result-compact-label{color:var(--muted);font-size:.92em;line-height:1.15;font-weight:750}
+    .result-compact-value{display:inline-flex;align-items:center;justify-content:flex-end;min-height:30px;padding:4px 6px;border-radius:7px;font-size:1em;line-height:1.1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     svg .value-result{fill:var(--blue)}
     .note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
     @media(max-width:1040px){
       .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .result-layout-2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
     @media(max-width:620px){
       .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
@@ -95,8 +103,11 @@
       input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
       .section-head{align-items:flex-start}.plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
       .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
+      .result-layout-2-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+      .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
+      .result-compact-value{justify-content:flex-start;text-align:left}
     }
-    @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-change,svg .value-dependent-change{transition:none}}
+    @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-input,.value-dependent-change,svg .value-dependent-change{transition:none}}
   </style>
 </head>
 <body>
@@ -292,6 +303,34 @@
     <div class="note" style="margin-top:10px">Base Distance = Target-to-pre-roll-in Base-axis perpendicular distance. Base Lateral Distance = Roll-in Point→Track Point lateral component. Neither is the Shaft legacy Roll-in Distance (= Roll-in Range − Ground Range).</div></div>
   </section>
 
+  <section class="section">
+    <div class="section-head result-layout-2-head">
+      <h2>Result — Layout 2</h2>
+      <div class="control-group" data-result-font-target="result-layout-2" aria-label="Result Layout 2 text size">
+        <span class="control-label">Text</span><button class="btn" data-result-font-scale="out" type="button" aria-label="Decrease Result Layout 2 text">-</button><button class="btn scale-value" data-result-font-scale="reset" type="button" aria-label="Reset Result Layout 2 text size">100%</button><button class="btn" data-result-font-scale="in" type="button" aria-label="Increase Result Layout 2 text">+</button>
+      </div>
+    </div>
+    <div class="card result-layout-2" id="result-layout-2">
+      <div class="result-layout-2-grid">
+        <div class="result-compact-item"><span class="result-compact-label">Profile</span><output class="result-value result-compact-value" data-bdp-output="profileTitle">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Attack Heading</span><output class="result-value result-compact-value" data-bdp-output="attackHeadingDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Start<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Track<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="trackPointAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Planned Release<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Base Distance</span><output class="result-value result-compact-value" data-bdp-output="baseDistanceNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Base Lateral<br>Distance</span><output class="result-value result-compact-value" data-bdp-output="rollInLateralDistanceNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">MAP</span><output class="result-value result-compact-value" data-bdp-output="groundRangeNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">IAA</span><output class="result-value result-compact-value" data-bdp-output="aimOffAngleDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lead</span><output class="result-value result-compact-value" data-bdp-output="leadAngleDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Tracking Time</span><output class="result-value result-compact-value" data-bdp-output="trackingTimeSec">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Bomb Range</span><output class="result-value result-compact-value" data-bdp-output="bombRangeNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Bomb TOF</span><output class="result-value result-compact-value" data-bdp-output="bombTofSec">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">MINALT</span><output class="result-value result-compact-value" data-bdp-output="minAltResultMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label" data-safety-release-result-label>NLT Release</span><output class="result-value result-compact-value" data-bdp-output="safetyReleaseResultMslFt">—</output></div>
+      </div>
+    </div>
+  </section>
+
   <section class="section advanced-only">
     <div class="section-head"><h2>Detailed Result <span class="adv-tag">ADV</span></h2></div>
     <div class="card">
@@ -316,6 +355,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=36ac73d6020e"></script>
+<script type="module" src="./bdp-app.mjs?v=7ef70141bb95"></script>
 </body>
 </html>

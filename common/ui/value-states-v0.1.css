@@ -8,6 +8,11 @@
   background-color: var(--value-result-bg, transparent);
 }
 
+.value-dependent-input {
+  color: var(--value-dependent-input) !important;
+  background-color: var(--value-dependent-input-bg, transparent) !important;
+}
+
 .value-dependent-change {
   color: var(--value-dependent-change) !important;
   background-color: var(--value-dependent-change-bg, transparent) !important;
@@ -26,6 +31,7 @@ svg .value-dependent-change {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .value-dependent-input,
   .value-dependent-change,
   svg .value-dependent-change {
     transition: none;

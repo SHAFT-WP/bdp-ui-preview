@@ -169,7 +169,7 @@
     var terms = TERMINOLOGY.USAF;
     var one = function (label, value) { return label + ": " + value; };
 
-    movableText(svg, 325, 38, profileTitle(view), "z-title", {
+    movableText(svg, 325, 32, profileTitle(view), "z-title", {
       "text-anchor": "middle",
       "font-size": 27,
       "font-weight": 900
