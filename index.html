@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=c80e937b0b3b">
-  <link rel="stylesheet" href="./bdp-ui.css?v=c80e937b0b3b">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=e1a12cacf9df">
+  <link rel="stylesheet" href="./bdp-ui.css?v=e1a12cacf9df">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -14,8 +14,8 @@
       --bg:#0f141b;--panel:#18212b;--field:#202b37;--text:#edf3f8;
       --muted:#9aa8b6;--line:#314151;--blue:#79bdf0;--blue-soft:#15354e;
       --violet:#b9a6df;--violet-soft:#2b2637;--green:#65d49d;--amber:#ffbd62;
-      --value-input:var(--text);--value-result:var(--blue);
-      --value-dependent-change:var(--violet);--radius:14px;
+      --value-input:var(--text);--value-result:var(--blue);--value-result-bg:var(--blue-soft);
+      --value-dependent-change:var(--violet);--value-dependent-change-bg:var(--violet-soft);--radius:14px;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif
     }
     *{box-sizing:border-box}
@@ -26,6 +26,11 @@
     .title-wrap h1{margin:0;font-size:clamp(22px,2.7vw,32px);letter-spacing:-.03em}
     .subtitle{margin-top:5px;color:var(--muted);font-size:12px}
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .plot-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+    .control-group{display:inline-flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--field)}
+    .control-label{padding:0 5px;color:var(--muted);font-size:11px;font-weight:850}
+    .control-group .btn{min-width:38px;min-height:32px;padding:5px 8px;background:var(--panel)}
+    .control-group .scale-value{min-width:58px;font-variant-numeric:tabular-nums}
     .btn,.toggle{min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel);color:var(--text);font-weight:800;cursor:pointer}
     .btn:disabled,.toggle:disabled{opacity:.45;cursor:not-allowed}
     .btn:focus-visible,.toggle:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid rgba(121,189,240,.25);outline-offset:2px}
@@ -60,7 +65,7 @@
     section.advanced-only,details.advanced-only{display:none}
     body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
     .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
-    .dep-flash,.value-dependent-change{color:var(--violet)!important;transition:color 1.25s ease}
+    .dep-flash,.value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
     svg .value-dependent-change{fill:var(--violet)!important;transition:fill 1.25s ease}
     .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:14px}
     .canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -71,26 +76,22 @@
     .movable-label{cursor:grab;touch-action:none;user-select:none}
     .movable-label.dragging{cursor:grabbing}
     .label-halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
-    .remark{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .remark-item{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--panel)}
-    .remark-item b{display:block;margin-bottom:5px}
-    .remark-item span{color:var(--muted);font-size:12px}
     .result-table{width:100%;border-collapse:collapse}
     .result-table td{padding:11px 10px;border-bottom:1px solid var(--line)}
     .result-table td:first-child{width:38%;color:var(--muted)}
-    .result-value,.value-result{color:var(--blue);font-weight:850;background:rgba(21,53,78,.64)}
+    .result-value,.value-result{color:var(--blue);font-weight:850;background:var(--blue-soft)}
+    .result-summary td:first-child{width:52%}
     svg .value-result{fill:var(--blue)}
     .note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
     @media(max-width:1040px){
       .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .remark{grid-template-columns:1fr 1fr}
     }
     @media(max-width:620px){
       .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
       .grid,.grid.profile{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
       input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
-      .remark{grid-template-columns:1fr}
+      .section-head{align-items:flex-start}.plot-controls{justify-content:flex-start}
     }
     @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-change,svg .value-dependent-change{transition:none}}
   </style>
@@ -127,6 +128,9 @@
           </label>
           <label class="field"><span class="field-label">Target Elevation (ft msl)</span>
             <input data-key="targetElevation" data-bdp-input="targetElevationMslFt" value="31" inputmode="decimal"><span class="unit">Target altitude</span>
+          </label>
+          <label class="field advanced-only"><span class="field-label">Attack Heading (deg) <span class="adv-tag">ADV</span></span>
+            <input data-key="attackHeading" data-bdp-input="attackHeadingDeg" value="0" inputmode="decimal"><span class="unit">absolute · final weapon-delivery axis</span>
           </label>
           <label class="field advanced-only"><span class="field-label">Wind Direction (deg) <span class="adv-tag">ADV</span></span>
             <input data-key="windDirection" data-bdp-input="windDirectionDeg" value="0" inputmode="decimal"><span class="unit">from · attack axis relative</span>
@@ -217,7 +221,12 @@
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Z-Diagram</h2><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button></div>
+    <div class="section-head"><h2>Z-Diagram</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="z-diagram" aria-label="Z-Diagram text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Z-Diagram text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Z-Diagram text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Z-Diagram text">A＋</button>
+      </div>
+      <button class="btn" data-reset-labels="z-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button>
+    </div></div>
     <div class="card">
       <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
       <div class="canvas" style="margin-top:10px">
@@ -227,35 +236,59 @@
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Profile</h2><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button></div>
+    <div class="section-head"><h2>Profile</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="profile-diagram" aria-label="Profile text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">A＋</button>
+      </div>
+      <div class="control-group" data-zoom-target="profile-diagram" aria-label="Profile view zoom">
+        <span class="control-label">View</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Profile">−</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Profile zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Profile">＋</button>
+      </div>
+      <button class="btn" data-reset-labels="profile-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
+    </div></div>
     <div class="card"><div class="canvas">
       <svg id="profile-diagram" viewBox="0 0 900 620" role="img" aria-label="Profile"></svg>
     </div></div>
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Top View</h2><div class="toolbar" data-zoom-target="top-diagram"><button class="btn" data-zoom="out" type="button">−</button><button class="btn" data-zoom="reset" type="button">100%</button><button class="btn" data-zoom="in" type="button">＋</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button></div></div>
+    <div class="section-head"><h2>Top View</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="top-diagram" aria-label="Top View text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">A−</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">A＋</button>
+      </div>
+      <div class="control-group" data-zoom-target="top-diagram" aria-label="Top View zoom">
+        <span class="control-label">View</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Top View">−</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Top View zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Top View">＋</button>
+      </div>
+      <button class="btn" data-reset-labels="top-diagram" type="button">Reset Labels</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button>
+    </div></div>
     <div class="card"><div class="canvas">
       <svg id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
     </div></div>
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Remark</h2></div>
-    <div class="remark">
-      <div class="remark-item"><b>MAP · Ground Range</b><span>Track Point → Target horizontal straight-line distance.</span></div>
-      <div class="remark-item"><b>Tracking Distance</b><span>Track Point → Release horizontal travel.</span></div>
-      <div class="remark-item"><b>Bomb Range</b><span>Release → Impact horizontal range.</span></div>
-      <div class="remark-item"><b>AOD</b><span>Target → Aim-off Point horizontal distance.</span></div>
-      <div class="remark-item"><b>IAA · Aim-off Angle</b><span>Tracking ray and Track Point → Target LOS geometry.</span></div>
-      <div class="remark-item"><b>Dive Angle</b><span>Final tracking flight-path angle, down positive by UI convention.</span></div>
-    </div>
+    <div class="section-head"><h2>Result</h2></div>
+    <div class="card"><table class="result-table result-summary">
+      <tr><td>Profile</td><td class="result-value" data-bdp-output="profileTitle">—</td></tr>
+      <tr><td>Attack Heading (deg)</td><td class="result-value" data-bdp-output="attackHeadingDeg">—</td></tr>
+      <tr><td>Roll-in Start Altitude (ft msl)</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
+      <tr><td>Track Altitude (ft msl)</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
+      <tr><td>Planned Release Altitude (ft msl)</td><td class="result-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</td></tr>
+      <tr><td>Roll-in Range (nm)</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
+      <tr><td>MAP (nm)</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
+      <tr><td>IAA (deg)</td><td class="result-value" data-bdp-output="aimOffAngleDeg">—</td></tr>
+      <tr><td>Roll-in Lead (deg)</td><td class="result-value" data-bdp-output="leadAngleDeg">—</td></tr>
+      <tr><td>Tracking Time (sec)</td><td class="result-value" data-bdp-output="trackingTimeSec">—</td></tr>
+      <tr><td>Bomb Range (nm)</td><td class="result-value" data-bdp-output="bombRangeNm">—</td></tr>
+      <tr><td>Bomb TOF (sec)</td><td class="result-value" data-bdp-output="bombTofSec">—</td></tr>
+      <tr><td>MINALT (ft msl)</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
+      <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
+    </table></div>
   </section>
 
   <section class="section advanced-only">
-    <div class="section-head"><h2>Result <span class="adv-tag">ADV</span></h2></div>
+    <div class="section-head"><h2>Detailed Result <span class="adv-tag">ADV</span></h2></div>
     <div class="card">
-      <div class="note">Result는 Advanced. 값 자체에 Result 전용 색을 사용하며, 다른 변수 때문에 바뀌면 같은 값의 모든 표시 위치에서 잠시 별도 변경색으로 표시.</div>
+      <div class="note">Detailed Result는 Advanced. 값 자체에 Result 전용 색을 사용하며, 다른 변수 때문에 바뀌면 같은 값의 모든 표시 위치에서 잠시 별도 변경색으로 표시.</div>
       <table class="result-table" style="margin-top:10px">
         <tr><td>Initial Altitude</td><td class="result-value" data-bdp-output="resolvedInitialAltitudeMslFt">—</td></tr>
         <tr><td>Roll-in Start Altitude</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
@@ -275,6 +308,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=c80e937b0b3b"></script>
+<script type="module" src="./bdp-app.mjs?v=e1a12cacf9df"></script>
 </body>
 </html>

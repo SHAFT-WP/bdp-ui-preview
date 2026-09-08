@@ -10,7 +10,14 @@
       rollInRange: "Base Distance",
       rollInSlant: "Base Distance(S)",
       groundRange: "MAP",
-      aimOffAngle: "IAA"
+      aimOffAngle: "IAA",
+      baseDistance: "Base Distance",
+      baseLeg: "Base",
+      rollInStart: "Roll-in Point",
+      trackPoint: "Track Point / Rollout",
+      leadAngle: "Roll-in Lead",
+      angleOff: "Angle-off (Heading)",
+      rollInLateralDistance: "Roll-in Lateral Distance"
     }),
     Shaft: Object.freeze({
       rollInRange: "Roll-in Range",
@@ -57,13 +64,17 @@
   }
 
   function text(parent, x, y, value, attrs) {
+    var options = Object.assign({}, attrs || {});
+    var classes = (options.class || "").split(/\s+/).filter(Boolean);
+    if (classes.indexOf("movable-label") < 0) classes.push("movable-label");
+    options.class = classes.join(" ");
     return append(parent, "text", Object.assign({
       x: x,
       y: y,
       fill: "#111",
       "font-size": 14,
       "font-weight": 820
-    }, attrs || {}), value);
+    }, options), value);
   }
 
   function pathFromPoints(points) {
@@ -100,6 +111,7 @@
       "font-weight": 750,
       fill: "#687787"
     });
+    enableLabelDrag(svg);
   }
 
   function movableText(parent, x, y, value, group, attrs) {
@@ -309,6 +321,7 @@
     var visual = view.visualization && view.visualization.profile;
     if (!visual || !visual.points) {
       placeholder(svg, "Profile geometry provider not connected");
+      enableLabelDrag(svg);
       return false;
     }
 
@@ -475,6 +488,7 @@
       "font-weight": 850,
       class: "label-halo"
     });
+    enableLabelDrag(svg);
     return true;
   }
 
@@ -487,6 +501,7 @@
     var visual = view.visualization && view.visualization.top;
     if (!visual || !visual.points) {
       placeholder(svg, "Top View geometry provider not connected");
+      enableLabelDrag(svg);
       return false;
     }
 
@@ -497,6 +512,7 @@
     addGrid(svg, 900, 620, 80, 70);
 
     var p = visual.points;
+    var terms = TERMINOLOGY.USAF;
     append(svg, "circle", {
       cx: p.target.x,
       cy: p.target.y,
@@ -533,27 +549,33 @@
     point(svg, p.trackPoint, "#c85ac8", 6);
     append(svg, "circle", { cx: p.target.x, cy: p.target.y, r: 7, fill: "#d64b4b" });
 
-    text(svg, 48, 46, "Initial", { fill: "#2f6fc2", "font-size": 16, class: "label-halo" });
+    text(svg, 48, 46, terms.baseLeg, { fill: "#2f6fc2", "font-size": 16, class: "label-halo" });
     text(svg, 48, 69, format(view.public.resolvedInitialAltitudeMslFt, 0) + "ft MSL · " + format(view.public.resolvedInitialSpeedKcas, 0) + " KCAS", {
       fill: "#203a63",
       "font-size": 13,
       class: "label-halo"
     });
-    text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, "Roll-in Start", { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
-    text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, "Track Point", { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
+    text(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + "°", {
+      "text-anchor": "end",
+      fill: "#203a63",
+      "font-size": 14,
+      class: "label-halo"
+    });
+    text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
+    text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", class: "label-halo" });
-    text(svg, p.target.x, p.target.y - 34, "Angle-off: " + format(view.input.angleOffDeg, 0) + "°", {
+    text(svg, p.target.x, p.target.y - 34, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + "°", {
       "text-anchor": "middle",
       fill: "#203a63",
       "font-size": 17,
       class: "label-halo"
     });
-    text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, "Lead Angle: " + format(view.public.leadAngleDeg, 1) + "°", {
+    text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 1) + "°", {
       fill: "#d64b4b",
       "font-size": 13,
       class: "label-halo"
     });
-    text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, "Ground Range (MAP): " + format(view.public.groundRangeNm, 2) + "nm", {
+    text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, terms.groundRange + ": " + format(view.public.groundRangeNm, 2) + "nm", {
       "text-anchor": "middle",
       fill: "#b77d00",
       "font-size": 12,
@@ -581,18 +603,19 @@
       "marker-start": "url(#top-dim-arrow)",
       "marker-end": "url(#top-dim-arrow)"
     });
-    text(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2, "Roll-in Distance", {
+    text(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2, terms.rollInLateralDistance, {
       "text-anchor": "end",
       fill: "#2f6fc2",
       "font-size": 12,
       class: "label-halo"
     });
-    text(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2, "Roll-in Range", {
+    text(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2, terms.baseDistance, {
       "text-anchor": "end",
       fill: "#2f6fc2",
       "font-size": 12,
       class: "label-halo"
     });
+    enableLabelDrag(svg);
     return true;
   }
 
@@ -609,6 +632,7 @@
     }
 
     function pointFromEvent(event) {
+      if (typeof svg.createSVGPoint !== "function") return { x: event.clientX, y: event.clientY };
       var point = svg.createSVGPoint();
       point.x = event.clientX;
       point.y = event.clientY;
@@ -619,24 +643,33 @@
     svg.addEventListener("pointerdown", function (event) {
       var target = event.target.closest && event.target.closest(".movable-label");
       if (!target || !svg.contains(target)) return;
+      if (event.preventDefault) event.preventDefault();
       var start = pointFromEvent(event);
       var items = nodesFor(target).map(function (item) {
         return { item: item, transform: item.getAttribute("transform") || "" };
       });
-      pending = {
+      var hold = {
         pointerId: event.pointerId,
         start: start,
         items: items,
-        timer: global.setTimeout(function () {
-          active = pending;
+        timer: null
+      };
+      hold.timer = global.setTimeout(function () {
+          if (pending !== hold) return;
+          active = hold;
           pending = null;
           active.items.forEach(function (entry) { entry.item.classList.add("dragging"); });
-          svg.setPointerCapture(active.pointerId);
-        }, 500)
-      };
+        }, 500);
+      pending = hold;
+      if (typeof svg.setPointerCapture === "function") {
+        try { svg.setPointerCapture(event.pointerId); } catch (error) { /* pointer stream may already be ending */ }
+      }
     });
 
     svg.addEventListener("pointermove", function (event) {
+      if ((pending && event.pointerId === pending.pointerId) || (active && event.pointerId === active.pointerId)) {
+        if (event.preventDefault) event.preventDefault();
+      }
       if (!active || event.pointerId !== active.pointerId) return;
       var current = pointFromEvent(event);
       var dx = current.x - active.start.x;
@@ -654,6 +687,9 @@
       if (active && event.pointerId === active.pointerId) {
         active.items.forEach(function (entry) { entry.item.classList.remove("dragging"); });
         active = null;
+      }
+      if (typeof svg.releasePointerCapture === "function") {
+        try { svg.releasePointerCapture(event.pointerId); } catch (error) { /* capture may already be released */ }
       }
     }
 

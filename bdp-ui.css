@@ -14,7 +14,9 @@
   --amber:light-dark(#a35d00,#ffbd62);
   --value-input:var(--text);
   --value-result:var(--blue);
+  --value-result-bg:var(--blue-soft);
   --value-dependent-change:var(--violet);
+  --value-dependent-change-bg:var(--violet-soft);
   --radius:14px;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
 }
@@ -26,6 +28,14 @@ button,input,select{font:inherit}
 .title-wrap h1{margin:0;font-size:clamp(22px,2.7vw,32px);letter-spacing:-.03em}
 .subtitle{margin-top:5px;color:var(--muted);font-size:12px}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.plot-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.control-group{
+  display:inline-flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--line);
+  border-radius:11px;background:var(--field)
+}
+.control-label{padding:0 5px;color:var(--muted);font-size:11px;font-weight:850}
+.control-group .btn{min-width:38px;min-height:32px;padding:5px 8px;background:var(--panel)}
+.control-group .scale-value{min-width:58px;font-variant-numeric:tabular-nums}
 .btn,.toggle{
   min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
   background:var(--panel);color:var(--text);font-weight:800;cursor:pointer
@@ -74,7 +84,10 @@ body.show-advanced .advanced-only{display:grid}
 section.advanced-only,details.advanced-only{display:none}
 body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
 .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
-.dep-flash{color:var(--violet)!important;transition:color 1.25s ease}
+.dep-flash,.value-dependent-change{
+  color:var(--violet)!important;background:var(--violet-soft)!important;
+  transition:color 1.25s ease,background-color 1.25s ease
+}
 .cards{display:grid;grid-template-columns:1fr;gap:14px}
 .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:14px}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -84,27 +97,23 @@ body.show-advanced section.advanced-only,body.show-advanced details.advanced-onl
 #z-diagram{max-width:650px}
 #profile-diagram,#top-diagram{max-width:900px}
 svg text{font-family:inherit}
-.movable-label{cursor:grab;touch-action:none;user-select:none}
+.movable-label{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .movable-label.dragging{cursor:grabbing}
 .label-halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
-.remark{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.remark-item{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--panel)}
-.remark-item b{display:block;margin-bottom:5px}
-.remark-item span{color:var(--muted);font-size:12px}
 .result-table{width:100%;border-collapse:collapse}
 .result-table td{padding:11px 10px;border-bottom:1px solid var(--line)}
 .result-table td:first-child{width:38%;color:var(--muted)}
-.result-value{color:var(--blue);font-weight:850;background:color-mix(in srgb,var(--blue-soft) 64%,transparent)}
+.result-value{color:var(--blue);font-weight:850;background:var(--blue-soft)}
+.result-summary td:first-child{width:52%}
 .note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 @media(max-width:1040px){
   .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .remark{grid-template-columns:1fr 1fr}
 }
 @media(max-width:620px){
   .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
   .grid,.grid.profile{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
   input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
-  .remark{grid-template-columns:1fr}
+  .section-head{align-items:flex-start}.plot-controls{justify-content:flex-start}
 }
-@media(prefers-reduced-motion:reduce){.dep-flash{transition:none}}
+@media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-change{transition:none}}

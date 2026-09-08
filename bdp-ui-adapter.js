@@ -5,6 +5,7 @@
   var DEFAULTS = Object.freeze({
     weaponId: "M82",
     targetElevationMslFt: "31",
+    attackHeadingDeg: "0",
     windDirectionDeg: "0",
     windSpeedKt: "0",
     fragmentHeightMarginPercent: "20",
@@ -34,6 +35,11 @@
     hasRendered: false,
     changeTimers: {},
     bankLinked: true,
+    fontScale: {
+      "z-diagram": 1,
+      "profile-diagram": 1,
+      "top-diagram": 1
+    },
     zoom: {
       "profile-diagram": 1,
       "top-diagram": 1
@@ -57,10 +63,13 @@
   }
 
   function dependentFlash(element) {
-    element.classList.remove("dep-flash");
+    global.clearTimeout(element.__bdpDependentTimer);
+    element.classList.remove("value-dependent-change");
     void element.offsetWidth;
-    element.classList.add("dep-flash");
-    global.setTimeout(function () { element.classList.remove("dep-flash"); }, 1250);
+    element.classList.add("value-dependent-change");
+    element.__bdpDependentTimer = global.setTimeout(function () {
+      element.classList.remove("value-dependent-change");
+    }, 1250);
   }
 
   function setControls(key, value, except, flash) {
@@ -116,6 +125,9 @@
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
+    state.fontScale["z-diagram"] = 1;
+    state.fontScale["profile-diagram"] = 1;
+    state.fontScale["top-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
     saveInput();
@@ -175,6 +187,7 @@
     var local = view.local || {};
     var displacement = result.rollInDisplacement || {};
     setOutput("recoveryG", numberText(view.input && view.input.recoveryG, 1, ""));
+    setOutput("attackHeadingDeg", numberText(view.input && view.input.attackHeadingDeg, 0, "deg"));
     setOutput("profileTitle", titleFor(view));
     setOutput("effectiveReleaseAltitudeMslFt", numberText(result.effectiveReleaseAltitudeMslFt, 0, "ft msl"));
     setOutput("minAltMslFt", numberText(result.minAltMslFt, 0, "ft msl"));
@@ -209,6 +222,22 @@
     setOutput("ballisticModel", view.diagnostics ? view.diagnostics.ballisticModelId + " / " + view.diagnostics.ballisticModelVersion : "—");
     setSafetyLabel(view.safety && view.safety.releaseLabel);
     state.hasRendered = true;
+  }
+
+  function syncSolvedInputs(view) {
+    var result = view.public || {};
+    var mode = solveModeNode.dataset.mode || "initialAltitude";
+    if (mode === "trackingTime") {
+      var initialAltitude = Number(result.resolvedInitialAltitudeMslFt);
+      if (Number.isFinite(initialAltitude)) {
+        setControls("rollInStartAltitudeMslFt", Math.round(initialAltitude), null, state.hasRendered);
+      }
+      return;
+    }
+    var trackingTime = Number(result.trackingTimeSec);
+    if (Number.isFinite(trackingTime)) {
+      setControls("trackingTimeSec", trackingTime.toFixed(2), null, state.hasRendered);
+    }
   }
 
   function normalizeView(raw, input) {
@@ -265,8 +294,40 @@
     applyZoom("top-diagram");
   }
 
+  function applyFontScale(targetId) {
+    var svg = document.getElementById(targetId);
+    var toolbar = document.querySelector('[data-font-target="' + targetId + '"]');
+    if (!svg || !toolbar) return;
+    var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1));
+    state.fontScale[targetId] = scale;
+    if (typeof svg.querySelectorAll === "function") {
+      Array.prototype.slice.call(svg.querySelectorAll("text")).forEach(function (element) {
+        var baseSize = Number(element.dataset && element.dataset.baseFontSize);
+        if (!Number.isFinite(baseSize)) {
+          baseSize = Number(element.getAttribute("font-size"));
+          if (!Number.isFinite(baseSize)) baseSize = 14;
+          if (element.dataset) element.dataset.baseFontSize = String(baseSize);
+        }
+        element.setAttribute("font-size", (baseSize * scale).toFixed(2));
+      });
+    }
+    var valueButton = toolbar.querySelector('[data-font-scale="reset"]');
+    var outButton = toolbar.querySelector('[data-font-scale="out"]');
+    var inButton = toolbar.querySelector('[data-font-scale="in"]');
+    if (valueButton) valueButton.textContent = Math.round(scale * 100) + "%";
+    if (outButton) outButton.disabled = scale <= 0.5;
+    if (inButton) inButton.disabled = scale >= 2;
+  }
+
+  function applyAllFontScale() {
+    applyFontScale("z-diagram");
+    applyFontScale("profile-diagram");
+    applyFontScale("top-diagram");
+  }
+
   function renderView(view) {
     state.lastView = view;
+    syncSolvedInputs(view);
     renderOutputs(view);
     var availability = global.BDPGraphRenderers.renderAll({
       z: document.getElementById("z-diagram"),
@@ -276,6 +337,7 @@
     var zExport = document.querySelector('[data-export-svg="z-diagram"]');
     if (zExport) zExport.disabled = !availability.zAvailable;
     applyAllZoom();
+    applyAllFontScale();
   }
 
   async function calculate() {
@@ -377,6 +439,18 @@
     });
   });
 
+  Array.prototype.slice.call(document.querySelectorAll("[data-font-target]")).forEach(function (toolbar) {
+    toolbar.addEventListener("click", function (event) {
+      var action = event.target && event.target.getAttribute("data-font-scale");
+      if (!action) return;
+      var targetId = toolbar.getAttribute("data-font-target");
+      if (action === "out") state.fontScale[targetId] -= 0.1;
+      if (action === "in") state.fontScale[targetId] += 0.1;
+      if (action === "reset") state.fontScale[targetId] = 1;
+      applyFontScale(targetId);
+    });
+  });
+
   Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function (button) {
     button.addEventListener("click", function () {
       var svg = document.getElementById(button.getAttribute("data-export-svg"));
@@ -384,9 +458,10 @@
     });
   });
 
-  var resetLabels = document.getElementById("z-reset-labels");
-  if (resetLabels) resetLabels.addEventListener("click", function () {
-    if (state.lastView) renderView(state.lastView);
+  Array.prototype.slice.call(document.querySelectorAll("[data-reset-labels]")).forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (state.lastView) renderView(state.lastView);
+    });
   });
 
   loadInput();

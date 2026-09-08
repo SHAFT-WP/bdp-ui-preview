@@ -13,10 +13,17 @@
     return number;
   }
 
+  function absoluteHeading(value) {
+    var number = finite(value, "Attack Heading");
+    if (number < 0 || number > 360) throw new Error("Attack Heading must be between 0 and 360 deg");
+    return number;
+  }
+
   function toCoreInput(input) {
     return {
       weaponId: input.weaponId,
       targetElevationMslFt: finite(input.targetElevationMslFt, "Target Elevation"),
+      attackHeadingDeg: absoluteHeading(input.attackHeadingDeg),
       releaseSpeedKcas: finite(input.releaseSpeedKcas, "Release Speed"),
       speedOvershootKcas: finite(input.speedOvershootKcas, "Speed Overshoot"),
       maneuverInitiationDelaySec: 0,
