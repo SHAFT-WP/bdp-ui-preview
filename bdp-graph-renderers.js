@@ -633,9 +633,9 @@
       "marker-end": "url(#top-dim-arrow)",
       "data-top-dimension": "base-lateral-distance"
     });
-    dimensionValue(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2 + 32,
-      terms.baseLateralDistance,
-      format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
+    dimensionValue(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2 - 25,
+      "Base Lateral",
+      "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
       "top-base-lateral", { "text-anchor": "end", fill: "#2f6fc2" });
 
     var longitudinalY = 570;
@@ -653,10 +653,10 @@
       "marker-end": "url(#top-dim-arrow)",
       "data-top-dimension": "base-longitudinal-distance"
     });
-    dimensionValue(svg, (p.rollInStart.x + p.trackPoint.x) / 2, longitudinalY - 42,
-      terms.baseLongitudinalDistance,
-      format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
-      "top-base-longitudinal", { fill: "#2f6fc2" });
+    dimensionValue(svg, p.trackPoint.x + 18, longitudinalY + 14,
+      "Base Longitudinal",
+      "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
+      "top-base-longitudinal", { "text-anchor": "start", fill: "#2f6fc2" });
     enableLabelDrag(svg);
     return true;
   }
