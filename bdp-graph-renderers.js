@@ -11,9 +11,8 @@
       groundRange: "MAP",
       aimOffAngle: "IAA",
       baseDistance: "Base Distance",
-      baseLongitudinalDistance: "Base Longitudinal Distance",
-      baseLateralDistance: "Base Lateral Distance",
-      initialSpeed: "Initial Speed",
+      rollInLongitudinalDistance: "Roll-in Longitudinal Distance",
+      rollInLateralDistance: "Roll-in Lateral Distance",
       rollInStart: "Roll-in Point",
       trackPoint: "Track Point",
       leadAngle: "Roll-in Lead",
@@ -26,6 +25,7 @@
       aimOffAngle: "Aim-off Angle"
     })
   });
+  var TOP_FONT_SIZE = 13;
 
   function node(name, attrs, content) {
     return commonDiagram.svgNode(name, attrs || {}, content === null ? undefined : content);
@@ -133,6 +133,64 @@
     });
     movableText(parent, x, y, label, group, labelAttrs);
     movableText(parent, x, y + 20, value, group, valueAttrs);
+  }
+
+  function topDimensionValue(parent, x, y, label, value, group, attrs) {
+    var options = Object.assign({
+      "text-anchor": "middle",
+      "font-size": TOP_FONT_SIZE,
+      "font-weight": 850,
+      class: "label-halo"
+    }, attrs || {});
+    movableText(parent, x, y - 10, label, group, options);
+    movableText(parent, x, y + 10, value, group, options);
+  }
+
+  function topDimensionLabelPoint(segment) {
+    var dx = segment.end.x - segment.start.x;
+    var dy = segment.end.y - segment.start.y;
+    var length = Math.max(1, Math.hypot(dx, dy));
+    var normal = { x: -dy / length, y: dx / length };
+    var midpoint = {
+      x: (segment.start.x + segment.end.x) / 2,
+      y: (segment.start.y + segment.end.y) / 2
+    };
+    var centerVector = { x: midpoint.x - 450, y: midpoint.y - 327.5 };
+    if (normal.x * centerVector.x + normal.y * centerVector.y < 0) {
+      normal.x *= -1;
+      normal.y *= -1;
+    }
+    var x = midpoint.x + normal.x * 28;
+    var y = midpoint.y + normal.y * 28;
+    var anchor = normal.x > 0.35 ? "start" : normal.x < -0.35 ? "end" : "middle";
+    if (anchor === "start") x = Math.min(x, 690);
+    else if (anchor === "end") x = Math.max(x, 210);
+    else x = Math.max(150, Math.min(750, x));
+    y = Math.max(125, Math.min(585, y));
+    return { x: x, y: y, anchor: anchor };
+  }
+
+  function drawTopDimension(svg, segment, role, label, value, group) {
+    (segment.guides || []).forEach(function (guide) {
+      line(svg, guide.start.x, guide.start.y, guide.end.x, guide.end.y, {
+        stroke: "#6f98d8",
+        "stroke-width": 1.2,
+        "stroke-dasharray": "5 4",
+        "data-top-guide": role
+      });
+    });
+    line(svg, segment.start.x, segment.start.y, segment.end.x, segment.end.y, {
+      stroke: "#2f6fc2",
+      "stroke-width": 1.5,
+      "marker-start": "url(#top-dim-arrow)",
+      "marker-end": "url(#top-dim-arrow)",
+      "data-top-dimension": role
+    });
+    var labelPoint = topDimensionLabelPoint(segment);
+    topDimensionValue(svg, labelPoint.x, labelPoint.y, label, value, group, {
+      "text-anchor": labelPoint.anchor,
+      fill: "#2f6fc2"
+    });
   }
 
   function renderZ(svg, view) {
@@ -353,9 +411,10 @@
     var mapY = 570;
     var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
     var isLevel = Math.abs(finite(view.input && view.input.diveAngleDeg, 0)) < 0.001;
+    var trackingTimeLabel = "Tracking Time: " + format(view.public.trackingTimeSec, 0) + " sec";
     var trackPointLabel = "Track Point" + (isLevel
-      ? ""
-      : ": " + format(view.public.trackPointAltitudeMslFt, 0) + " ft msl");
+      ? " · " + trackingTimeLabel
+      : ": " + format(view.public.trackPointAltitudeMslFt, 0) + " ft msl · " + trackingTimeLabel);
     var releaseLabel = (isLevel ? "Initial" : "Release") + ": " +
       format(view.public.effectiveReleaseAltitudeMslFt, 0) + " ft msl";
 
@@ -418,22 +477,33 @@
 
     text(svg, p.trackPoint.x, p.trackPoint.y - 21, trackPointLabel, { "text-anchor": "start", class: "label-halo" });
     text(svg, p.release.x, p.release.y - 21, releaseLabel, { "text-anchor": "middle", class: "label-halo" });
-    text(svg, p.target.x - 12, p.target.y - 16, "Target", { "text-anchor": "end", class: "label-halo" });
-    if (hasAod) text(svg, p.aimOff.x, p.aimOff.y + 28, "Aim-off Point", { "text-anchor": "middle", class: "label-halo" });
+    var targetAimOffY = p.target.y + 28;
+    movableText(svg, p.target.x - 14, targetAimOffY, "Target", "profile-target-aod", {
+      "text-anchor": "end",
+      class: "label-halo"
+    });
+    if (hasAod) movableText(svg, p.target.x + 14, targetAimOffY,
+      "Aim Off Distance: " + format(view.local.aimOffDistanceNm, 1) + " nm",
+      "profile-target-aod", {
+        "text-anchor": "start",
+        class: "label-halo"
+      });
 
     var fpaAngle = Math.atan2(p.aimOff.y - p.trackPoint.y, p.aimOff.x - p.trackPoint.x);
     var losAngle = Math.atan2(p.target.y - p.trackPoint.y, p.target.x - p.trackPoint.x);
-    if (Math.abs(fpaAngle - losAngle) > 0.001) {
-      angleArc(svg, p.trackPoint, 70, fpaAngle, losAngle, "iaa", "#a35d00");
+    if (!isLevel) {
+      if (Math.abs(fpaAngle - losAngle) > 0.001) {
+        angleArc(svg, p.trackPoint, 70, fpaAngle, losAngle, "iaa", "#a35d00");
+      }
+      text(svg, p.trackPoint.x + 170, p.trackPoint.y + 58,
+        "IAA: " + format(view.local.aimOffAngleDeg, 0) + " deg", {
+          "text-anchor": "middle",
+          fill: "#a35d00",
+          "font-size": 12,
+          "font-weight": 850,
+          class: "label-halo"
+        });
     }
-    text(svg, p.trackPoint.x + 170, p.trackPoint.y + 58,
-      "IAA: " + format(view.local.aimOffAngleDeg, 0) + " deg", {
-        "text-anchor": "middle",
-        fill: "#a35d00",
-        "font-size": 12,
-        "font-weight": 850,
-        class: "label-halo"
-      });
 
     if (finite(view.input.diveAngleDeg, 0) > 0) {
       angleArc(svg, p.aimOff, 56, Math.PI,
@@ -510,10 +580,24 @@
     marker(defs, "top-blue-arrow", "#2f6fc2", 14);
     marker(defs, "top-amber-arrow", "#d59400", 14);
     marker(defs, "top-dim-arrow", "#2f6fc2", 11);
+    marker(defs, "top-north-arrow", "#203a63", 10);
     addGrid(svg, 900, 620, 80, 70);
 
     var p = visual.points;
     var terms = TERMINOLOGY.USAF;
+    line(svg, 58, 92, 58, 54, {
+      stroke: "#203a63",
+      "stroke-width": 1.8,
+      "marker-end": "url(#top-north-arrow)",
+      "data-top-north": "arrow"
+    });
+    text(svg, 58, 40, "N", {
+      "text-anchor": "middle",
+      fill: "#203a63",
+      "font-size": TOP_FONT_SIZE,
+      class: "label-halo",
+      "data-top-north": "label"
+    });
     append(svg, "circle", {
       cx: p.target.x,
       cy: p.target.y,
@@ -550,24 +634,41 @@
     point(svg, p.trackPoint, "#c85ac8", 6);
     append(svg, "circle", { cx: p.target.x, cy: p.target.y, r: 7, fill: "#d64b4b" });
 
-    movableText(svg, (p.initial.x + p.rollInStart.x) / 2, p.rollInStart.y - 20,
-      terms.initialSpeed + ": " + format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
-      "top-initial-speed", {
-      "text-anchor": "middle",
+    var baseDx = p.initial.x - p.rollInStart.x;
+    var baseDy = p.initial.y - p.rollInStart.y;
+    var baseLength = Math.max(1, Math.hypot(baseDx, baseDy));
+    var baseUnit = { x: baseDx / baseLength, y: baseDy / baseLength };
+    var baseNormal = { x: -baseUnit.y, y: baseUnit.x };
+    if (baseNormal.y > 0) {
+      baseNormal.x *= -1;
+      baseNormal.y *= -1;
+    }
+    var baseLabelX = p.rollInStart.x + baseUnit.x * (TOP_FONT_SIZE * 2) + baseNormal.x * 16;
+    var baseLabelY = p.rollInStart.y + baseUnit.y * (TOP_FONT_SIZE * 2) + baseNormal.y * 16;
+    var baseLabelAnchor = baseUnit.x < -0.25 ? "end" : baseUnit.x > 0.25 ? "start" : "middle";
+    if (baseLabelAnchor === "end") baseLabelX = Math.max(220, baseLabelX);
+    else if (baseLabelAnchor === "start") baseLabelX = Math.min(680, baseLabelX);
+    else baseLabelX = Math.max(210, Math.min(690, baseLabelX));
+    baseLabelY = Math.max(125, Math.min(570, baseLabelY));
+    movableText(svg, baseLabelX, baseLabelY,
+      format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl · " +
+        format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
+      "top-base-condition", {
+      "text-anchor": baseLabelAnchor,
       fill: "#203a63",
-      "font-size": 13,
+      "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
     movableText(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg", "top-context", {
       "text-anchor": "end",
       fill: "#203a63",
-      "font-size": 13,
+      "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
     movableText(svg, 852, 70, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg", "top-context", {
       "text-anchor": "end",
       fill: "#203a63",
-      "font-size": 13,
+      "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
     var windSpeedKt = finite(view.input.windSpeedKt, 0);
@@ -577,86 +678,44 @@
         "top-context", {
           "text-anchor": "end",
           fill: "#203a63",
-          "font-size": 13,
+          "font-size": TOP_FONT_SIZE,
           class: "label-halo"
         });
     }
-    text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
-    text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", class: "label-halo" });
-    text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", class: "label-halo" });
+    text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
+    text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
+    text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
       fill: "#d64b4b",
-      "font-size": 13,
+      "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
     text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
       "text-anchor": "middle",
       fill: "#b77d00",
-      "font-size": 12,
+      "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
 
-    var dimFar = finite(visual.dimensionFarX, 866);
-    [p.rollInStart, p.target].forEach(function (value) {
-      line(svg, value.x, value.y, dimFar, value.y, {
-        stroke: "#6f98d8",
-        "stroke-width": 1.2,
-        "stroke-dasharray": "5 4",
-        "data-top-guide": "base-distance"
-      });
-    });
-    line(svg, dimFar, p.rollInStart.y, dimFar, p.target.y, {
-      stroke: "#2f6fc2",
-      "stroke-width": 1.5,
-      "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)",
-      "data-top-dimension": "base-distance"
-    });
-    dimensionValue(svg, dimFar - 12, (p.rollInStart.y + p.target.y) / 2 - 70,
-      terms.baseDistance,
-      format(view.public.rollInLateralSeparationNm, 1) + " nm",
-      "top-base-distance", { "text-anchor": "end", fill: "#2f6fc2" });
-
-    var dimNear = finite(visual.dimensionNearX, 810);
-    [p.rollInStart, p.trackPoint].forEach(function (value) {
-      line(svg, value.x, value.y, dimNear, value.y, {
-        stroke: "#6f98d8",
-        "stroke-width": 1.2,
-        "stroke-dasharray": "5 4",
-        "data-top-guide": "base-lateral-distance"
-      });
-    });
-    line(svg, dimNear, p.rollInStart.y, dimNear, p.trackPoint.y, {
-      stroke: "#2f6fc2",
-      "stroke-width": 1.5,
-      "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)",
-      "data-top-dimension": "base-lateral-distance"
-    });
-    dimensionValue(svg, dimNear - 12, (p.rollInStart.y + p.trackPoint.y) / 2 - 25,
-      "Base Lateral",
-      "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
-      "top-base-lateral", { "text-anchor": "end", fill: "#2f6fc2" });
-
-    var longitudinalY = 570;
-    [p.rollInStart, p.trackPoint].forEach(function (value) {
-      line(svg, value.x, value.y, value.x, longitudinalY, {
-        stroke: "#6f98d8",
-        "stroke-width": 1.2,
-        "stroke-dasharray": "5 4"
-      });
-    });
-    line(svg, p.rollInStart.x, longitudinalY, p.trackPoint.x, longitudinalY, {
-      stroke: "#2f6fc2",
-      "stroke-width": 1.5,
-      "marker-start": "url(#top-dim-arrow)",
-      "marker-end": "url(#top-dim-arrow)",
-      "data-top-dimension": "base-longitudinal-distance"
-    });
-    dimensionValue(svg, p.trackPoint.x + 18, longitudinalY + 14,
-      "Base Longitudinal",
-      "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
-      "top-base-longitudinal", { "text-anchor": "start", fill: "#2f6fc2" });
+    var dimensions = visual.dimensions || {};
+    if (dimensions.baseDistance) {
+      drawTopDimension(svg, dimensions.baseDistance, "base-distance",
+        terms.baseDistance,
+        format(view.public.rollInLateralSeparationNm, 1) + " nm",
+        "top-base-distance");
+    }
+    if (dimensions.rollInLateralDistance) {
+      drawTopDimension(svg, dimensions.rollInLateralDistance, "roll-in-lateral-distance",
+        terms.rollInLateralDistance.replace(/ Distance$/, ""),
+        "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
+        "top-roll-in-lateral");
+    }
+    if (dimensions.rollInLongitudinalDistance) {
+      drawTopDimension(svg, dimensions.rollInLongitudinalDistance, "roll-in-longitudinal-distance",
+        terms.rollInLongitudinalDistance.replace(/ Distance$/, ""),
+        "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
+        "top-roll-in-longitudinal");
+    }
     enableLabelDrag(svg);
     return true;
   }

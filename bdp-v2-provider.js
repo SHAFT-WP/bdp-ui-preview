@@ -93,21 +93,105 @@
   function buildTopGeometry(raw) {
     var semantic = raw.visualization.semanticState;
     var stations = semantic.stations;
-    var rollInStart = { x: stations.rollInStart.forwardNm, y: stations.rollInStart.turnSideNm };
-    var trackPoint = { x: stations.trackPoint.forwardNm, y: stations.trackPoint.turnSideNm };
-    var target = { x: stations.target.forwardNm, y: stations.target.turnSideNm };
-    var aimOff = stations.aimOffPoint
+    var localRollInStart = { x: stations.rollInStart.forwardNm, y: stations.rollInStart.turnSideNm };
+    var localTrackPoint = { x: stations.trackPoint.forwardNm, y: stations.trackPoint.turnSideNm };
+    var localTarget = { x: stations.target.forwardNm, y: stations.target.turnSideNm };
+    var localAimOff = stations.aimOffPoint
       ? { x: stations.aimOffPoint.forwardNm, y: stations.aimOffPoint.turnSideNm }
-      : target;
+      : localTarget;
     var groundRangeNm = raw.public.groundRangeNm;
-    var ingress = {
-      x: rollInStart.x - Math.max(groundRangeNm * 1.5, 1),
-      y: rollInStart.y
+    var localIngress = {
+      x: localRollInStart.x - Math.max(groundRangeNm * 1.5, 1),
+      y: localRollInStart.y
     };
-    var rollPath = (semantic.paths.rollIn || []).map(function (point) {
+    var localRollPath = (semantic.paths.rollIn || []).map(function (point) {
       return { x: point.forwardNm, y: point.turnSideNm };
     });
-    var focus = [ingress, rollInStart, trackPoint, target, aimOff].concat(rollPath);
+
+    var attackVector = {
+      x: localTarget.x - localTrackPoint.x,
+      y: localTarget.y - localTrackPoint.y
+    };
+    var localAttackAngle = Math.atan2(attackVector.y, attackVector.x);
+    var attackHeadingDeg = absoluteHeading(raw.canonicalInputs.attackHeadingDeg);
+    var northUpAttackAngle = (90 - attackHeadingDeg) * Math.PI / 180;
+    var rotation = northUpAttackAngle - localAttackAngle;
+    var cosRotation = Math.cos(rotation);
+    var sinRotation = Math.sin(rotation);
+    var rotate = function (source) {
+      var dx = source.x - localRollInStart.x;
+      var dy = source.y - localRollInStart.y;
+      return {
+        x: localRollInStart.x + dx * cosRotation - dy * sinRotation,
+        y: localRollInStart.y + dx * sinRotation + dy * cosRotation
+      };
+    };
+
+    var forwardSign = localTarget.x >= localRollInStart.x ? 1 : -1;
+    var sideSign = localTarget.y >= localRollInStart.y ? 1 : -1;
+    var dimensionGap = Math.max(groundRangeNm * 0.12, 0.18);
+    var farForward = forwardSign > 0
+      ? Math.max(localTarget.x, localTrackPoint.x) + dimensionGap * 2
+      : Math.min(localTarget.x, localTrackPoint.x) - dimensionGap * 2;
+    var nearForward = forwardSign > 0
+      ? Math.max(localTrackPoint.x, localRollInStart.x) + dimensionGap
+      : Math.min(localTrackPoint.x, localRollInStart.x) - dimensionGap;
+    var outsideSide = sideSign > 0
+      ? Math.min(localRollInStart.y, localTrackPoint.y) - dimensionGap
+      : Math.max(localRollInStart.y, localTrackPoint.y) + dimensionGap;
+    var localTargetFoot = { x: localTarget.x, y: localRollInStart.y };
+    var localTrackFoot = { x: localTrackPoint.x, y: localRollInStart.y };
+    var localDimensions = {
+      baseDistance: {
+        start: { x: farForward, y: localRollInStart.y },
+        end: { x: farForward, y: localTarget.y },
+        guides: [
+          { start: localTargetFoot, end: { x: farForward, y: localRollInStart.y } },
+          { start: localTarget, end: { x: farForward, y: localTarget.y } }
+        ]
+      },
+      rollInLateralDistance: {
+        start: { x: nearForward, y: localRollInStart.y },
+        end: { x: nearForward, y: localTrackPoint.y },
+        guides: [
+          { start: localTrackFoot, end: { x: nearForward, y: localRollInStart.y } },
+          { start: localTrackPoint, end: { x: nearForward, y: localTrackPoint.y } }
+        ]
+      },
+      rollInLongitudinalDistance: {
+        start: { x: localRollInStart.x, y: outsideSide },
+        end: { x: localTrackPoint.x, y: outsideSide },
+        guides: [
+          { start: localRollInStart, end: { x: localRollInStart.x, y: outsideSide } },
+          { start: localTrackFoot, end: { x: localTrackPoint.x, y: outsideSide } }
+        ]
+      }
+    };
+
+    var rollInStart = rotate(localRollInStart);
+    var trackPoint = rotate(localTrackPoint);
+    var target = rotate(localTarget);
+    var aimOff = rotate(localAimOff);
+    var ingress = rotate(localIngress);
+    var rollPath = localRollPath.map(rotate);
+    var rotatedDimensions = {};
+    Object.keys(localDimensions).forEach(function (key) {
+      var dimension = localDimensions[key];
+      rotatedDimensions[key] = {
+        start: rotate(dimension.start),
+        end: rotate(dimension.end),
+        guides: dimension.guides.map(function (guide) {
+          return { start: rotate(guide.start), end: rotate(guide.end) };
+        })
+      };
+    });
+    var dimensionFocus = [];
+    Object.keys(rotatedDimensions).forEach(function (key) {
+      var dimension = rotatedDimensions[key];
+      dimensionFocus.push(dimension.start, dimension.end);
+      dimension.guides.forEach(function (guide) { dimensionFocus.push(guide.start, guide.end); });
+    });
+    var focus = [ingress, rollInStart, trackPoint, target, aimOff].concat(rollPath, dimensionFocus);
     var xs = focus.map(function (point) { return point.x; });
     var ys = focus.map(function (point) { return point.y; });
     var rawMinX = Math.min.apply(Math, xs);
@@ -120,7 +204,7 @@
     var maxX = rawMaxX + padding;
     var minY = rawMinY - padding;
     var maxY = rawMaxY + padding;
-    var plot = { left: 35, right: 745, top: 35, bottom: 585 };
+    var plot = { left: 70, right: 830, top: 105, bottom: 550 };
     var scale = Math.min(
       (plot.right - plot.left) / Math.max(0.001, maxX - minX),
       (plot.bottom - plot.top) / Math.max(0.001, maxY - minY)
@@ -136,7 +220,19 @@
       };
     };
 
+    var mapSegment = function (segment) {
+      return {
+        start: point(segment.start),
+        end: point(segment.end),
+        guides: segment.guides.map(function (guide) {
+          return { start: point(guide.start), end: point(guide.end) };
+        })
+      };
+    };
+
     return {
+      northUp: true,
+      attackHeadingDeg: attackHeadingDeg,
       points: {
         initial: point(ingress),
         rollInStart: point(rollInStart),
@@ -146,8 +242,11 @@
       },
       rollPath: rollPath.map(point),
       groundRangeRadiusPx: groundRangeNm * scale,
-      dimensionNearX: 810,
-      dimensionFarX: 866
+      dimensions: {
+        baseDistance: mapSegment(rotatedDimensions.baseDistance),
+        rollInLateralDistance: mapSegment(rotatedDimensions.rollInLateralDistance),
+        rollInLongitudinalDistance: mapSegment(rotatedDimensions.rollInLongitudinalDistance)
+      }
     };
   }
 

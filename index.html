@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=f0c5b48ad232">
-  <link rel="stylesheet" href="./bdp-ui.css?v=f0c5b48ad232">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=cd028ce708d0">
+  <link rel="stylesheet" href="./bdp-ui.css?v=cd028ce708d0">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -224,7 +224,7 @@
           <div class="field advanced-only"><span class="field-label">Roll-in Altitude Loss (ft) <span class="adv-tag">ADV</span></span>
             <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output>
           </div>
-          <div class="field advanced-only"><span class="field-label">Base Longitudinal Distance (nm) <span class="adv-tag">ADV</span></span>
+          <div class="field advanced-only"><span class="field-label">Roll-in Longitudinal Distance (nm) <span class="adv-tag">ADV</span></span>
             <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output>
           </div>
         </div></div>
@@ -295,7 +295,7 @@
         <div class="result-compact-item"><span class="result-compact-label">Track<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="trackPointAltitudeMslFt">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">Planned Release<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">Base Distance</span><output class="result-value result-compact-value" data-bdp-output="baseDistanceNm">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Base Lateral<br>Distance</span><output class="result-value result-compact-value" data-bdp-output="rollInLateralDistanceNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lateral<br>Distance</span><output class="result-value result-compact-value" data-bdp-output="rollInLateralDistanceNm">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">MAP</span><output class="result-value result-compact-value" data-bdp-output="groundRangeNm">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">IAA</span><output class="result-value result-compact-value" data-bdp-output="aimOffAngleDeg">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">Roll-in Lead</span><output class="result-value result-compact-value" data-bdp-output="leadAngleDeg">—</output></div>
@@ -320,8 +320,8 @@
         <tr><td>Roll-in Slant Range</td><td class="result-value" data-bdp-output="rollInSlantNm">—</td></tr>
         <tr><td>Base Distance (USAF)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
         <tr><td>Roll-in Distance (Shaft legacy)</td><td class="result-value" data-bdp-output="rollInRangeProfileFitNm">—</td></tr>
-        <tr><td>Base Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
-        <tr><td>Base Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
+        <tr><td>Roll-in Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
+        <tr><td>Roll-in Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
         <tr><td>Ground Range</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
         <tr><td>MINALT</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
         <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
@@ -332,6 +332,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=f0c5b48ad232"></script>
+<script type="module" src="./bdp-app.mjs?v=cd028ce708d0"></script>
 </body>
 </html>
