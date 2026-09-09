@@ -647,18 +647,23 @@
       baseNormal.x *= -1;
       baseNormal.y *= -1;
     }
-    var baseLabelX = p.rollInStart.x + baseUnit.x * (TOP_FONT_SIZE * 2) + baseNormal.x * 16;
+    var baseLabelX = Math.min(p.initial.x, p.rollInStart.x) + TOP_FONT_SIZE * 2;
     var baseLabelY = p.rollInStart.y + baseUnit.y * (TOP_FONT_SIZE * 2) + baseNormal.y * 16;
-    var baseLabelAnchor = baseUnit.x < -0.25 ? "end" : baseUnit.x > 0.25 ? "start" : "middle";
-    if (baseLabelAnchor === "end") baseLabelX = Math.max(220, baseLabelX);
-    else if (baseLabelAnchor === "start") baseLabelX = Math.min(680, baseLabelX);
-    else baseLabelX = Math.max(210, Math.min(690, baseLabelX));
+    baseLabelX = Math.max(48, Math.min(650, baseLabelX));
     baseLabelY = Math.max(125, Math.min(570, baseLabelY));
+    movableText(svg, baseLabelX, baseLabelY - TOP_FONT_SIZE * 2,
+      terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg",
+      "top-base-condition", {
+      "text-anchor": "start",
+      fill: "#d64b4b",
+      "font-size": TOP_FONT_SIZE,
+      class: "label-halo"
+    });
     movableText(svg, baseLabelX, baseLabelY,
       format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl · " +
         format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
       "top-base-condition", {
-      "text-anchor": baseLabelAnchor,
+      "text-anchor": "start",
       fill: "#203a63",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
@@ -689,11 +694,6 @@
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
-    text(svg, 95, 46, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
-      fill: "#d64b4b",
-      "font-size": TOP_FONT_SIZE,
-      class: "label-halo"
-    });
     text(svg, 95, 72, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
       "text-anchor": "start",
       fill: "#b77d00",
