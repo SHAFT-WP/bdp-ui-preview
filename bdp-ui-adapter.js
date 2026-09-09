@@ -401,6 +401,36 @@
     });
   }
 
+  function classifyError(error) {
+    var message = error && error.message ? error.message : String(error || "Calculation failed");
+    var code = error && error.code ? String(error.code) : "BDP-E-CALCULATION";
+    if (!error || !error.code) {
+      if (message === "Level MAP must be at least the computed Bomb Range") code = "BDP-E-LEVEL-MAP-RANGE";
+      else if (/must be a number$/i.test(message)) code = "BDP-E-INPUT-NUMBER";
+      else if (/Attack Heading must be between/i.test(message)) code = "BDP-E-ATTACK-HEADING";
+      else if (message === "Unknown weapon") code = "BDP-E-WEAPON";
+      else if (message === "Bomb impact integration limit") code = "BDP-E-BALLISTIC-INTEGRATION";
+      else if (/Initial altitude minus roll-in loss/i.test(message)) code = "BDP-E-INITIAL-ALTITUDE";
+      else if (/Provider returned no view model/i.test(message)) code = "BDP-E-PROVIDER-VIEW";
+    }
+    return { code: code, message: message };
+  }
+
+  function renderDiagramErrors(errorInfo) {
+    state.lastView = null;
+    if (global.BDPGraphRenderers && typeof global.BDPGraphRenderers.renderErrors === "function") {
+      global.BDPGraphRenderers.renderErrors({
+        z: document.getElementById("z-diagram"),
+        profile: document.getElementById("profile-diagram"),
+        top: document.getElementById("top-diagram")
+      }, errorInfo);
+      applyAllFontScale();
+    }
+    Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function (button) {
+      button.disabled = true;
+    });
+  }
+
   function applyZoom(targetId) {
     var svg = document.getElementById(targetId);
     var toolbar = document.querySelector('[data-zoom-target="' + targetId + '"]');
@@ -558,8 +588,15 @@
       profile: document.getElementById("profile-diagram"),
       top: document.getElementById("top-diagram")
     }, view);
-    var zExport = document.querySelector('[data-export-svg="z-diagram"]');
-    if (zExport) zExport.disabled = !availability.zAvailable;
+    var availabilityByTarget = {
+      "z-diagram": availability.zAvailable,
+      "profile-diagram": availability.profileAvailable,
+      "top-diagram": availability.topAvailable
+    };
+    Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function (button) {
+      var targetId = button.getAttribute("data-export-svg");
+      button.disabled = availabilityByTarget[targetId] === false;
+    });
     applyAllZoom();
     applyAllFontScale();
     applyAllResultFontScale();
@@ -601,9 +638,11 @@
       setProviderStatus("connected", state.provider.label || state.provider.id || "Provider connected");
     } catch (error) {
       if (requestId !== state.requestId) return;
+      var errorInfo = classifyError(error);
       clearOutputs();
-      setProviderStatus("error", error && error.message ? error.message : String(error));
-      if (providerError) providerError.textContent = error && error.message ? error.message : String(error);
+      renderDiagramErrors(errorInfo);
+      setProviderStatus("error", errorInfo.code + " · " + errorInfo.message);
+      if (providerError) providerError.textContent = errorInfo.code + " · " + errorInfo.message;
     } finally {
       if (requestId === state.requestId) {
         app.removeAttribute("aria-busy");

@@ -121,6 +121,68 @@
     enableLabelDrag(svg);
   }
 
+  function errorFrame(svg) {
+    var id = svg && svg.getAttribute ? svg.getAttribute("id") : "";
+    if (id === "z-diagram") return { viewBox: "0 -62 650 682", x: 0, y: -62, width: 650, height: 682, cx: 325, cy: 252, title: "Z-Diagram" };
+    if (id === "profile-diagram") return { viewBox: "0 0 980 700", x: 0, y: 0, width: 980, height: 700, cx: 490, cy: 310, title: "Profile" };
+    return { viewBox: "0 0 900 620", x: 0, y: 0, width: 900, height: 620, cx: 450, cy: 270, title: "Top View" };
+  }
+
+  function renderError(svg, errorInfo) {
+    if (!svg) return false;
+    var frame = errorFrame(svg);
+    var info = errorInfo || {};
+    var code = info.code || "BDP-E-CALCULATION";
+    var detail = info.message || "Calculation failed";
+    svg.replaceChildren();
+    svg.setAttribute("viewBox", frame.viewBox);
+    svg.dataset.baseViewBox = frame.viewBox;
+    append(svg, "rect", {
+      x: frame.x,
+      y: frame.y,
+      width: frame.width,
+      height: frame.height,
+      fill: "#fff",
+      "data-plot-background": "true"
+    });
+    append(svg, "text", {
+      x: frame.cx,
+      y: frame.cy - 44,
+      fill: "#687787",
+      "font-size": 18,
+      "font-weight": 850,
+      "text-anchor": "middle",
+      class: "label-halo"
+    }, frame.title + " unavailable");
+    append(svg, "text", {
+      x: frame.cx,
+      y: frame.cy,
+      fill: "#b42318",
+      "font-size": 20,
+      "font-weight": 900,
+      "text-anchor": "middle",
+      class: "label-halo",
+      "data-error-code": code
+    }, code);
+    append(svg, "text", {
+      x: frame.cx,
+      y: frame.cy + 42,
+      fill: "#687787",
+      "font-size": 13,
+      "font-weight": 750,
+      "text-anchor": "middle",
+      class: "label-halo"
+    }, detail);
+    return false;
+  }
+
+  function renderErrors(elements, errorInfo) {
+    renderError(elements && elements.z, errorInfo);
+    renderError(elements && elements.profile, errorInfo);
+    renderError(elements && elements.top, errorInfo);
+    return { zAvailable: false, profileAvailable: false, topAvailable: false };
+  }
+
   function movableText(parent, x, y, value, group, attrs) {
     return text(parent, x, y, value, Object.assign({
       class: "movable-label",
@@ -813,6 +875,8 @@
   global.BDPGraphRenderers = Object.freeze({
     terminology: TERMINOLOGY,
     renderAll: renderAll,
+    renderError: renderError,
+    renderErrors: renderErrors,
     renderZ: renderZ,
     renderProfile: renderProfile,
     renderTop: renderTop
