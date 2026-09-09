@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=7ef70141bb95">
-  <link rel="stylesheet" href="./bdp-ui.css?v=7ef70141bb95">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=462f2e94ecf1">
+  <link rel="stylesheet" href="./bdp-ui.css?v=462f2e94ecf1">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -85,8 +85,8 @@
     .result-table td:first-child{width:38%;color:var(--muted)}
     .result-value,.value-result{color:var(--blue);font-weight:850;background:var(--blue-soft)}
     .result-summary td:first-child{width:52%}
-    .result-layout-2{font-size:13px}
-    .result-layout-2-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)}
+    .result-summary-card{font-size:13px}
+    .result-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)}
     .result-compact-item{display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,auto);align-items:center;gap:8px;min-height:58px;padding:8px 10px;background:var(--panel)}
     .result-compact-label{color:var(--muted);font-size:.92em;line-height:1.15;font-weight:750}
     .result-compact-value{display:inline-flex;align-items:center;justify-content:flex-end;min-height:30px;padding:4px 6px;border-radius:7px;font-size:1em;line-height:1.1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -95,7 +95,6 @@
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
     @media(max-width:1040px){
       .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .result-layout-2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
     @media(max-width:620px){
       .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
@@ -103,7 +102,7 @@
       input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
       .section-head{align-items:flex-start}.plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
       .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
-      .result-layout-2-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+      .result-summary-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
       .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
       .result-compact-value{justify-content:flex-start;text-align:left}
     }
@@ -246,7 +245,7 @@
     <div class="card">
       <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
       <div class="canvas" style="margin-top:10px">
-        <svg id="z-diagram" viewBox="0 0 650 620" role="img" aria-label="Z-Diagram"></svg>
+        <svg id="z-diagram" viewBox="0 -62 650 682" role="img" aria-label="Z-Diagram"></svg>
       </div>
     </div>
   </section>
@@ -254,7 +253,7 @@
   <section class="section">
     <div class="section-head plot-section-head"><h2>Profile</h2><div class="plot-controls">
       <div class="control-group" data-font-target="profile-diagram" aria-label="Profile text size">
-        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">+</button>
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">120%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">+</button>
       </div>
       <div class="control-group" data-zoom-target="profile-diagram" aria-label="Profile size">
         <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Profile">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Profile zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Profile">+</button>
@@ -269,7 +268,7 @@
   <section class="section">
     <div class="section-head plot-section-head"><h2>Top View</h2><div class="plot-controls">
       <div class="control-group" data-font-target="top-diagram" aria-label="Top View text size">
-        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">+</button>
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">120%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">+</button>
       </div>
       <div class="control-group" data-zoom-target="top-diagram" aria-label="Top View size">
         <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Top View">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Top View zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Top View">+</button>
@@ -282,36 +281,14 @@
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Result</h2></div>
-    <div class="card"><table class="result-table result-summary">
-      <tr><td>Profile</td><td class="result-value" data-bdp-output="profileTitle">—</td></tr>
-      <tr><td>Attack Heading (deg)</td><td class="result-value" data-bdp-output="attackHeadingDeg">—</td></tr>
-      <tr><td>Roll-in Start Altitude (ft msl)</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
-      <tr><td>Track Altitude (ft msl)</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
-      <tr><td>Planned Release Altitude (ft msl)</td><td class="result-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</td></tr>
-      <tr><td>Base Distance (nm)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
-      <tr><td>Base Lateral Distance (nm)</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
-      <tr><td>MAP (nm)</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
-      <tr><td>IAA (deg)</td><td class="result-value" data-bdp-output="aimOffAngleDeg">—</td></tr>
-      <tr><td>Roll-in Lead (deg)</td><td class="result-value" data-bdp-output="leadAngleDeg">—</td></tr>
-      <tr><td>Tracking Time (sec)</td><td class="result-value" data-bdp-output="trackingTimeSec">—</td></tr>
-      <tr><td>Bomb Range (nm)</td><td class="result-value" data-bdp-output="bombRangeNm">—</td></tr>
-      <tr><td>Bomb TOF (sec)</td><td class="result-value" data-bdp-output="bombTofSec">—</td></tr>
-      <tr><td>MINALT (ft msl)</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
-      <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
-    </table>
-    <div class="note" style="margin-top:10px">Base Distance = Target-to-pre-roll-in Base-axis perpendicular distance. Base Lateral Distance = Roll-in Point→Track Point lateral component. Neither is the Shaft legacy Roll-in Distance (= Roll-in Range − Ground Range).</div></div>
-  </section>
-
-  <section class="section">
-    <div class="section-head result-layout-2-head">
-      <h2>Result — Layout 2</h2>
-      <div class="control-group" data-result-font-target="result-layout-2" aria-label="Result Layout 2 text size">
-        <span class="control-label">Text</span><button class="btn" data-result-font-scale="out" type="button" aria-label="Decrease Result Layout 2 text">-</button><button class="btn scale-value" data-result-font-scale="reset" type="button" aria-label="Reset Result Layout 2 text size">100%</button><button class="btn" data-result-font-scale="in" type="button" aria-label="Increase Result Layout 2 text">+</button>
+    <div class="section-head result-summary-head">
+      <h2>Result</h2>
+      <div class="control-group" data-result-font-target="result-summary" aria-label="Result text size">
+        <span class="control-label">Text</span><button class="btn" data-result-font-scale="out" type="button" aria-label="Decrease Result text">-</button><button class="btn scale-value" data-result-font-scale="reset" type="button" aria-label="Reset Result text size">100%</button><button class="btn" data-result-font-scale="in" type="button" aria-label="Increase Result text">+</button>
       </div>
     </div>
-    <div class="card result-layout-2" id="result-layout-2">
-      <div class="result-layout-2-grid">
+    <div class="card result-summary-card" id="result-summary">
+      <div class="result-summary-grid">
         <div class="result-compact-item"><span class="result-compact-label">Profile</span><output class="result-value result-compact-value" data-bdp-output="profileTitle">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">Attack Heading</span><output class="result-value result-compact-value" data-bdp-output="attackHeadingDeg">—</output></div>
         <div class="result-compact-item"><span class="result-compact-label">Roll-in Start<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
@@ -355,6 +332,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=7ef70141bb95"></script>
+<script type="module" src="./bdp-app.mjs?v=462f2e94ecf1"></script>
 </body>
 </html>

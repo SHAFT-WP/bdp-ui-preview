@@ -107,7 +107,7 @@
     });
     text(svg, 325, 136, detail, {
       "text-anchor": "middle",
-      "font-size": 16,
+      "font-size": 13,
       "font-weight": 750,
       fill: "#687787"
     });
@@ -151,9 +151,9 @@
       return false;
     }
 
-    svg.setAttribute("viewBox", "0 0 650 620");
-    svg.dataset.baseViewBox = "0 0 650 620";
-    append(svg, "rect", { width: 650, height: 620, fill: "#fff", "data-plot-background": "true" });
+    svg.setAttribute("viewBox", "0 -62 650 682");
+    svg.dataset.baseViewBox = "0 -62 650 682";
+    append(svg, "rect", { x: 0, y: -62, width: 650, height: 682, fill: "#fff", "data-plot-background": "true" });
 
     var left = 50;
     var topX = 360;
@@ -169,17 +169,17 @@
     var terms = TERMINOLOGY.USAF;
     var one = function (label, value) { return label + ": " + value; };
 
-    movableText(svg, 325, 32, profileTitle(view), "z-title", {
+    movableText(svg, 325, -12, profileTitle(view), "z-title", {
       "text-anchor": "middle",
       "font-size": 27,
       "font-weight": 900
     });
     movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + " ft msl", "z-initial", {
-      "font-size": 15,
+      "font-size": 13,
       "font-weight": 900
     });
     movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " kcas", "z-initial", {
-      "font-size": 15,
+      "font-size": 13,
       "font-weight": 900
     });
 
@@ -187,72 +187,73 @@
     line(svg, left, baseY, topX, topY, { "stroke-width": 3.5, "stroke-linecap": "square" });
     line(svg, left, baseY, topX, baseY, { "stroke-width": 3.5, "stroke-linecap": "square" });
 
-    movableText(svg, 390, 72, one(terms.angleOff, format(input.angleOffDeg, 0) + " deg"), "z-right", {
+    movableText(svg, 390, 82, one(terms.angleOff, format(input.angleOffDeg, 0) + " deg"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 100, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 110, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " nm"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 128, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 138, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " nm"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 156, one(terms.groundRange, format(result.groundRangeNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 166, one(terms.groundRange, format(result.groundRangeNm, 1) + " nm"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 60, 145, one("Dive Angle", format(angle, 0) + " deg"), "z-center", {
-      "font-size": 15,
-      "font-weight": 900
-    });
-    movableText(svg, 60, 178, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + " deg"), "z-center", {
-      "font-size": 15,
+    movableText(svg, 320, 132, format(angle, 0) + " deg", "z-dive-angle", {
+      "text-anchor": "end",
+      "font-size": 13,
       "font-weight": 900
     });
 
     line(svg, plannedX - 100, plannedY, 356, plannedY, { "stroke-width": 3 });
     movableText(svg, 382, plannedY + 6, one("Planned Release", format(result.effectiveReleaseAltitudeMslFt, 0) + " ft msl"), "z-release", {
-      "font-size": 14,
+      "font-size": 13,
       "font-weight": 900
     });
 
     line(svg, safetyX - 76, safetyY, 356, safetyY, { "stroke-width": 3 });
     movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + " ft msl"), "z-release", {
-      "font-size": 14,
+      "font-size": 13,
       "font-weight": 900
     });
 
     movableText(svg, 68, 268, "Release Speed", "z-speed", {
-      "font-size": 15,
+      "font-size": 13,
       "font-weight": 900
     });
     movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " kcas", "z-speed", {
-      "font-size": 15,
+      "font-size": 13,
       "font-weight": 900
     });
 
     movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + " ft msl"), "z-minalt", {
-      "font-size": 15,
+      "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 60, 500, one("Roll-in Lead", format(result.leadAngleDeg, 0) + " deg"), "z-bottom", {
-      "font-size": 15,
+    movableText(svg, 60, 480, one("Roll-in Lead", format(result.leadAngleDeg, 0) + " deg"), "z-bottom", {
+      "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 536, one("Tracking Time", format(result.trackingTimeSec, 0) + " sec"), "z-bottom", {
-      "font-size": 15,
+    movableText(svg, 60, 516, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + " deg"), "z-bottom", {
+      "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 572, one("Bomb TOF", format(result.bombTofSec, 0) + " sec"), "z-bottom", {
-      "font-size": 15,
+    movableText(svg, 60, 552, one("Tracking Time", format(result.trackingTimeSec, 0) + " sec"), "z-bottom", {
+      "font-size": 13,
+      "font-weight": 900
+    });
+    movableText(svg, 60, 588, one("Bomb TOF", format(result.bombTofSec, 0) + " sec"), "z-bottom", {
+      "font-size": 13,
       "font-weight": 900
     });
 

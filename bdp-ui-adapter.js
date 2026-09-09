@@ -3,6 +3,11 @@
 
   var STORAGE_KEY = "bdp-common-ui-preview-v2-provider-v1";
   var FONT_BASE_MULTIPLIER = 1.5;
+  var DEFAULT_FONT_SCALE = Object.freeze({
+    "z-diagram": 1,
+    "profile-diagram": 1.2,
+    "top-diagram": 1.2
+  });
   var DEFAULTS = Object.freeze({
     weaponId: "M82",
     targetElevationMslFt: "31",
@@ -37,12 +42,12 @@
     changeTimers: {},
     bankLinked: true,
     fontScale: {
-      "z-diagram": 1,
-      "profile-diagram": 1,
-      "top-diagram": 1
+      "z-diagram": DEFAULT_FONT_SCALE["z-diagram"],
+      "profile-diagram": DEFAULT_FONT_SCALE["profile-diagram"],
+      "top-diagram": DEFAULT_FONT_SCALE["top-diagram"]
     },
     resultFontScale: {
-      "result-layout-2": 1
+      "result-summary": 1
     },
     zoom: {
       "z-diagram": 1,
@@ -138,10 +143,10 @@
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
-    state.fontScale["z-diagram"] = 1;
-    state.fontScale["profile-diagram"] = 1;
-    state.fontScale["top-diagram"] = 1;
-    state.resultFontScale["result-layout-2"] = 1;
+    state.fontScale["z-diagram"] = DEFAULT_FONT_SCALE["z-diagram"];
+    state.fontScale["profile-diagram"] = DEFAULT_FONT_SCALE["profile-diagram"];
+    state.fontScale["top-diagram"] = DEFAULT_FONT_SCALE["top-diagram"];
+    state.resultFontScale["result-summary"] = 1;
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
@@ -434,7 +439,7 @@
   }
 
   function applyAllResultFontScale() {
-    applyResultFontScale("result-layout-2");
+    applyResultFontScale("result-summary");
   }
 
   function renderView(view) {
@@ -457,7 +462,7 @@
     if (!state.lastView) return;
     var svg = document.getElementById(targetId);
     if (!svg) return;
-    state.fontScale[targetId] = 1;
+    state.fontScale[targetId] = DEFAULT_FONT_SCALE[targetId] || 1;
     state.zoom[targetId] = 1;
     state.pan[targetId] = { x: 0, y: 0 };
     if (targetId === "z-diagram") {

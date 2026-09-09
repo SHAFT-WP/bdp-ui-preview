@@ -116,9 +116,9 @@ svg text{font-family:inherit}
 .result-table td:first-child{width:38%;color:var(--muted)}
 .result-value{color:var(--blue);font-weight:850;background:var(--blue-soft)}
 .result-summary td:first-child{width:52%}
-.result-layout-2{font-size:13px}
-.result-layout-2-grid{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;
+.result-summary-card{font-size:13px}
+.result-summary-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
   overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)
 }
 .result-compact-item{
@@ -135,7 +135,6 @@ svg text{font-family:inherit}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 @media(max-width:1040px){
   .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .result-layout-2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:620px){
   .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
@@ -144,7 +143,7 @@ svg text{font-family:inherit}
   .section-head{align-items:flex-start}
   .plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
   .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
-  .result-layout-2-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .result-summary-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
   .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
   .result-compact-value{justify-content:flex-start;text-align:left}
 }
