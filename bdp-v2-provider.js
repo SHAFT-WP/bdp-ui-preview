@@ -204,7 +204,7 @@
     var maxX = rawMaxX + padding;
     var minY = rawMinY - padding;
     var maxY = rawMaxY + padding;
-    var plot = { left: 70, right: 830, top: 105, bottom: 550 };
+    var plot = { left: 85, right: 620, top: 125, bottom: 550 };
     var scale = Math.min(
       (plot.right - plot.left) / Math.max(0.001, maxX - minX),
       (plot.bottom - plot.top) / Math.max(0.001, maxY - minY)

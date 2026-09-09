@@ -170,7 +170,7 @@
     return { x: x, y: y, anchor: anchor };
   }
 
-  function drawTopDimension(svg, segment, role, label, value, group) {
+  function drawTopDimension(svg, segment, role, label, value, group, fixedLabelPoint) {
     (segment.guides || []).forEach(function (guide) {
       line(svg, guide.start.x, guide.start.y, guide.end.x, guide.end.y, {
         stroke: "#6f98d8",
@@ -186,7 +186,7 @@
       "marker-end": "url(#top-dim-arrow)",
       "data-top-dimension": role
     });
-    var labelPoint = topDimensionLabelPoint(segment);
+    var labelPoint = fixedLabelPoint || topDimensionLabelPoint(segment);
     topDimensionValue(svg, labelPoint.x, labelPoint.y, label, value, group, {
       "text-anchor": labelPoint.anchor,
       fill: "#2f6fc2"
@@ -483,7 +483,7 @@
       class: "label-halo"
     });
     if (hasAod) movableText(svg, p.target.x + 14, targetAimOffY,
-      "Aim Off Distance: " + format(view.local.aimOffDistanceNm, 1) + " nm",
+      "Aim Off Distance",
       "profile-target-aod", {
         "text-anchor": "start",
         class: "label-halo"
@@ -685,13 +685,13 @@
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
-    text(svg, (p.rollInStart.x + p.target.x) / 2 - 20, (p.rollInStart.y + p.target.y) / 2 - 10, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
+    text(svg, 95, 46, terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg", {
       fill: "#d64b4b",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
-    text(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 + 58, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
-      "text-anchor": "middle",
+    text(svg, 95, 72, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
+      "text-anchor": "start",
       fill: "#b77d00",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
@@ -702,19 +702,19 @@
       drawTopDimension(svg, dimensions.baseDistance, "base-distance",
         terms.baseDistance,
         format(view.public.rollInLateralSeparationNm, 1) + " nm",
-        "top-base-distance");
+        "top-base-distance", { x: 875, y: 350, anchor: "end" });
     }
     if (dimensions.rollInLateralDistance) {
       drawTopDimension(svg, dimensions.rollInLateralDistance, "roll-in-lateral-distance",
         terms.rollInLateralDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
-        "top-roll-in-lateral");
+        "top-roll-in-lateral", { x: 875, y: 420, anchor: "end" });
     }
     if (dimensions.rollInLongitudinalDistance) {
       drawTopDimension(svg, dimensions.rollInLongitudinalDistance, "roll-in-longitudinal-distance",
         terms.rollInLongitudinalDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
-        "top-roll-in-longitudinal");
+        "top-roll-in-longitudinal", { x: 875, y: 490, anchor: "end" });
     }
     enableLabelDrag(svg);
     return true;
