@@ -80,7 +80,11 @@ input,select,.readout{
   width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;
   color:var(--text);background:var(--field);font-size:18px;font-variant-numeric:tabular-nums;outline:none
 }
+input[type="checkbox"]{
+  width:18px;min-height:18px;height:18px;padding:0;margin:0;accent-color:var(--blue)
+}
 input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 14%,transparent)}
+input:disabled{opacity:.62;cursor:not-allowed}
 .readout{display:flex;align-items:center;border-style:dashed;color:var(--blue);background:var(--blue-soft);font-weight:850}
 .compound{display:grid;grid-template-columns:minmax(0,1fr) 88px}
 .compound input{border-radius:11px 0 0 11px}
@@ -89,6 +93,14 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix
 body.show-advanced .advanced-only{display:grid}
 section.advanced-only,details.advanced-only{display:none}
 body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
+.level-only{display:none!important}
+.app.level-mode .level-only{display:grid!important}
+.app.level-mode .dive-only{display:none!important}
+.level-turn-option{
+  margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;
+  color:var(--blue);font-size:12px;font-weight:850;cursor:pointer
+}
+.app.level-mode .level-turn-option{display:inline-grid!important}
 .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
 .dep-flash,.value-dependent-input{
   color:var(--amber)!important;background:var(--amber-soft)!important
@@ -106,7 +118,8 @@ body.show-advanced section.advanced-only,body.show-advanced details.advanced-onl
 .canvas>svg.plot-pan-enabled{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .canvas>svg.plot-panning{cursor:grabbing}
 #z-diagram{max-width:650px}
-#profile-diagram,#top-diagram{max-width:900px}
+#profile-diagram{max-width:980px}
+#top-diagram{max-width:900px}
 svg text{font-family:inherit}
 .movable-label{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .movable-label.dragging{cursor:grabbing}

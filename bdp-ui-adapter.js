@@ -23,15 +23,20 @@
     diveAngleDeg: "45",
     angleOffDeg: "90",
     trackingTimeSec: "18",
+    levelMapNm: "5.0",
+    levelTurnEnabled: true,
     releaseAltitudeMslFt: "6800",
     releaseSpeedKcas: "450",
-    rollInBankAngleDeg: "113",
+    rollInBankAngleDeg: "112.5",
     rollInG: "4"
   });
 
   var STRING_KEYS = Object.freeze({
     weaponId: true,
     initialSpeedMode: true
+  });
+  var BOOLEAN_KEYS = Object.freeze({
+    levelTurnEnabled: true
   });
 
   var state = {
@@ -41,6 +46,8 @@
     hasRendered: false,
     changeTimers: {},
     bankLinked: true,
+    levelMode: false,
+    nonLevelRollInG: "4",
     fontScale: {
       "z-diagram": DEFAULT_FONT_SCALE["z-diagram"],
       "profile-diagram": DEFAULT_FONT_SCALE["profile-diagram"],
@@ -80,6 +87,10 @@
   function dependentFlash(element) {
     global.clearTimeout(element.__bdpDependentTimer);
     element.classList.remove("value-dependent-change");
+    if (element.disabled || element.classList.contains("value-result")) {
+      element.classList.remove("value-dependent-input");
+      return;
+    }
     element.classList.add("value-dependent-input");
   }
 
@@ -92,8 +103,11 @@
 
   function setControls(key, value, except, flash) {
     controls(key).forEach(function (element) {
-      if (element !== except && element.value !== String(value)) {
-        element.value = String(value);
+      var checkbox = element.getAttribute && element.getAttribute("type") === "checkbox";
+      var changed = checkbox ? element.checked !== Boolean(value) : element.value !== String(value);
+      if (element !== except && changed) {
+        if (checkbox) element.checked = Boolean(value);
+        else element.value = String(value);
         if (flash) dependentFlash(element);
       }
     });
@@ -104,6 +118,10 @@
     Object.keys(DEFAULTS).forEach(function (key) {
       var element = firstControl(key);
       if (!element) return;
+      if (BOOLEAN_KEYS[key]) {
+        input[key] = Boolean(element.checked);
+        return;
+      }
       if (STRING_KEYS[key]) {
         input[key] = element.value;
         return;
@@ -131,7 +149,7 @@
     var saved = {};
     Object.keys(DEFAULTS).forEach(function (key) {
       var element = firstControl(key);
-      if (element) saved[key] = element.value;
+      if (element) saved[key] = BOOLEAN_KEYS[key] ? Boolean(element.checked) : element.value;
     });
     global.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   }
@@ -143,6 +161,8 @@
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
+    state.levelMode = false;
+    state.nonLevelRollInG = DEFAULTS.rollInG;
     state.fontScale["z-diagram"] = DEFAULT_FONT_SCALE["z-diagram"];
     state.fontScale["profile-diagram"] = DEFAULT_FONT_SCALE["profile-diagram"];
     state.fontScale["top-diagram"] = DEFAULT_FONT_SCALE["top-diagram"];
@@ -156,6 +176,7 @@
     Array.prototype.slice.call(document.querySelectorAll(".value-dependent-input")).forEach(function (element) {
       element.classList.remove("value-dependent-input");
     });
+    applyLevelMode(false);
     saveInput();
     calculate();
   }
@@ -189,6 +210,82 @@
     }) + (unit ? " " + unit : "");
   }
 
+  function clockText(value) {
+    var totalSeconds = Math.max(0, Math.round(Number(value) || 0));
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return String(minutes).padStart(2, "0") + " min " + String(seconds).padStart(2, "0") + " sec";
+  }
+
+  function compactNumber(value) {
+    return String(Math.round(Number(value) * 10) / 10);
+  }
+
+  function levelTurnActive() {
+    var control = firstControl("levelTurnEnabled");
+    return state.levelMode && Boolean(control && control.checked);
+  }
+
+  function setControlDisabled(key, disabled) {
+    controls(key).forEach(function (element) { element.disabled = Boolean(disabled); });
+  }
+
+  function setControlDerived(key, derived) {
+    controls(key).forEach(function (element) {
+      element.disabled = Boolean(derived);
+      if (derived) {
+        element.classList.remove("value-dependent-input");
+        element.classList.add("value-result");
+      } else {
+        element.classList.remove("value-result");
+      }
+    });
+  }
+
+  function syncAutomaticBank(flash) {
+    if (!state.bankLinked) return;
+    var bankAngle;
+    if (levelTurnActive()) {
+      var turnG = Number(firstControl("rollInG") && firstControl("rollInG").value);
+      if (!(turnG >= 1)) return;
+      bankAngle = Math.acos(1 / turnG) * 180 / Math.PI;
+    } else {
+      var angleOff = Number(firstControl("angleOffDeg") && firstControl("angleOffDeg").value);
+      var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+      if (!Number.isFinite(angleOff) || !Number.isFinite(diveAngle)) return;
+      bankAngle = angleOff + diveAngle / 2;
+    }
+    setControls("rollInBankAngleDeg", compactNumber(bankAngle), null, flash);
+  }
+
+  function applyLevelMode(flash) {
+    var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+    var nextLevelMode = Number.isFinite(diveAngle) && Math.abs(diveAngle) < 0.001;
+    var levelTurnControl = firstControl("levelTurnEnabled");
+    if (nextLevelMode && !state.levelMode) {
+      var currentG = firstControl("rollInG");
+      if (currentG && Number.isFinite(Number(currentG.value))) state.nonLevelRollInG = currentG.value;
+      if (levelTurnControl && levelTurnControl.checked) setControls("rollInG", "2", null, flash);
+    } else if (!nextLevelMode && state.levelMode) {
+      setControls("rollInG", state.nonLevelRollInG || DEFAULTS.rollInG, null, flash);
+    }
+    state.levelMode = nextLevelMode;
+    if (nextLevelMode) app.classList.add("level-mode");
+    else app.classList.remove("level-mode");
+    if (levelTurnControl) levelTurnControl.disabled = !nextLevelMode;
+    setControlDisabled("trackingTimeSec", nextLevelMode);
+    setControlDisabled("levelMapNm", !nextLevelMode);
+    setControlDerived("rollInBankAngleDeg", levelTurnActive());
+    if (nextLevelMode) {
+      solveModeNode.dataset.mode = "levelMap";
+      solveModeNode.textContent = "MAP 기준";
+    } else if (solveModeNode.dataset.mode === "levelMap") {
+      solveModeNode.dataset.mode = "initialAltitude";
+      solveModeNode.textContent = "Initial Altitude 기준";
+    }
+    syncAutomaticBank(flash);
+  }
+
   function titleFor(view) {
     if (view.profileTitle) return view.profileTitle;
     var angle = Number(view.input && view.input.diveAngleDeg);
@@ -212,6 +309,7 @@
     var result = view.public || {};
     var local = view.local || {};
     var displacement = result.rollInDisplacement || {};
+    var level = Math.abs(Number(view.input && view.input.diveAngleDeg)) < 0.001;
     setOutput("recoveryG", numberText(view.input && view.input.recoveryG, 1, ""));
     setOutput("attackHeadingDeg", numberText(view.input && view.input.attackHeadingDeg, 0, "deg"));
     setOutput("profileTitle", titleFor(view));
@@ -231,7 +329,8 @@
     setOutput("groundRangeNm", numberText(result.groundRangeNm, 1, "nm"));
     setOutput("downRangeTravelNm", numberText(result.downRangeTravelNm, 3, "nm"));
     setOutput("bombRangeNm", numberText(result.bombRangeNm, 3, "nm"));
-    setOutput("trackingTimeSec", numberText(result.trackingTimeSec, 0, "sec"));
+    setOutput("trackingTimeSec", level ? clockText(result.trackingTimeSec) : numberText(result.trackingTimeSec, 0, "sec"));
+    setOutput("levelTrackingTime", clockText(result.trackingTimeSec));
     setOutput("bombTofSec", numberText(result.bombTofSec, 0, "sec"));
     setOutput("rollInRadiusTime", numberText(result.rollInRadiusNm, 3, "nm") + " / " + numberText(result.rollInTimeSec, 0, "sec"));
     setOutput("rollInGroundArcNm", numberText(result.rollInGroundArcNm, 3, "nm"));
@@ -253,6 +352,13 @@
   function syncSolvedInputs(view) {
     var result = view.public || {};
     var mode = solveModeNode.dataset.mode || "initialAltitude";
+    if (Math.abs(Number(view.input && view.input.diveAngleDeg)) < 0.001) {
+      var levelTrackingTime = Number(result.trackingTimeSec);
+      if (Number.isFinite(levelTrackingTime)) {
+        setControls("trackingTimeSec", Math.round(levelTrackingTime), null, state.hasRendered);
+      }
+      return;
+    }
     if (mode === "trackingTime") {
       var initialAltitude = Number(result.resolvedInitialAltitudeMslFt);
       if (Number.isFinite(initialAltitude)) {
@@ -546,13 +652,24 @@
   app.addEventListener("input", function (event) {
     var key = event.target && event.target.getAttribute("data-bdp-input");
     if (!key) return;
-    if (key === "angleOffDeg") setControls(key, event.target.value, event.target, true);
+    if (key === "angleOffDeg") {
+      setControls(key, event.target.value, event.target, true);
+      state.bankLinked = true;
+      syncAutomaticBank(true);
+    }
     if (key === "diveAngleDeg") {
       state.bankLinked = true;
-      var diveAngle = Number(event.target.value);
-      if (Number.isFinite(diveAngle)) setControls("rollInBankAngleDeg", Math.round(90 + diveAngle / 2), null, true);
+      applyLevelMode(true);
     }
     if (key === "rollInBankAngleDeg") state.bankLinked = false;
+    if (key === "rollInG") {
+      if (levelTurnActive()) {
+        state.bankLinked = true;
+        syncAutomaticBank(true);
+      } else if (!state.levelMode) {
+        state.nonLevelRollInG = event.target.value;
+      }
+    }
     if (key === "rollInStartAltitudeMslFt") {
       solveModeNode.dataset.mode = "initialAltitude";
       solveModeNode.textContent = "Initial Altitude 기준";
@@ -561,12 +678,21 @@
       solveModeNode.dataset.mode = "trackingTime";
       solveModeNode.textContent = "Tracking Time 기준";
     }
+    if (key === "levelMapNm") {
+      solveModeNode.dataset.mode = "levelMap";
+      solveModeNode.textContent = "MAP 기준";
+    }
     saveInput();
     global.clearTimeout(app.__bdpInputTimer);
     app.__bdpInputTimer = global.setTimeout(calculate, 120);
   });
 
   app.addEventListener("change", function (event) {
+    var key = event.target && event.target.getAttribute("data-bdp-input");
+    if (key === "levelTurnEnabled") {
+      state.bankLinked = true;
+      applyLevelMode(true);
+    }
     if (event.target && event.target.hasAttribute("data-bdp-input")) {
       saveInput();
       calculate();
@@ -627,8 +753,21 @@
 
   ["z-diagram", "profile-diagram", "top-diagram"].forEach(bindPlotPan);
 
+  var levelTurnControl = firstControl("levelTurnEnabled");
+  var levelTurnOption = document.getElementById("level-turn-option");
+  if (levelTurnOption) levelTurnOption.addEventListener("click", function (event) {
+    if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+  });
+
   loadInput();
+  var loadedRollInG = firstControl("rollInG");
+  var loadedDiveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+  if (loadedRollInG && Math.abs(loadedDiveAngle) >= 0.001) {
+    state.nonLevelRollInG = loadedRollInG.value || DEFAULTS.rollInG;
+  }
   solveModeNode.dataset.mode = "initialAltitude";
+  solveModeNode.textContent = "Initial Altitude 기준";
+  applyLevelMode(false);
 
   global.BDPUI = Object.freeze({
     connectProvider: connectProvider,

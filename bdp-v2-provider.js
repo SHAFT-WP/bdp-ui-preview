@@ -39,6 +39,8 @@
       initialAltitudeMslFt: finite(input.rollInStartAltitudeMslFt, "Roll-in Start Altitude"),
       solveMode: input.solveMode === "trackingTime" ? "time" : "height",
       trackingTimeSec: finite(input.trackingTimeSec, "Tracking Time"),
+      levelMapNm: finite(input.levelMapNm === undefined ? 5 : input.levelMapNm, "Level MAP"),
+      levelTurnEnabled: Boolean(input.levelTurnEnabled),
       releaseAltitudeMslFt: finite(input.releaseAltitudeMslFt, "Release Altitude"),
       angleOffDeg: finite(input.angleOffDeg, "Angle-off"),
       rollInBankAngleDeg: finite(input.rollInBankAngleDeg, "Roll-in Bank Angle"),
@@ -154,7 +156,7 @@
         start: { x: nearForward, y: localRollInStart.y },
         end: { x: nearForward, y: localTrackPoint.y },
         guides: [
-          { start: localTrackFoot, end: { x: nearForward, y: localRollInStart.y } },
+          { start: localRollInStart, end: { x: nearForward, y: localRollInStart.y } },
           { start: localTrackPoint, end: { x: nearForward, y: localTrackPoint.y } }
         ]
       },

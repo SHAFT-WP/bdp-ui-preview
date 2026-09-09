@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=e1934a5b3739">
-  <link rel="stylesheet" href="./bdp-ui.css?v=e1934a5b3739">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=979260098d2c">
+  <link rel="stylesheet" href="./bdp-ui.css?v=979260098d2c">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -56,7 +56,9 @@
     .field{display:grid;gap:7px;align-content:start;min-width:0}
     .field-label{font-size:13px;font-weight:800;color:var(--muted)}
     input,select,.readout{width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;color:var(--text);background:var(--field);font-size:18px;font-variant-numeric:tabular-nums;outline:none}
+    input[type="checkbox"]{width:18px;min-height:18px;height:18px;padding:0;margin:0;accent-color:var(--blue)}
     input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(121,189,240,.14)}
+    input:disabled{opacity:.62;cursor:not-allowed}
     .readout{display:flex;align-items:center;border-style:dashed;color:var(--blue);background:var(--blue-soft);font-weight:850}
     .compound{display:grid;grid-template-columns:minmax(0,1fr) 88px}
     .compound input{border-radius:11px 0 0 11px}
@@ -65,6 +67,11 @@
     body.show-advanced .advanced-only{display:grid}
     section.advanced-only,details.advanced-only{display:none}
     body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
+    .level-only{display:none!important}
+    .app.level-mode .level-only{display:grid!important}
+    .app.level-mode .dive-only{display:none!important}
+    .level-turn-option{margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;color:var(--blue);font-size:12px;font-weight:850;cursor:pointer}
+    .app.level-mode .level-turn-option{display:inline-grid!important}
     .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
     .dep-flash,.value-dependent-input{color:var(--amber)!important;background:var(--amber-soft)!important}
     .value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
@@ -75,7 +82,8 @@
     .canvas>svg.plot-pan-enabled{cursor:grab;touch-action:none;user-select:none}
     .canvas>svg.plot-panning{cursor:grabbing}
     #z-diagram{max-width:650px}
-    #profile-diagram,#top-diagram{max-width:900px}
+    #profile-diagram{max-width:980px}
+    #top-diagram{max-width:900px}
     svg text{font-family:inherit}
     .movable-label{cursor:grab;touch-action:none;user-select:none}
     .movable-label.dragging{cursor:grabbing}
@@ -194,9 +202,15 @@
           <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
             <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
           </label>
-          <label class="field"><span class="field-label">Tracking Time (sec)</span>
+          <label class="field dive-only"><span class="field-label">Tracking Time (sec)</span>
             <input data-key="trackingTime" data-bdp-input="trackingTimeSec" value="18" inputmode="decimal">
           </label>
+          <label class="field level-only"><span class="field-label">MAP (nm)</span>
+            <input data-key="levelMap" data-bdp-input="levelMapNm" value="5.0" inputmode="decimal">
+          </label>
+          <div class="field level-only"><span class="field-label">Tracking Time</span>
+            <output class="readout" data-bdp-output="levelTrackingTime">—</output>
+          </div>
           <label class="field"><span class="field-label">Release Altitude (ft msl)</span>
             <input data-key="releaseAltitude" data-bdp-input="releaseAltitudeMslFt" value="6800" inputmode="decimal">
           </label>
@@ -206,14 +220,17 @@
         </div></div>
       </details>
 
-      <details class="panel" open>
-        <summary>Roll-in Information</summary>
+      <details class="panel" id="roll-in-turn-panel">
+        <summary><span>Roll-in Turn</span><label class="level-turn-option level-only" id="level-turn-option">
+          <input type="checkbox" data-bdp-input="levelTurnEnabled" checked>
+          <span>Level Turn</span>
+        </label></summary>
         <div class="panel-body"><div class="grid">
           <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
             <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Roll-in Bank Angle (deg)</span>
-            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="113" inputmode="decimal">
+            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="112.5" inputmode="decimal">
           </label>
           <label class="field"><span class="field-label">Roll-in Bank G (G)</span>
             <input data-key="rollG" data-bdp-input="rollInG" value="4.0" inputmode="decimal">
@@ -224,8 +241,11 @@
           <div class="field advanced-only"><span class="field-label">Roll-in Altitude Loss (ft) <span class="adv-tag">ADV</span></span>
             <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output>
           </div>
-          <div class="field advanced-only"><span class="field-label">Roll-in Longitudinal Distance (nm) <span class="adv-tag">ADV</span></span>
+          <div class="field"><span class="field-label">Roll-in Longitudinal Distance (nm)</span>
             <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output>
+          </div>
+          <div class="field"><span class="field-label">Roll-in Lateral Distance (nm)</span>
+            <output class="readout" data-bdp-output="rollInLateralDistanceNm">—</output>
           </div>
         </div></div>
       </details>
@@ -261,7 +281,7 @@
       <button class="btn" data-reset-plot="profile-diagram" type="button" aria-label="Reset Profile plot">Reset</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
     </div></div>
     <div class="card"><div class="canvas">
-      <svg id="profile-diagram" viewBox="0 0 900 620" role="img" aria-label="Profile"></svg>
+      <svg id="profile-diagram" viewBox="0 0 980 700" role="img" aria-label="Profile"></svg>
     </div></div>
   </section>
 
@@ -332,6 +352,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=e1934a5b3739"></script>
+<script type="module" src="./bdp-app.mjs?v=979260098d2c"></script>
 </body>
 </html>

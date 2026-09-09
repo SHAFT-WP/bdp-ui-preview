@@ -51,6 +51,13 @@
     });
   }
 
+  function clock(value) {
+    var totalSeconds = Math.max(0, Math.round(finite(value, 0)));
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return String(minutes).padStart(2, "0") + " min " + String(seconds).padStart(2, "0") + " sec";
+  }
+
   function line(parent, x1, y1, x2, y2, attrs) {
     return append(parent, "line", Object.assign({
       x1: x1,
@@ -387,9 +394,9 @@
 
   function renderProfile(svg, view) {
     svg.replaceChildren();
-    svg.setAttribute("viewBox", "0 0 900 620");
-    svg.dataset.baseViewBox = "0 0 900 620";
-    append(svg, "rect", { width: 900, height: 620, fill: "#fff", "data-plot-background": "true" });
+    svg.setAttribute("viewBox", "0 0 980 700");
+    svg.dataset.baseViewBox = "0 0 980 700";
+    append(svg, "rect", { width: 980, height: 700, fill: "#fff", "data-plot-background": "true" });
 
     var visual = view.visualization && view.visualization.profile;
     if (!visual || !visual.points) {
@@ -403,22 +410,22 @@
     marker(defs, "profile-green-arrow", "#087b4c", 12);
     marker(defs, "profile-amber-arrow", "#a35d00", 12);
     marker(defs, "profile-map-arrow", "#d64b4b", 12);
-    addGrid(svg, 900, 620, 80, 70);
+    addGrid(svg, 980, 700, 80, 70);
 
     var p = visual.points;
     var groundY = p.target.y;
-    var dimensionY = 500;
-    var mapY = 570;
+    var dimensionY = 560;
+    var mapY = 640;
     var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
     var isLevel = Math.abs(finite(view.input && view.input.diveAngleDeg, 0)) < 0.001;
-    var trackingTimeLabel = "Tracking Time: " + format(view.public.trackingTimeSec, 0) + " sec";
-    var trackPointLabel = "Track Point" + (isLevel
-      ? " · " + trackingTimeLabel
-      : ": " + format(view.public.trackPointAltitudeMslFt, 0) + " ft msl · " + trackingTimeLabel);
+    var trackPointLabel = isLevel
+      ? "Track: " + clock(view.public.trackingTimeSec)
+      : "Track: " + format(view.public.trackPointAltitudeMslFt, 0) + " ft, " +
+        format(view.public.trackingTimeSec, 0) + " sec";
     var releaseLabel = (isLevel ? "Initial" : "Release") + ": " +
       format(view.public.effectiveReleaseAltitudeMslFt, 0) + " ft msl";
 
-    line(svg, 48, groundY, 852, groundY, {
+    line(svg, 48, groundY, 932, groundY, {
       stroke: "#556270",
       "stroke-width": 2,
       "data-profile-line": "ground"
@@ -476,19 +483,29 @@
     if (hasAod) point(svg, p.aimOff, "#176dac", 5);
 
     text(svg, p.trackPoint.x, p.trackPoint.y - 21, trackPointLabel, { "text-anchor": "start", class: "label-halo" });
-    text(svg, p.release.x, p.release.y - 21, releaseLabel, { "text-anchor": "middle", class: "label-halo" });
-    var targetAimOffY = p.target.y + 28;
-    var targetAimOffTargetX = hasAod ? Math.min(p.target.x - 14, 580) : p.target.x;
-    movableText(svg, targetAimOffTargetX, targetAimOffY, "Target", "profile-target-aod", {
-      "text-anchor": "end",
+    text(svg, isLevel ? p.release.x + 18 : p.release.x, p.release.y - 21, releaseLabel, {
+      "text-anchor": isLevel ? "start" : "middle",
       class: "label-halo"
     });
-    if (hasAod) movableText(svg, targetAimOffTargetX + 28, targetAimOffY,
-      "Aim Off Distance",
-      "profile-target-aod", {
-        "text-anchor": "start",
+    var targetAimOffY = p.target.y + 34;
+    if (hasAod) {
+      var stationLabelBoundary = (p.target.x + p.aimOff.x) / 2;
+      movableText(svg, stationLabelBoundary - 12, targetAimOffY, "Target", "profile-target", {
+        "text-anchor": "end",
         class: "label-halo"
       });
+      movableText(svg, stationLabelBoundary + 12, targetAimOffY,
+        "Aim Off Point",
+        "profile-aim-off", {
+          "text-anchor": "start",
+          class: "label-halo"
+        });
+    } else {
+      movableText(svg, p.target.x, targetAimOffY, "Target", "profile-target", {
+        "text-anchor": "middle",
+        class: "label-halo"
+      });
+    }
 
     var fpaAngle = Math.atan2(p.aimOff.y - p.trackPoint.y, p.aimOff.x - p.trackPoint.x);
     var losAngle = Math.atan2(p.target.y - p.trackPoint.y, p.target.x - p.trackPoint.x);
@@ -581,24 +598,10 @@
     marker(defs, "top-blue-arrow", "#2f6fc2", 14);
     marker(defs, "top-amber-arrow", "#d59400", 14);
     marker(defs, "top-dim-arrow", "#2f6fc2", 11);
-    marker(defs, "top-north-arrow", "#203a63", 10);
     addGrid(svg, 900, 620, 80, 70);
 
     var p = visual.points;
     var terms = TERMINOLOGY.USAF;
-    line(svg, 58, 92, 58, 54, {
-      stroke: "#203a63",
-      "stroke-width": 1.8,
-      "marker-end": "url(#top-north-arrow)",
-      "data-top-north": "arrow"
-    });
-    text(svg, 58, 40, "N", {
-      "text-anchor": "middle",
-      fill: "#203a63",
-      "font-size": TOP_FONT_SIZE,
-      class: "label-halo",
-      "data-top-north": "label"
-    });
     append(svg, "circle", {
       cx: p.target.x,
       cy: p.target.y,

@@ -355,6 +355,7 @@
     var trackAglFt;
     var trackingPathFt;
     var trackingTimeSec;
+    var requestedLevelMapNm = Number(input.levelMapNm);
     var roll;
     var rollProfile = {
       initialSpeedValue: input.initialSpeedValue,
@@ -367,7 +368,6 @@
     var iteration;
 
     if (level) {
-      trackingTimeSec = input.trackingTimeSec;
       initialAglFt = releaseAglFt;
       for (iteration = 0; iteration < 12; iteration += 1) {
         initialMslFt = input.targetElevationMslFt + initialAglFt;
@@ -377,7 +377,17 @@
       initialMslFt = input.targetElevationMslFt + initialAglFt;
       roll = rollIn(rollProfile, initialMslFt);
       trackAglFt = initialAglFt - roll.altitudeLossFt;
-      trackingPathFt = ((roll.finalTasKt + releaseTasKt) / 2) * KTFPS * trackingTimeSec;
+      var levelTrackingSpeedFps = ((roll.finalTasKt + releaseTasKt) / 2) * KTFPS;
+      if (Number.isFinite(requestedLevelMapNm)) {
+        trackingPathFt = requestedLevelMapNm * FTNM - bomb.bombRangeFt;
+        if (trackingPathFt < 0) {
+          throw new Error("Level MAP must be at least the computed Bomb Range");
+        }
+        trackingTimeSec = trackingPathFt / levelTrackingSpeedFps;
+      } else {
+        trackingTimeSec = input.trackingTimeSec;
+        trackingPathFt = levelTrackingSpeedFps * trackingTimeSec;
+      }
     } else if (input.solveMode === "height") {
       initialMslFt = input.initialAltitudeMslFt;
       initialAglFt = initialMslFt - input.targetElevationMslFt;
