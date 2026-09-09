@@ -202,6 +202,7 @@
   }
 
   function numberText(value, digits, unit) {
+    if (value === null || value === undefined || value === "") return "—";
     var number = Number(value);
     if (!Number.isFinite(number)) return "—";
     return number.toLocaleString("en-US", {
