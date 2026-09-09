@@ -478,11 +478,12 @@
     text(svg, p.trackPoint.x, p.trackPoint.y - 21, trackPointLabel, { "text-anchor": "start", class: "label-halo" });
     text(svg, p.release.x, p.release.y - 21, releaseLabel, { "text-anchor": "middle", class: "label-halo" });
     var targetAimOffY = p.target.y + 28;
-    movableText(svg, p.target.x - 14, targetAimOffY, "Target", "profile-target-aod", {
+    var targetAimOffTargetX = hasAod ? Math.min(p.target.x - 14, 580) : p.target.x;
+    movableText(svg, targetAimOffTargetX, targetAimOffY, "Target", "profile-target-aod", {
       "text-anchor": "end",
       class: "label-halo"
     });
-    if (hasAod) movableText(svg, p.target.x + 14, targetAimOffY,
+    if (hasAod) movableText(svg, targetAimOffTargetX + 28, targetAimOffY,
       "Aim Off Distance",
       "profile-target-aod", {
         "text-anchor": "start",
