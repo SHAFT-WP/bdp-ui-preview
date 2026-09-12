@@ -709,14 +709,14 @@
       baseNormal.x *= -1;
       baseNormal.y *= -1;
     }
-    var baseLabelX = Math.min(p.initial.x, p.rollInStart.x) + TOP_FONT_SIZE * 2;
+    var baseLabelX = p.rollInStart.x + baseUnit.x * (TOP_FONT_SIZE * 2) + baseNormal.x * 16;
     var baseLabelY = p.rollInStart.y + baseUnit.y * (TOP_FONT_SIZE * 2) + baseNormal.y * 16;
-    baseLabelX = Math.max(48, Math.min(650, baseLabelX));
+    baseLabelX = Math.max(220, Math.min(870, baseLabelX));
     baseLabelY = Math.max(125, Math.min(570, baseLabelY));
     movableText(svg, baseLabelX, baseLabelY - TOP_FONT_SIZE * 2,
       terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg",
       "top-base-condition", {
-      "text-anchor": "start",
+      "text-anchor": "end",
       fill: "#d64b4b",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
@@ -725,39 +725,36 @@
       format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl · " +
         format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
       "top-base-condition", {
-      "text-anchor": "start",
-      fill: "#203a63",
-      "font-size": TOP_FONT_SIZE,
-      class: "label-halo"
-    });
-    movableText(svg, 852, 46, "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg", "top-context", {
-      "text-anchor": "end",
-      fill: "#203a63",
-      "font-size": TOP_FONT_SIZE,
-      class: "label-halo"
-    });
-    movableText(svg, 852, 70, terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg", "top-context", {
       "text-anchor": "end",
       fill: "#203a63",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
     });
     var windSpeedKt = finite(view.input.windSpeedKt, 0);
+    var contextLines = [
+      "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg",
+      terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg"
+    ];
     if (Math.abs(windSpeedKt) > 0.0001) {
-      movableText(svg, 852, 94,
-        "Wind: " + format(view.input.windDirectionDeg, 0) + " deg from · " + format(Math.abs(windSpeedKt), 0) + " kt",
-        "top-context", {
-          "text-anchor": "end",
-          fill: "#203a63",
-          "font-size": TOP_FONT_SIZE,
-          class: "label-halo"
-        });
+      contextLines.push("Wind: " + format(view.input.windDirectionDeg, 0) + " deg from · " + format(Math.abs(windSpeedKt), 0) + " kt");
     }
+    var contextGap = 24;
+    var contextStartY = p.target.y - 52 - (contextLines.length - 1) * contextGap;
+    if (contextStartY < 28) contextStartY = 28;
+    contextLines.forEach(function (value, index) {
+      movableText(svg, p.target.x, contextStartY + index * contextGap, value, "top-context", {
+        "text-anchor": "middle",
+        fill: "#203a63",
+        "font-size": TOP_FONT_SIZE,
+        class: "label-halo"
+      });
+    });
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
-    text(svg, 95, 72, terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", {
-      "text-anchor": "start",
+    movableText(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 - 10,
+      terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", "top-map", {
+      "text-anchor": "middle",
       fill: "#b77d00",
       "font-size": TOP_FONT_SIZE,
       class: "label-halo"
@@ -771,7 +768,12 @@
         "top-base-distance", { x: 875, y: 350, anchor: "end" });
     }
     if (dimensions.rollInLateralDistance) {
-      drawTopDimension(svg, dimensions.rollInLateralDistance, "roll-in-lateral-distance",
+      var lateralDimension = Object.assign({}, dimensions.rollInLateralDistance, {
+        guides: (dimensions.rollInLateralDistance.guides || []).map(function (guide, index) {
+          return index === 0 ? { start: p.rollInStart, end: guide.end } : guide;
+        })
+      });
+      drawTopDimension(svg, lateralDimension, "roll-in-lateral-distance",
         terms.rollInLateralDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
         "top-roll-in-lateral", { x: 875, y: 420, anchor: "end" });
