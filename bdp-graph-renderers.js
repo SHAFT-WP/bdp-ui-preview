@@ -229,9 +229,19 @@
       normal.x *= -1;
       normal.y *= -1;
     }
-    var x = midpoint.x + normal.x * 28;
-    var y = midpoint.y + normal.y * 28;
+    var offset = 34;
+    var x = midpoint.x + normal.x * offset;
+    var y = midpoint.y + normal.y * offset;
     var anchor = normal.x > 0.35 ? "start" : normal.x < -0.35 ? "end" : "middle";
+    var mustFlipHorizontally = (anchor === "start" && x > 690) || (anchor === "end" && x < 210);
+    var mustFlipVertically = anchor === "middle" && (y < 125 || y > 585);
+    if (mustFlipHorizontally || mustFlipVertically) {
+      normal.x *= -1;
+      normal.y *= -1;
+      x = midpoint.x + normal.x * offset;
+      y = midpoint.y + normal.y * offset;
+      anchor = normal.x > 0.35 ? "start" : normal.x < -0.35 ? "end" : "middle";
+    }
     if (anchor === "start") x = Math.min(x, 690);
     else if (anchor === "end") x = Math.max(x, 210);
     else x = Math.max(150, Math.min(750, x));
@@ -765,7 +775,7 @@
       drawTopDimension(svg, dimensions.baseDistance, "base-distance",
         terms.baseDistance,
         format(view.public.rollInLateralSeparationNm, 1) + " nm",
-        "top-base-distance", { x: 875, y: 350, anchor: "end" });
+        "top-base-distance");
     }
     if (dimensions.rollInLateralDistance) {
       var lateralDimension = Object.assign({}, dimensions.rollInLateralDistance, {
@@ -776,13 +786,13 @@
       drawTopDimension(svg, lateralDimension, "roll-in-lateral-distance",
         terms.rollInLateralDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
-        "top-roll-in-lateral", { x: 875, y: 420, anchor: "end" });
+        "top-roll-in-lateral");
     }
     if (dimensions.rollInLongitudinalDistance) {
       drawTopDimension(svg, dimensions.rollInLongitudinalDistance, "roll-in-longitudinal-distance",
         terms.rollInLongitudinalDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
-        "top-roll-in-longitudinal", { x: 875, y: 490, anchor: "end" });
+        "top-roll-in-longitudinal");
     }
     enableLabelDrag(svg);
     return true;
