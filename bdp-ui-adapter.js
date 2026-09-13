@@ -143,6 +143,8 @@
     Object.keys(DEFAULTS).forEach(function (key) {
       setControls(key, saved[key] !== undefined ? saved[key] : DEFAULTS[key]);
     });
+    // A saved manual Bank remains the input when reopening the page.
+    state.bankLinked = saved.rollInBankAngleDeg === undefined || levelTurnActive();
   }
 
   function saveInput() {
@@ -251,10 +253,9 @@
       if (!(turnG >= 1)) return;
       bankAngle = Math.acos(1 / turnG) * 180 / Math.PI;
     } else {
-      var angleOff = Number(firstControl("angleOffDeg") && firstControl("angleOffDeg").value);
       var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
-      if (!Number.isFinite(angleOff) || !Number.isFinite(diveAngle)) return;
-      bankAngle = angleOff + diveAngle / 2;
+      if (!Number.isFinite(diveAngle)) return;
+      bankAngle = 90 + diveAngle / 2;
     }
     setControls("rollInBankAngleDeg", compactNumber(bankAngle), null, flash);
   }
@@ -284,6 +285,7 @@
       solveModeNode.dataset.mode = "initialAltitude";
       solveModeNode.textContent = "Initial Altitude 기준";
     }
+    if (levelTurnActive()) state.bankLinked = true;
     syncAutomaticBank(flash);
   }
 
@@ -694,8 +696,6 @@
     if (!key) return;
     if (key === "angleOffDeg") {
       setControls(key, event.target.value, event.target, true);
-      state.bankLinked = true;
-      syncAutomaticBank(true);
     }
     if (key === "diveAngleDeg") {
       state.bankLinked = true;

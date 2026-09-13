@@ -760,9 +760,13 @@
       });
     });
     text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
-    text(svg, p.trackPoint.x - 10, p.trackPoint.y - 17, terms.trackPoint, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
+    var trackLabelOnRight = p.target.x < p.trackPoint.x ||
+      Math.abs(p.trackPoint.y - 17 - (baseLabelY - TOP_FONT_SIZE * 2)) < TOP_FONT_SIZE * 2.5;
+    text(svg, p.trackPoint.x + (trackLabelOnRight ? 10 : -10), p.trackPoint.y - 17, terms.trackPoint, {
+      "text-anchor": trackLabelOnRight ? "start" : "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo"
+    });
     text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
-    movableText(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 - 10,
+    movableText(svg, (p.trackPoint.x + p.target.x) / 2, (p.trackPoint.y + p.target.y) / 2 - 34,
       terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm", "top-map", {
       "text-anchor": "middle",
       fill: "#b77d00",

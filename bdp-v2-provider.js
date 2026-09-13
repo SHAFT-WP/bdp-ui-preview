@@ -110,24 +110,7 @@
       return { x: point.forwardNm, y: point.turnSideNm };
     });
 
-    var attackVector = {
-      x: localTarget.x - localTrackPoint.x,
-      y: localTarget.y - localTrackPoint.y
-    };
-    var localAttackAngle = Math.atan2(attackVector.y, attackVector.x);
     var attackHeadingDeg = absoluteHeading(raw.canonicalInputs.attackHeadingDeg);
-    var northUpAttackAngle = (90 - attackHeadingDeg) * Math.PI / 180;
-    var rotation = northUpAttackAngle - localAttackAngle;
-    var cosRotation = Math.cos(rotation);
-    var sinRotation = Math.sin(rotation);
-    var rotate = function (source) {
-      var dx = source.x - localRollInStart.x;
-      var dy = source.y - localRollInStart.y;
-      return {
-        x: localRollInStart.x + dx * cosRotation - dy * sinRotation,
-        y: localRollInStart.y + dx * sinRotation + dy * cosRotation
-      };
-    };
 
     var forwardSign = localTarget.x >= localRollInStart.x ? 1 : -1;
     var sideSign = localTarget.y >= localRollInStart.y ? 1 : -1;
@@ -170,30 +153,15 @@
       }
     };
 
-    var rollInStart = rotate(localRollInStart);
-    var trackPoint = rotate(localTrackPoint);
-    var target = rotate(localTarget);
-    var aimOff = rotate(localAimOff);
-    var ingress = rotate(localIngress);
-    var rollPath = localRollPath.map(rotate);
-    var rotatedDimensions = {};
+    var dimensionFocus = [];
     Object.keys(localDimensions).forEach(function (key) {
       var dimension = localDimensions[key];
-      rotatedDimensions[key] = {
-        start: rotate(dimension.start),
-        end: rotate(dimension.end),
-        guides: dimension.guides.map(function (guide) {
-          return { start: rotate(guide.start), end: rotate(guide.end) };
-        })
-      };
-    });
-    var dimensionFocus = [];
-    Object.keys(rotatedDimensions).forEach(function (key) {
-      var dimension = rotatedDimensions[key];
       dimensionFocus.push(dimension.start, dimension.end);
       dimension.guides.forEach(function (guide) { dimensionFocus.push(guide.start, guide.end); });
     });
-    var focus = [ingress, rollInStart, trackPoint, target, aimOff].concat(rollPath, dimensionFocus);
+    // Fit the working geometry, allowing the far ingress and MAP circle to crop.
+    // The native Base frame keeps Initial left-to-right for every heading.
+    var focus = [localRollInStart, localTrackPoint, localTarget, localAimOff].concat(localRollPath, dimensionFocus);
     var xs = focus.map(function (point) { return point.x; });
     var ys = focus.map(function (point) { return point.y; });
     var rawMinX = Math.min.apply(Math, xs);
@@ -206,7 +174,7 @@
     var maxX = rawMaxX + padding;
     var minY = rawMinY - padding;
     var maxY = rawMaxY + padding;
-    var plot = { left: 85, right: 620, top: 125, bottom: 550 };
+    var plot = { left: 300, right: 865, top: 110, bottom: 525 };
     var scale = Math.min(
       (plot.right - plot.left) / Math.max(0.001, maxX - minX),
       (plot.bottom - plot.top) / Math.max(0.001, maxY - minY)
@@ -233,21 +201,22 @@
     };
 
     return {
-      northUp: true,
+      northUp: false,
+      orientation: "initial-horizontal",
       attackHeadingDeg: attackHeadingDeg,
       points: {
-        initial: point(ingress),
-        rollInStart: point(rollInStart),
-        trackPoint: point(trackPoint),
-        target: point(target),
-        aimOff: point(aimOff)
+        initial: point(localIngress),
+        rollInStart: point(localRollInStart),
+        trackPoint: point(localTrackPoint),
+        target: point(localTarget),
+        aimOff: point(localAimOff)
       },
-      rollPath: rollPath.map(point),
+      rollPath: localRollPath.map(point),
       groundRangeRadiusPx: groundRangeNm * scale,
       dimensions: {
-        baseDistance: mapSegment(rotatedDimensions.baseDistance),
-        rollInLateralDistance: mapSegment(rotatedDimensions.rollInLateralDistance),
-        rollInLongitudinalDistance: mapSegment(rotatedDimensions.rollInLongitudinalDistance)
+        baseDistance: mapSegment(localDimensions.baseDistance),
+        rollInLateralDistance: mapSegment(localDimensions.rollInLateralDistance),
+        rollInLongitudinalDistance: mapSegment(localDimensions.rollInLongitudinalDistance)
       }
     };
   }
