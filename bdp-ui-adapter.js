@@ -14,9 +14,21 @@
     "top-diagram": 1.2
   });
 
+  function isMobileDevice() {
+    var navigator = global.navigator || {};
+    var userAgentData = navigator.userAgentData;
+    if (userAgentData && typeof userAgentData.mobile === "boolean") {
+      return userAgentData.mobile;
+    }
+    var userAgent = String(navigator.userAgent || "");
+    if (/(Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini|Mobile)/i.test(userAgent)) {
+      return true;
+    }
+    return /Macintosh/i.test(userAgent) && Number(navigator.maxTouchPoints) > 1;
+  }
+
   function defaultFontScale(targetId) {
-    var mobile = typeof global.matchMedia === "function" && global.matchMedia("(max-width: 620px)").matches;
-    var defaults = mobile ? MOBILE_FONT_SCALE : DESKTOP_FONT_SCALE;
+    var defaults = isMobileDevice() ? MOBILE_FONT_SCALE : DESKTOP_FONT_SCALE;
     return defaults[targetId] || 1;
   }
 
