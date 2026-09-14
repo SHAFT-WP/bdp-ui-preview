@@ -3,11 +3,23 @@
 
   var STORAGE_KEY = "bdp-common-ui-preview-v2-provider-v1";
   var FONT_BASE_MULTIPLIER = 1.5;
-  var DEFAULT_FONT_SCALE = Object.freeze({
+  var DESKTOP_FONT_SCALE = Object.freeze({
+    "z-diagram": 0.8,
+    "profile-diagram": 1,
+    "top-diagram": 1
+  });
+  var MOBILE_FONT_SCALE = Object.freeze({
     "z-diagram": 1,
     "profile-diagram": 1.2,
     "top-diagram": 1.2
   });
+
+  function defaultFontScale(targetId) {
+    var mobile = typeof global.matchMedia === "function" && global.matchMedia("(max-width: 620px)").matches;
+    var defaults = mobile ? MOBILE_FONT_SCALE : DESKTOP_FONT_SCALE;
+    return defaults[targetId] || 1;
+  }
+
   var DEFAULTS = Object.freeze({
     weaponId: "M82",
     targetElevationMslFt: "31",
@@ -49,9 +61,9 @@
     levelMode: false,
     nonLevelRollInG: "4",
     fontScale: {
-      "z-diagram": DEFAULT_FONT_SCALE["z-diagram"],
-      "profile-diagram": DEFAULT_FONT_SCALE["profile-diagram"],
-      "top-diagram": DEFAULT_FONT_SCALE["top-diagram"]
+      "z-diagram": defaultFontScale("z-diagram"),
+      "profile-diagram": defaultFontScale("profile-diagram"),
+      "top-diagram": defaultFontScale("top-diagram")
     },
     resultFontScale: {
       "result-summary": 1
@@ -165,9 +177,9 @@
     state.bankLinked = true;
     state.levelMode = false;
     state.nonLevelRollInG = DEFAULTS.rollInG;
-    state.fontScale["z-diagram"] = DEFAULT_FONT_SCALE["z-diagram"];
-    state.fontScale["profile-diagram"] = DEFAULT_FONT_SCALE["profile-diagram"];
-    state.fontScale["top-diagram"] = DEFAULT_FONT_SCALE["top-diagram"];
+    state.fontScale["z-diagram"] = defaultFontScale("z-diagram");
+    state.fontScale["profile-diagram"] = defaultFontScale("profile-diagram");
+    state.fontScale["top-diagram"] = defaultFontScale("top-diagram");
     state.resultFontScale["result-summary"] = 1;
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
@@ -608,7 +620,7 @@
     if (!state.lastView) return;
     var svg = document.getElementById(targetId);
     if (!svg) return;
-    state.fontScale[targetId] = DEFAULT_FONT_SCALE[targetId] || 1;
+    state.fontScale[targetId] = defaultFontScale(targetId);
     state.zoom[targetId] = 1;
     state.pan[targetId] = { x: 0, y: 0 };
     if (targetId === "z-diagram") {
@@ -761,7 +773,7 @@
       var targetId = toolbar.getAttribute("data-font-target");
       if (action === "out") state.fontScale[targetId] -= 0.1;
       if (action === "in") state.fontScale[targetId] += 0.1;
-      if (action === "reset") state.fontScale[targetId] = 1;
+      if (action === "reset") state.fontScale[targetId] = defaultFontScale(targetId);
       applyFontScale(targetId);
     });
   });
