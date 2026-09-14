@@ -4,11 +4,11 @@ import {
   appendGrid,
   createOpenArrowMarker,
   svgNode,
-} from "./common/diagram/svg-primitives-v0.1.mjs?v=85740004b43c";
+} from "./common/diagram/svg-primitives-v0.1.mjs?v=b0468e5a155e";
 import {
   SVG_PNG_EXPORT_V0_1,
   saveSvgAsPng,
-} from "./common/diagram/svg-png-export-v0.1.mjs?v=85740004b43c";
+} from "./common/diagram/svg-png-export-v0.1.mjs?v=b0468e5a155e";
 
 window.BDPCommonDiagram = Object.freeze({
   primitivesModel: SVG_DIAGRAM_PRIMITIVES_V0_1,
@@ -20,8 +20,8 @@ window.BDPCommonDiagram = Object.freeze({
   svgNode,
 });
 
-await import("./bdp-graph-renderers.js?v=85740004b43c");
-await import("./bdp-top-view-visibility.js?v=85740004b43c");
-await import("./bdp-ui-adapter.js?v=85740004b43c");
-await import("./bdp-v2-core.js?v=85740004b43c");
-await import("./bdp-v2-provider.js?v=85740004b43c");
+await import("./bdp-graph-renderers.js?v=b0468e5a155e");
+await import("./bdp-top-view-visibility.js?v=b0468e5a155e");
+await import("./bdp-ui-adapter.js?v=b0468e5a155e");
+await import("./bdp-v2-core.js?v=b0468e5a155e");
+await import("./bdp-v2-provider.js?v=b0468e5a155e");

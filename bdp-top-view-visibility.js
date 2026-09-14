@@ -33,22 +33,25 @@
     return Number.isFinite(number) && Number.isFinite(target) && Math.abs(number - target) <= STATION_EPSILON;
   }
 
-  function removeRollInPoint(svg, view) {
-    var terms = original.terminology && original.terminology.USAF;
-    var label = (terms && terms.rollInStart) || "Roll-in Point";
+  function removeStation(svg, view, pointKey, label, radius) {
     removeNodes(svg, "text", function (element) {
       return String(element.textContent || "") === label;
     });
 
-    var point = view && view.visualization && view.visualization.top && view.visualization.top.points
-      ? view.visualization.top.points.rollInStart
-      : null;
+    var points = view && view.visualization && view.visualization.top && view.visualization.top.points;
+    var point = points ? points[pointKey] : null;
     if (!point) return;
     removeNodes(svg, "circle", function (element) {
       return sameCoordinate(element.getAttribute("cx"), point.x) &&
         sameCoordinate(element.getAttribute("cy"), point.y) &&
-        Number(element.getAttribute("r")) === 7;
+        Number(element.getAttribute("r")) === radius;
     });
+  }
+
+  function removeZeroAngleOffStations(svg, view) {
+    var terms = original.terminology && original.terminology.USAF;
+    removeStation(svg, view, "rollInStart", (terms && terms.rollInStart) || "Roll-in Point", 7);
+    removeStation(svg, view, "trackPoint", (terms && terms.trackPoint) || "Track Point", 6);
   }
 
   function formatNm(value) {
@@ -131,7 +134,7 @@
     }
 
     if (view.input && isZeroResult(view.input.angleOffDeg)) {
-      removeRollInPoint(svg, view);
+      removeZeroAngleOffStations(svg, view);
     }
 
     appendLevelBombRange(svg, view);
