@@ -6,8 +6,7 @@
     throw new Error("Common SVG primitives must load before BDP graph renderers");
   }
   var TERMINOLOGY = Object.freeze({
-    USAF: Object.freeze({
-      rollInSlant: "Base Distance(S)",
+      rollInSlant: "Base Distance (S)",
       groundRange: "MAP",
       aimOffAngle: "IAA",
       baseDistance: "Base Distance",
@@ -15,15 +14,8 @@
       rollInLateralDistance: "Roll-in Lateral Distance",
       rollInStart: "Roll-in Point",
       trackPoint: "Track Point",
-      leadAngle: "Roll-in Lead",
+      leadAngle: "Roll-in Lead Angle",
       angleOff: "Angle-off (Heading)"
-    }),
-    Shaft: Object.freeze({
-      rollInRange: "Roll-in Range",
-      rollInSlant: "Roll-in Slant",
-      groundRange: "Ground Range",
-      aimOffAngle: "Aim-off Angle"
-    })
   });
   var TOP_FONT_SIZE = 13;
 
@@ -303,7 +295,7 @@
     };
     var plannedX = diagX(plannedY);
     var safetyX = diagX(safetyY);
-    var terms = TERMINOLOGY.USAF;
+    var terms = TERMINOLOGY;
     var one = function (label, value) { return label + ": " + value; };
 
     movableText(svg, 325, -12, profileTitle(view), "z-title", {
@@ -311,11 +303,11 @@
       "font-size": 27,
       "font-weight": 900
     });
-    movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + " ft msl", "z-initial", {
+    movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + " ft", "z-initial", {
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " kcas", "z-initial", {
+    movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " KCAS", "z-initial", {
       "font-size": 13,
       "font-weight": 900
     });
@@ -324,41 +316,41 @@
     line(svg, left, baseY, topX, topY, { "stroke-width": 3.5, "stroke-linecap": "square" });
     line(svg, left, baseY, topX, baseY, { "stroke-width": 3.5, "stroke-linecap": "square" });
 
-    movableText(svg, 390, 82, one(terms.angleOff, format(input.angleOffDeg, 0) + " deg"), "z-right", {
+    movableText(svg, 390, 82, one(terms.angleOff, format(input.angleOffDeg, 0) + "°"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 110, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 110, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " NM"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 138, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 138, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " NM"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 390, 166, one(terms.groundRange, format(result.groundRangeNm, 1) + " nm"), "z-right", {
+    movableText(svg, 390, 166, one(terms.groundRange, format(result.groundRangeNm, 1) + " NM"), "z-right", {
       "text-anchor": "start",
       "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 320, 132, format(angle, 0) + " deg", "z-dive-angle", {
+    movableText(svg, 320, 132, format(angle, 0) + "°", "z-dive-angle", {
       "text-anchor": "end",
       "font-size": 13,
       "font-weight": 900
     });
 
     line(svg, plannedX - 100, plannedY, 356, plannedY, { "stroke-width": 3 });
-    movableText(svg, 382, plannedY + 6, one("Planned Release", format(result.effectiveReleaseAltitudeMslFt, 0) + " ft msl"), "z-release", {
+    movableText(svg, 382, plannedY + 6, one("Release Altitude", format(result.effectiveReleaseAltitudeMslFt, 0) + " ft"), "z-release", {
       "font-size": 13,
       "font-weight": 900
     });
 
     line(svg, safetyX - 76, safetyY, 356, safetyY, { "stroke-width": 3 });
-    movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + " ft msl"), "z-release", {
+    movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + " ft"), "z-release", {
       "font-size": 13,
       "font-weight": 900
     });
@@ -367,29 +359,29 @@
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " kcas", "z-speed", {
+    movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " KCAS", "z-speed", {
       "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + " ft msl"), "z-minalt", {
+    movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + " ft"), "z-minalt", {
       "font-size": 13,
       "font-weight": 900
     });
 
-    movableText(svg, 60, 480, one("Roll-in Lead", format(result.leadAngleDeg, 0) + " deg"), "z-bottom", {
+    movableText(svg, 60, 480, one("Roll-in Lead Angle", format(result.leadAngleDeg, 0) + "°"), "z-bottom", {
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 516, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + " deg"), "z-bottom", {
+    movableText(svg, 60, 516, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + "°"), "z-bottom", {
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 552, one("Tracking Time", format(result.trackingTimeSec, 0) + " sec"), "z-bottom", {
+    movableText(svg, 60, 552, one("Tracking Time", format(result.trackingTimeSec, 0) + " s"), "z-bottom", {
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 588, one("Bomb TOF", format(result.bombTofSec, 0) + " sec"), "z-bottom", {
+    movableText(svg, 60, 588, one("Bomb TOF", format(result.bombTofSec, 0) + " s"), "z-bottom", {
       "font-size": 13,
       "font-weight": 900
     });
@@ -673,7 +665,7 @@
     addGrid(svg, 900, 620, 80, 70);
 
     var p = visual.points;
-    var terms = TERMINOLOGY.USAF;
+    var terms = TERMINOLOGY;
     append(svg, "circle", {
       cx: p.target.x,
       cy: p.target.y,

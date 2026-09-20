@@ -49,7 +49,7 @@
   }
 
   function removeZeroAngleOffStations(svg, view) {
-    var terms = original.terminology && original.terminology.USAF;
+    var terms = original.terminology;
     removeStation(svg, view, "rollInStart", (terms && terms.rollInStart) || "Roll-in Point", 7);
     removeStation(svg, view, "trackPoint", (terms && terms.trackPoint) || "Track Point", 6);
   }
@@ -110,8 +110,8 @@
     if (!svg || !result) return;
 
     if (isZeroResult(result.leadAngleDeg)) {
-      var terms = original.terminology && original.terminology.USAF;
-      var leadPrefix = ((terms && terms.leadAngle) || "Roll-in Lead") + ":";
+      var terms = original.terminology;
+      var leadPrefix = ((terms && terms.leadAngle) || "Roll-in Lead Angle") + ":";
       removeNodes(svg, '[data-drag-group="top-base-condition"]', function (element) {
         return String(element.textContent || "").indexOf(leadPrefix) === 0;
       });
