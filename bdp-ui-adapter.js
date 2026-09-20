@@ -323,7 +323,7 @@
   }
 
   function setSafetyLabel(label) {
-    var value = label || "RNLT Release";
+    var value = label || "NLT Release";
     Array.prototype.slice.call(document.querySelectorAll("[data-safety-release-label]")).forEach(function (element) {
       element.textContent = value + " (ft msl)";
     });

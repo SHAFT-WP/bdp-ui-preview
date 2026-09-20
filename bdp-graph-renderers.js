@@ -92,7 +92,7 @@
   }
 
   function safetyLabel(view) {
-    return view.safety && view.safety.releaseLabel ? view.safety.releaseLabel : "RNLT Release";
+    return view.safety && view.safety.releaseLabel ? view.safety.releaseLabel : "NLT Release";
   }
 
   function renderUnavailable(svg, titleValue, detail) {
