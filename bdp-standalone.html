@@ -1,0 +1,3402 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>BDP Common UI Preview · V2 Provider</title>
+<style data-bdp-inline-style="direct-file-fallback">
+    /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
+    :root{
+      color-scheme:dark;
+      --bg:#0f141b;--panel:#18212b;--field:#202b37;--text:#edf3f8;
+      --muted:#9aa8b6;--line:#314151;--blue:#79bdf0;--blue-soft:#15354e;
+      --violet:#b9a6df;--violet-soft:#2b2637;--green:#65d49d;--amber:#ffbd62;--amber-soft:#3a2a12;
+      --value-input:var(--text);--value-result:var(--blue);--value-result-bg:var(--blue-soft);
+      --value-dependent-input:var(--amber);--value-dependent-input-bg:var(--amber-soft);
+      --value-dependent-change:var(--violet);--value-dependent-change-bg:var(--violet-soft);--radius:14px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}
+    .app{width:min(1680px,calc(100% - 24px));margin:0 auto;padding:16px 0 52px}
+    .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .title-wrap h1{margin:0;font-size:clamp(22px,2.7vw,32px);letter-spacing:-.03em}
+    .subtitle{margin-top:5px;color:var(--muted);font-size:12px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .plot-controls{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-end;align-items:center;min-width:0;white-space:nowrap}
+    .control-group{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);border-radius:9px;background:var(--field)}
+    .control-label{padding:0 2px;color:var(--muted);font-size:11px;line-height:1;font-weight:850}
+    .control-group .btn{min-width:24px;min-height:28px;padding:2px 4px;background:var(--panel);font-size:12px;line-height:1}
+    .control-group .scale-value{min-width:42px;font-variant-numeric:tabular-nums}
+    .plot-controls>.btn{min-height:28px;padding:4px 6px;font-size:11px}
+    .btn,.toggle{min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--panel);color:var(--text);font-weight:800;cursor:pointer}
+    .btn:disabled,.toggle:disabled{opacity:.45;cursor:not-allowed}
+    .btn:focus-visible,.toggle:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid rgba(121,189,240,.25);outline-offset:2px}
+    .toggle.active,.toggle[aria-pressed="true"]{color:var(--blue);background:var(--blue-soft);border-color:var(--blue)}
+    .preview-badge{display:inline-flex;margin-left:7px;padding:4px 8px;border-radius:999px;background:var(--violet-soft);color:var(--violet);font-size:11px;font-weight:900}
+    .section{padding:18px 0;border-top:1px solid var(--line)}
+    .section:first-of-type{border-top:0}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .section-head h2{margin:0;font-size:21px}
+    .mode{font-size:12px;font-weight:850;color:var(--blue);background:var(--blue-soft);padding:6px 10px;border-radius:999px}
+    .input-groups{display:grid;gap:12px}
+    .panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+    .panel summary{list-style:none;cursor:pointer;padding:13px 15px;background:var(--field);font-weight:850;display:flex;align-items:center;justify-content:space-between}
+    .panel summary::-webkit-details-marker{display:none}
+    .panel summary::after{content:"＋";color:var(--blue);font-size:18px}
+    .panel[open] summary::after{content:"−"}
+    .panel[open] summary{border-bottom:1px solid var(--line)}
+    .panel-body{padding:14px}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:13px}
+    .grid.profile{grid-template-columns:repeat(6,minmax(120px,1fr))}
+    .field{display:grid;gap:7px;align-content:start;min-width:0}
+    .field-label{font-size:13px;font-weight:800;color:var(--muted)}
+    input,select,.readout{width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;color:var(--text);background:var(--field);font-size:18px;font-variant-numeric:tabular-nums;outline:none}
+    input[type="checkbox"]{width:18px;min-height:18px;height:18px;padding:0;margin:0;accent-color:var(--blue)}
+    input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(121,189,240,.14)}
+    input:disabled{opacity:.62;cursor:not-allowed}
+    .readout{display:flex;align-items:center;border-style:dashed;color:var(--blue);background:var(--blue-soft);font-weight:850}
+    .compound{display:grid;grid-template-columns:minmax(0,1fr) 88px}
+    .compound input{border-radius:11px 0 0 11px}
+    .compound select{border-left:0;border-radius:0 11px 11px 0}
+    .advanced-only{display:none}
+    body.show-advanced .advanced-only{display:grid}
+    section.advanced-only,details.advanced-only{display:none}
+    body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
+    .level-only{display:none!important}
+    .app.level-mode .level-only{display:grid!important}
+    .app.level-mode .dive-only{display:none!important}
+    .level-turn-option{margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;color:var(--blue);font-size:12px;font-weight:850;cursor:pointer}
+    .app.level-mode .level-turn-option{display:inline-grid!important}
+    .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
+    .dep-flash,.value-dependent-input{color:var(--amber)!important;background:var(--amber-soft)!important}
+    .value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
+    svg .value-dependent-change{fill:var(--violet)!important;transition:fill 1.25s ease}
+    .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:14px}
+    .canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .canvas>svg{display:block;width:100%;height:auto;min-width:0;margin-inline:auto;background:#fff}
+    .canvas>svg.plot-pan-enabled{cursor:grab;touch-action:none;user-select:none}
+    .canvas>svg.plot-panning{cursor:grabbing}
+    #z-diagram{max-width:650px}
+    #profile-diagram{max-width:980px}
+    #top-diagram{max-width:900px}
+    svg text{font-family:inherit}
+    .movable-label{cursor:grab;touch-action:none;user-select:none}
+    .movable-label.dragging{cursor:grabbing}
+    .label-halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+    .result-table{width:100%;border-collapse:collapse}
+    .result-table td{padding:11px 10px;border-bottom:1px solid var(--line)}
+    .result-table td:first-child{width:38%;color:var(--muted)}
+    .result-value,.value-result{color:var(--blue);font-weight:850;background:var(--blue-soft)}
+    .result-summary td:first-child{width:52%}
+    .result-summary-card{font-size:13px}
+    .result-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)}
+    .result-compact-item{display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,auto);align-items:center;gap:8px;min-height:58px;padding:8px 10px;background:var(--panel)}
+    .result-compact-label{color:var(--muted);font-size:.92em;line-height:1.15;font-weight:750}
+    .result-compact-value{display:inline-flex;align-items:center;justify-content:flex-end;min-height:30px;padding:4px 6px;border-radius:7px;font-size:1em;line-height:1.1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    svg .value-result{fill:var(--blue)}
+    .note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
+    .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+    @media(max-width:1040px){
+      .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+    @media(max-width:620px){
+      .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
+      .grid,.grid.profile{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+      input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
+      .section-head{align-items:flex-start}.plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+      .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
+      .result-summary-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+      .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
+      .result-compact-value{justify-content:flex-start;text-align:left}
+    }
+    @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-input,.value-dependent-change,svg .value-dependent-change{transition:none}}
+  </style>
+<style>
+/*
+ * Common FE value-state presentation.
+ * Consumers define value foreground/background tokens in their theme.
+ */
+
+.value-result {
+  color: var(--value-result);
+  background-color: var(--value-result-bg, transparent);
+}
+
+.value-dependent-input {
+  color: var(--value-dependent-input) !important;
+  background-color: var(--value-dependent-input-bg, transparent) !important;
+}
+
+.value-dependent-change {
+  color: var(--value-dependent-change) !important;
+  background-color: var(--value-dependent-change-bg, transparent) !important;
+  transition: color 1.2s ease, background-color 1.2s ease;
+}
+
+svg .value-result {
+  fill: var(--value-result);
+  background-color: transparent;
+}
+
+svg .value-dependent-change {
+  fill: var(--value-dependent-change) !important;
+  background-color: transparent !important;
+  transition: fill 1.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .value-dependent-input,
+  .value-dependent-change,
+  svg .value-dependent-change {
+    transition: none;
+  }
+}
+:root{
+  color-scheme:light dark;
+  --bg:light-dark(#f7f9fb,#0f141b);
+  --panel:light-dark(#ffffff,#18212b);
+  --field:light-dark(#f5f7fa,#202b37);
+  --text:light-dark(#15202b,#edf3f8);
+  --muted:light-dark(#6b7887,#9aa8b6);
+  --line:light-dark(#dfe5ec,#314151);
+  --blue:light-dark(#176dac,#79bdf0);
+  --blue-soft:light-dark(#eaf4fb,#15354e);
+  --violet:light-dark(#6e5f8e,#b9a6df);
+  --violet-soft:light-dark(#f1eef7,#2b2637);
+  --green:light-dark(#087b4c,#65d49d);
+  --amber:light-dark(#a35d00,#ffbd62);
+  --amber-soft:light-dark(#fff2d8,#3a2a12);
+  --value-input:var(--text);
+  --value-result:var(--blue);
+  --value-result-bg:var(--blue-soft);
+  --value-dependent-input:var(--amber);
+  --value-dependent-input-bg:var(--amber-soft);
+  --value-dependent-change:var(--violet);
+  --value-dependent-change-bg:var(--violet-soft);
+  --radius:14px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+.app{width:min(1680px,calc(100% - 24px));margin:0 auto;padding:16px 0 52px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.title-wrap h1{margin:0;font-size:clamp(22px,2.7vw,32px);letter-spacing:-.03em}
+.subtitle{margin-top:5px;color:var(--muted);font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.plot-controls{
+  display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-end;align-items:center;
+  min-width:0;white-space:nowrap
+}
+.control-group{
+  display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);
+  border-radius:9px;background:var(--field)
+}
+.control-label{padding:0 2px;color:var(--muted);font-size:11px;line-height:1;font-weight:850}
+.control-group .btn{min-width:24px;min-height:28px;padding:2px 4px;background:var(--panel);font-size:12px;line-height:1}
+.control-group .scale-value{min-width:42px;font-variant-numeric:tabular-nums}
+.plot-controls>.btn{min-height:28px;padding:4px 6px;font-size:11px}
+.btn,.toggle{
+  min-height:38px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+  background:var(--panel);color:var(--text);font-weight:800;cursor:pointer
+}
+.btn:disabled,.toggle:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.toggle:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--blue) 25%,transparent);outline-offset:2px
+}
+.toggle.active,.toggle[aria-pressed="true"]{color:var(--blue);background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 45%,var(--line))}
+.preview-badge{
+  display:inline-flex;margin-left:7px;padding:4px 8px;border-radius:999px;
+  background:var(--violet-soft);color:var(--violet);font-size:11px;font-weight:900
+}
+.section{padding:18px 0;border-top:1px solid var(--line)}
+.section:first-of-type{border-top:0}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.section-head h2{margin:0;font-size:21px}
+.mode{font-size:12px;font-weight:850;color:var(--blue);background:var(--blue-soft);padding:6px 10px;border-radius:999px}
+.input-groups{display:grid;gap:12px}
+.panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+.panel summary{
+  list-style:none;cursor:pointer;padding:13px 15px;background:var(--field);font-weight:850;
+  display:flex;align-items:center;justify-content:space-between
+}
+.panel summary::-webkit-details-marker{display:none}
+.panel summary::after{content:"＋";color:var(--blue);font-size:18px}
+.panel[open] summary::after{content:"−"}
+.panel[open] summary{border-bottom:1px solid var(--line)}
+.panel-body{padding:14px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:13px}
+.grid.profile{grid-template-columns:repeat(6,minmax(120px,1fr))}
+.field{display:grid;gap:7px;align-content:start;min-width:0}
+.field-label{font-size:13px;font-weight:800;color:var(--muted)}
+input,select,.readout{
+  width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;
+  color:var(--text);background:var(--field);font-size:18px;font-variant-numeric:tabular-nums;outline:none
+}
+input[type="checkbox"]{
+  width:18px;min-height:18px;height:18px;padding:0;margin:0;accent-color:var(--blue)
+}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 14%,transparent)}
+input:disabled{opacity:.62;cursor:not-allowed}
+.readout{display:flex;align-items:center;border-style:dashed;color:var(--blue);background:var(--blue-soft);font-weight:850}
+.compound{display:grid;grid-template-columns:minmax(0,1fr) 88px}
+.compound input{border-radius:11px 0 0 11px}
+.compound select{border-left:0;border-radius:0 11px 11px 0}
+.advanced-only{display:none}
+body.show-advanced .advanced-only{display:grid}
+section.advanced-only,details.advanced-only{display:none}
+body.show-advanced section.advanced-only,body.show-advanced details.advanced-only{display:block}
+.level-only{display:none!important}
+.app.level-mode .level-only{display:grid!important}
+.app.level-mode .dive-only{display:none!important}
+.level-turn-option{
+  margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;
+  color:var(--blue);font-size:12px;font-weight:850;cursor:pointer
+}
+.app.level-mode .level-turn-option{display:inline-grid!important}
+.adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
+.dep-flash,.value-dependent-input{
+  color:var(--amber)!important;background:var(--amber-soft)!important
+}
+.value-dependent-change{
+  color:var(--violet)!important;background:var(--violet-soft)!important;
+  transition:color 1.25s ease,background-color 1.25s ease
+}
+.cards{display:grid;grid-template-columns:1fr;gap:14px}
+.card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.card-title{margin:0;font-size:15px;color:var(--muted);font-weight:850}
+.canvas{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.canvas>svg{display:block;width:100%;height:auto;min-width:0;margin-inline:auto;background:#fff}
+.canvas>svg.plot-pan-enabled{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.canvas>svg.plot-panning{cursor:grabbing}
+#z-diagram{max-width:650px}
+#profile-diagram{max-width:980px}
+#top-diagram{max-width:900px}
+svg text{font-family:inherit}
+.movable-label{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.movable-label.dragging{cursor:grabbing}
+.label-halo{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.result-table{width:100%;border-collapse:collapse}
+.result-table td{padding:11px 10px;border-bottom:1px solid var(--line)}
+.result-table td:first-child{width:38%;color:var(--muted)}
+.result-value{color:var(--blue);font-weight:850;background:var(--blue-soft)}
+.result-summary td:first-child{width:52%}
+.result-summary-card{font-size:13px}
+.result-summary-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
+  overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)
+}
+.result-compact-item{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,auto);align-items:center;
+  gap:8px;min-height:58px;padding:8px 10px;background:var(--panel)
+}
+.result-compact-label{color:var(--muted);font-size:.92em;line-height:1.15;font-weight:750}
+.result-compact-value{
+  display:inline-flex;align-items:center;justify-content:flex-end;min-height:30px;
+  padding:4px 6px;border-radius:7px;font-size:1em;line-height:1.1;text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap
+}
+.note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:1040px){
+  .grid,.grid.profile{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .topbar{flex-direction:column}.toolbar{justify-content:flex-start}
+  .grid,.grid.profile{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
+  .section-head{align-items:flex-start}
+  .plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
+  .result-summary-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
+  .result-compact-value{justify-content:flex-start;text-align:left}
+}
+@media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-input,.value-dependent-change{transition:none}}
+
+</style>
+</head>
+<body>
+<main class="app" id="app" data-status="work">
+  <header class="topbar">
+    <div class="title-wrap">
+      <h1>Dive Bomb Profile Calculator <span class="preview-badge">UI PREVIEW</span></h1>
+      <div class="subtitle">Common UI draft · value-text highlights / cross-section dependency indication / Essential + Advanced</div>
+    </div>
+    <div class="toolbar">
+      <button id="advancedToggle" class="toggle" type="button" aria-pressed="false">Advanced: Off</button>
+      <button id="defaultBtn" class="btn" type="button">Default</button>
+    </div>
+    <span class="sr-only" id="provider-status" role="status">Provider 연결 대기</span>
+  </header>
+
+  <section class="section">
+    <div class="section-head"><h2>Input</h2><span class="mode" id="solveMode" data-mode="initialAltitude">Initial Altitude 기준</span></div>
+    <div class="input-groups">
+      <details class="panel" open>
+        <summary>Bomb · Target</summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Bomb</span>
+            <select data-key="weapon" data-bdp-input="weaponId">
+              <option value="M82">Mk-82 (LD)</option>
+              <option value="B49">Mk-82 AIR (HD)</option>
+              <option value="M83">Mk-83 (LD)</option>
+              <option value="B85">Mk-83 AIR (HD)</option>
+              <option value="M84">Mk-84 (LD)</option>
+              <option value="B50">Mk-84 AIR (HD)</option>
+            </select>
+          </label>
+          <label class="field"><span class="field-label">Target Elevation (ft msl)</span>
+            <input data-key="targetElevation" data-bdp-input="targetElevationMslFt" value="31" inputmode="decimal">
+          </label>
+          <label class="field advanced-only"><span class="field-label">Attack Heading (deg) <span class="adv-tag">ADV</span></span>
+            <input data-key="attackHeading" data-bdp-input="attackHeadingDeg" value="0" inputmode="decimal">
+          </label>
+          <label class="field advanced-only"><span class="field-label">Wind Direction (deg) <span class="adv-tag">ADV</span></span>
+            <input data-key="windDirection" data-bdp-input="windDirectionDeg" value="0" inputmode="decimal">
+          </label>
+          <label class="field advanced-only"><span class="field-label">Wind Speed (kt) <span class="adv-tag">ADV</span></span>
+            <input data-key="windSpeed" data-bdp-input="windSpeedKt" value="0" inputmode="decimal">
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel advanced-only">
+        <summary>MINALT · NLT <span class="adv-tag">ADV</span></summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Fragment Height Margin (%)</span>
+            <input data-key="fragmentMargin" data-bdp-input="fragmentHeightMarginPercent" value="20" inputmode="decimal">
+          </label>
+          <div class="field"><span class="field-label">MINALT (ft msl)</span>
+            <output class="readout" data-bdp-output="minAltMslFt">—</output>
+          </div>
+          <div class="field"><span class="field-label" data-safety-release-label>NLT Release (ft msl)</span>
+            <output class="readout" data-bdp-output="safetyReleaseMslFt">—</output>
+          </div>
+          <div class="field"><span class="field-label">Recovery G (G)</span>
+            <output class="readout" data-bdp-output="recoveryG">5.0</output>
+          </div>
+          <label class="field"><span class="field-label">Speed Overshoot (kcas)</span>
+            <input data-key="speedOvershoot" data-bdp-input="speedOvershootKcas" value="50" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">G Onset Time (sec)</span>
+            <input data-key="gOnsetTime" data-bdp-input="gOnsetTimeSec" value="2" inputmode="decimal">
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel" open>
+        <summary>Dive Profile Information</summary>
+        <div class="panel-body"><div class="grid profile">
+          <label class="field"><span class="field-label">Initial Speed (mach/kcas)</span>
+            <span class="compound"><input data-key="initialSpeed" data-bdp-input="initialSpeedValue" value="350" inputmode="decimal">
+            <select data-key="initialSpeedMode" data-bdp-input="initialSpeedMode"><option value="CAS">kcas</option><option value="MACH">mach</option></select></span>
+          </label>
+          <label class="field"><span class="field-label">Initial Altitude (ft msl)</span>
+            <input data-key="initialAltitude" data-bdp-input="rollInStartAltitudeMslFt" value="16000" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">Dive Angle (deg)</span>
+            <input data-key="diveAngle" data-bdp-input="diveAngleDeg" value="45" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
+          </label>
+          <label class="field dive-only"><span class="field-label">Tracking Time (sec)</span>
+            <input data-key="trackingTime" data-bdp-input="trackingTimeSec" value="18" inputmode="decimal">
+          </label>
+          <label class="field level-only"><span class="field-label">MAP (nm)</span>
+            <input data-key="levelMap" data-bdp-input="levelMapNm" value="5.0" inputmode="decimal">
+          </label>
+          <div class="field level-only"><span class="field-label">Tracking Time</span>
+            <output class="readout" data-bdp-output="levelTrackingTime">—</output>
+          </div>
+          <label class="field"><span class="field-label">Release Altitude (ft msl)</span>
+            <input data-key="releaseAltitude" data-bdp-input="releaseAltitudeMslFt" value="6800" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">Release Speed (kcas)</span>
+            <input data-key="releaseSpeed" data-bdp-input="releaseSpeedKcas" value="450" inputmode="decimal">
+          </label>
+        </div></div>
+      </details>
+
+      <details class="panel" id="roll-in-turn-panel">
+        <summary><span>Roll-in Turn</span><label class="level-turn-option level-only" id="level-turn-option">
+          <input type="checkbox" data-bdp-input="levelTurnEnabled" checked>
+          <span>Level Turn</span>
+        </label></summary>
+        <div class="panel-body"><div class="grid">
+          <label class="field"><span class="field-label">Angle-Off (Heading) (deg)</span>
+            <input data-key="angleOff" data-bdp-input="angleOffDeg" value="90" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">Roll-in Bank Angle (deg)</span>
+            <input data-key="rollBank" data-bdp-input="rollInBankAngleDeg" value="112.5" inputmode="decimal">
+          </label>
+          <label class="field"><span class="field-label">Roll-in Bank G (G)</span>
+            <input data-key="rollG" data-bdp-input="rollInG" value="4.0" inputmode="decimal">
+          </label>
+          <div class="field"><span class="field-label">Lead Angle (deg)</span>
+            <output class="readout" data-bdp-output="leadAngleDeg">—</output>
+          </div>
+          <div class="field advanced-only"><span class="field-label">Roll-in Altitude Loss (ft) <span class="adv-tag">ADV</span></span>
+            <output class="readout" data-bdp-output="rollInAltitudeLossFt">—</output>
+          </div>
+          <div class="field"><span class="field-label">Roll-in Longitudinal Distance (nm)</span>
+            <output class="readout" data-bdp-output="rollInLongitudinalDistanceNm">—</output>
+          </div>
+          <div class="field"><span class="field-label">Roll-in Lateral Distance (nm)</span>
+            <output class="readout" data-bdp-output="rollInLateralDistanceNm">—</output>
+          </div>
+        </div></div>
+      </details>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head plot-section-head"><h2>Z-Diagram</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="z-diagram" aria-label="Z-Diagram text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Z-Diagram text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Z-Diagram text size">80%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Z-Diagram text">+</button>
+      </div>
+      <div class="control-group" data-zoom-target="z-diagram" aria-label="Z-Diagram size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Z-Diagram">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Z-Diagram zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Z-Diagram">+</button>
+      </div>
+      <button class="btn" data-reset-plot="z-diagram" type="button" aria-label="Reset Z-Diagram plot">Reset</button><button class="btn" data-export-svg="z-diagram" data-export-name="BDP_Z_Diagram.png" type="button">PNG</button>
+    </div></div>
+    <div class="card">
+      <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
+      <div class="canvas" style="margin-top:10px">
+        <svg id="z-diagram" viewBox="0 -62 650 682" role="img" aria-label="Z-Diagram"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head plot-section-head"><h2>Profile</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="profile-diagram" aria-label="Profile text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Profile text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Profile text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Profile text">+</button>
+      </div>
+      <div class="control-group" data-zoom-target="profile-diagram" aria-label="Profile size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Profile">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Profile zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Profile">+</button>
+      </div>
+      <button class="btn" data-reset-plot="profile-diagram" type="button" aria-label="Reset Profile plot">Reset</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
+    </div></div>
+    <div class="card"><div class="canvas">
+      <svg id="profile-diagram" viewBox="0 0 980 700" role="img" aria-label="Profile"></svg>
+    </div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head plot-section-head"><h2>Top View</h2><div class="plot-controls">
+      <div class="control-group" data-font-target="top-diagram" aria-label="Top View text size">
+        <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">+</button>
+      </div>
+      <div class="control-group" data-zoom-target="top-diagram" aria-label="Top View size">
+        <span class="control-label">Size</span><button class="btn" data-zoom="out" type="button" aria-label="Zoom out Top View">-</button><button class="btn scale-value" data-zoom="reset" type="button" aria-label="Reset Top View zoom">100%</button><button class="btn" data-zoom="in" type="button" aria-label="Zoom in Top View">+</button>
+      </div>
+      <button class="btn" data-reset-plot="top-diagram" type="button" aria-label="Reset Top View plot">Reset</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button>
+    </div></div>
+    <div class="card"><div class="canvas">
+      <svg id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
+    </div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head result-summary-head">
+      <h2>Result</h2>
+      <div class="control-group" data-result-font-target="result-summary" aria-label="Result text size">
+        <span class="control-label">Text</span><button class="btn" data-result-font-scale="out" type="button" aria-label="Decrease Result text">-</button><button class="btn scale-value" data-result-font-scale="reset" type="button" aria-label="Reset Result text size">100%</button><button class="btn" data-result-font-scale="in" type="button" aria-label="Increase Result text">+</button>
+      </div>
+    </div>
+    <div class="card result-summary-card" id="result-summary">
+      <div class="result-summary-grid">
+        <div class="result-compact-item"><span class="result-compact-label">Profile</span><output class="result-value result-compact-value" data-bdp-output="profileTitle">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Attack Heading</span><output class="result-value result-compact-value" data-bdp-output="attackHeadingDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Start<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Track<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="trackPointAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Planned Release<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Base Distance</span><output class="result-value result-compact-value" data-bdp-output="baseDistanceNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lateral<br>Distance</span><output class="result-value result-compact-value" data-bdp-output="rollInLateralDistanceNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">MAP</span><output class="result-value result-compact-value" data-bdp-output="groundRangeNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">IAA</span><output class="result-value result-compact-value" data-bdp-output="aimOffAngleDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lead</span><output class="result-value result-compact-value" data-bdp-output="leadAngleDeg">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Tracking Time</span><output class="result-value result-compact-value" data-bdp-output="trackingTimeSec">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Bomb Range</span><output class="result-value result-compact-value" data-bdp-output="bombRangeNm">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">Bomb TOF</span><output class="result-value result-compact-value" data-bdp-output="bombTofSec">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label">MINALT</span><output class="result-value result-compact-value" data-bdp-output="minAltResultMslFt">—</output></div>
+        <div class="result-compact-item"><span class="result-compact-label" data-safety-release-result-label>NLT Release</span><output class="result-value result-compact-value" data-bdp-output="safetyReleaseResultMslFt">—</output></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section advanced-only">
+    <div class="section-head"><h2>Detailed Result <span class="adv-tag">ADV</span></h2></div>
+    <div class="card">
+      <div class="note">Detailed Result는 Advanced. 값 자체에 Result 전용 색을 사용하며, 다른 변수 때문에 바뀌면 같은 값의 모든 표시 위치에서 잠시 별도 변경색으로 표시.</div>
+      <table class="result-table" style="margin-top:10px">
+        <tr><td>Initial Altitude</td><td class="result-value" data-bdp-output="resolvedInitialAltitudeMslFt">—</td></tr>
+        <tr><td>Roll-in Start Altitude</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
+        <tr><td>Track Point Altitude</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
+        <tr><td>Roll-in Range</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
+        <tr><td>Roll-in Slant Range</td><td class="result-value" data-bdp-output="rollInSlantNm">—</td></tr>
+        <tr><td>Base Distance (USAF)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
+        <tr><td>Roll-in Distance (Shaft legacy)</td><td class="result-value" data-bdp-output="rollInRangeProfileFitNm">—</td></tr>
+        <tr><td>Roll-in Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
+        <tr><td>Roll-in Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
+        <tr><td>Ground Range</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
+        <tr><td>MINALT</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
+        <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="sr-only" id="provider-error" role="alert"></div>
+</main>
+
+<script type="module">
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJS = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// bdp-graph-renderers.js?v=ba58cceba53e
+var require_bdp_graph_renderers = __commonJS({
+  "bdp-graph-renderers.js?v=ba58cceba53e"() {
+    (function(global) {
+      "use strict";
+      var commonDiagram = global.BDPCommonDiagram;
+      if (!commonDiagram || typeof commonDiagram.svgNode !== "function") {
+        throw new Error("Common SVG primitives must load before BDP graph renderers");
+      }
+      var TERMINOLOGY = Object.freeze({
+        rollInSlant: "Base Distance (S)",
+        groundRange: "MAP",
+        aimOffAngle: "IAA",
+        baseDistance: "Base Distance",
+        rollInLongitudinalDistance: "Roll-in Longitudinal Distance",
+        rollInLateralDistance: "Roll-in Lateral Distance",
+        rollInStart: "Roll-in Point",
+        trackPoint: "Track Point",
+        leadAngle: "Roll-in Lead Angle",
+        angleOff: "Angle-off (Heading)"
+      });
+      var TOP_FONT_SIZE = 13;
+      function node(name, attrs, content) {
+        return commonDiagram.svgNode(name, attrs || {}, content === null ? void 0 : content);
+      }
+      function append(parent, name, attrs, content) {
+        var element = node(name, attrs, content);
+        parent.appendChild(element);
+        return element;
+      }
+      function finite(value, fallback) {
+        var number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+      }
+      function format(value, digits) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) return "\u2014";
+        return number.toLocaleString("en-US", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        });
+      }
+      function clock(value) {
+        var totalSeconds = Math.max(0, Math.round(finite(value, 0)));
+        var minutes = Math.floor(totalSeconds / 60);
+        var seconds = totalSeconds % 60;
+        return String(minutes).padStart(2, "0") + " min " + String(seconds).padStart(2, "0") + " sec";
+      }
+      function line(parent, x1, y1, x2, y2, attrs) {
+        return append(parent, "line", Object.assign({
+          x1,
+          y1,
+          x2,
+          y2,
+          stroke: "#111",
+          "stroke-width": 3,
+          "stroke-linecap": "round"
+        }, attrs || {}));
+      }
+      function text(parent, x, y, value, attrs) {
+        var options = Object.assign({}, attrs || {});
+        var classes = (options.class || "").split(/\s+/).filter(Boolean);
+        if (classes.indexOf("movable-label") < 0) classes.push("movable-label");
+        options.class = classes.join(" ");
+        return append(parent, "text", Object.assign({
+          x,
+          y,
+          fill: "#111",
+          "font-size": 14,
+          "font-weight": 820
+        }, options), value);
+      }
+      function pathFromPoints(points) {
+        if (!Array.isArray(points) || points.length === 0) return "";
+        return points.map(function(point2, index) {
+          return (index ? "L" : "M") + finite(point2.x, 0).toFixed(1) + "," + finite(point2.y, 0).toFixed(1);
+        }).join(" ");
+      }
+      function profileTitle(view) {
+        if (view.profileTitle) return view.profileTitle;
+        var angle = finite(view.input && view.input.diveAngleDeg, 0);
+        var highDrag = Boolean(view.input && view.input.highDragWeapon);
+        var suffix = angle === 0 ? "VLD" : angle > 30 ? "HADB" : angle === 30 ? "DB" : highDrag ? "LAHD" : "LALD";
+        return Math.round(angle) + "\xB0 " + suffix;
+      }
+      function safetyLabel(view) {
+        return view.safety && view.safety.releaseLabel ? view.safety.releaseLabel : "NLT Release";
+      }
+      function renderUnavailable(svg, titleValue, detail) {
+        svg.setAttribute("viewBox", "0 0 650 220");
+        svg.dataset.baseViewBox = "0 0 650 220";
+        append(svg, "rect", { width: 650, height: 220, fill: "#fff", "data-plot-background": "true" });
+        text(svg, 325, 88, titleValue, {
+          "text-anchor": "middle",
+          "font-size": 24,
+          "font-weight": 900
+        });
+        text(svg, 325, 136, detail, {
+          "text-anchor": "middle",
+          "font-size": 13,
+          "font-weight": 750,
+          fill: "#687787"
+        });
+        enableLabelDrag(svg);
+      }
+      function errorFrame(svg) {
+        var id = svg && svg.getAttribute ? svg.getAttribute("id") : "";
+        if (id === "z-diagram") return { viewBox: "0 -62 650 682", x: 0, y: -62, width: 650, height: 682, cx: 325, cy: 252, title: "Z-Diagram" };
+        if (id === "profile-diagram") return { viewBox: "0 0 980 700", x: 0, y: 0, width: 980, height: 700, cx: 490, cy: 310, title: "Profile" };
+        return { viewBox: "0 0 900 620", x: 0, y: 0, width: 900, height: 620, cx: 450, cy: 270, title: "Top View" };
+      }
+      function renderError(svg, errorInfo) {
+        if (!svg) return false;
+        var frame = errorFrame(svg);
+        var info = errorInfo || {};
+        var code = info.code || "BDP-E-CALCULATION";
+        var detail = info.message || "Calculation failed";
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", frame.viewBox);
+        svg.dataset.baseViewBox = frame.viewBox;
+        append(svg, "rect", {
+          x: frame.x,
+          y: frame.y,
+          width: frame.width,
+          height: frame.height,
+          fill: "#fff",
+          "data-plot-background": "true"
+        });
+        append(svg, "text", {
+          x: frame.cx,
+          y: frame.cy - 44,
+          fill: "#687787",
+          "font-size": 18,
+          "font-weight": 850,
+          "text-anchor": "middle",
+          class: "label-halo"
+        }, frame.title + " unavailable");
+        append(svg, "text", {
+          x: frame.cx,
+          y: frame.cy,
+          fill: "#b42318",
+          "font-size": 20,
+          "font-weight": 900,
+          "text-anchor": "middle",
+          class: "label-halo",
+          "data-error-code": code
+        }, code);
+        append(svg, "text", {
+          x: frame.cx,
+          y: frame.cy + 42,
+          fill: "#687787",
+          "font-size": 13,
+          "font-weight": 750,
+          "text-anchor": "middle",
+          class: "label-halo"
+        }, detail);
+        return false;
+      }
+      function renderErrors(elements, errorInfo) {
+        renderError(elements && elements.z, errorInfo);
+        renderError(elements && elements.profile, errorInfo);
+        renderError(elements && elements.top, errorInfo);
+        return { zAvailable: false, profileAvailable: false, topAvailable: false };
+      }
+      function movableText(parent, x, y, value, group, attrs) {
+        return text(parent, x, y, value, Object.assign({
+          class: "movable-label",
+          "data-drag-group": group || ""
+        }, attrs || {}));
+      }
+      function dimensionValue(parent, x, y, label, value, group, attrs) {
+        var labelAttrs = Object.assign({
+          "text-anchor": "middle",
+          "font-size": 12,
+          class: "label-halo"
+        }, attrs || {});
+        var valueAttrs = Object.assign({}, labelAttrs, {
+          "font-size": 11,
+          "font-weight": 850
+        });
+        movableText(parent, x, y, label, group, labelAttrs);
+        movableText(parent, x, y + 20, value, group, valueAttrs);
+      }
+      function topDimensionValue(parent, x, y, label, value, group, attrs) {
+        var options = Object.assign({
+          "text-anchor": "middle",
+          "font-size": TOP_FONT_SIZE,
+          "font-weight": 850,
+          class: "label-halo"
+        }, attrs || {});
+        movableText(parent, x, y - 10, label, group, options);
+        movableText(parent, x, y + 10, value, group, options);
+      }
+      function topDimensionLabelPoint(segment) {
+        var dx = segment.end.x - segment.start.x;
+        var dy = segment.end.y - segment.start.y;
+        var length = Math.max(1, Math.hypot(dx, dy));
+        var normal = { x: -dy / length, y: dx / length };
+        var midpoint = {
+          x: (segment.start.x + segment.end.x) / 2,
+          y: (segment.start.y + segment.end.y) / 2
+        };
+        var centerVector = { x: midpoint.x - 450, y: midpoint.y - 327.5 };
+        if (normal.x * centerVector.x + normal.y * centerVector.y < 0) {
+          normal.x *= -1;
+          normal.y *= -1;
+        }
+        var offset = 34;
+        var x = midpoint.x + normal.x * offset;
+        var y = midpoint.y + normal.y * offset;
+        var anchor = normal.x > 0.35 ? "start" : normal.x < -0.35 ? "end" : "middle";
+        var mustFlipHorizontally = anchor === "start" && x > 690 || anchor === "end" && x < 210;
+        var mustFlipVertically = anchor === "middle" && (y < 125 || y > 585);
+        if (mustFlipHorizontally || mustFlipVertically) {
+          normal.x *= -1;
+          normal.y *= -1;
+          x = midpoint.x + normal.x * offset;
+          y = midpoint.y + normal.y * offset;
+          anchor = normal.x > 0.35 ? "start" : normal.x < -0.35 ? "end" : "middle";
+        }
+        if (anchor === "start") x = Math.min(x, 690);
+        else if (anchor === "end") x = Math.max(x, 210);
+        else x = Math.max(150, Math.min(750, x));
+        y = Math.max(125, Math.min(585, y));
+        return { x, y, anchor };
+      }
+      function drawTopDimension(svg, segment, role, label, value, group, fixedLabelPoint) {
+        (segment.guides || []).forEach(function(guide) {
+          line(svg, guide.start.x, guide.start.y, guide.end.x, guide.end.y, {
+            stroke: "#6f98d8",
+            "stroke-width": 1.2,
+            "stroke-dasharray": "5 4",
+            "data-top-guide": role
+          });
+        });
+        line(svg, segment.start.x, segment.start.y, segment.end.x, segment.end.y, {
+          stroke: "#2f6fc2",
+          "stroke-width": 1.5,
+          "marker-start": "url(#top-dim-arrow)",
+          "marker-end": "url(#top-dim-arrow)",
+          "data-top-dimension": role
+        });
+        var labelPoint = fixedLabelPoint || topDimensionLabelPoint(segment);
+        topDimensionValue(svg, labelPoint.x, labelPoint.y, label, value, group, {
+          "text-anchor": labelPoint.anchor,
+          fill: "#2f6fc2"
+        });
+      }
+      function renderZ(svg, view) {
+        svg.replaceChildren();
+        var input = view.input || {};
+        var result = view.public || {};
+        var local = view.local || {};
+        var angle = finite(input.diveAngleDeg, 0);
+        if (angle < 10) {
+          renderUnavailable(
+            svg,
+            profileTitle(view),
+            angle === 0 ? "LEVEL profile \xB7 Z-Diagram not applicable" : "Dive angle below 10\xB0 \xB7 MINALT concept only"
+          );
+          return false;
+        }
+        svg.setAttribute("viewBox", "0 -62 650 682");
+        svg.dataset.baseViewBox = "0 -62 650 682";
+        append(svg, "rect", { x: 0, y: -62, width: 650, height: 682, fill: "#fff", "data-plot-background": "true" });
+        var left = 50;
+        var topX = 360;
+        var topY = 98;
+        var baseY = 442;
+        var plannedY = 224;
+        var safetyY = 332;
+        var diagX = function(y) {
+          return left + (baseY - y) / (baseY - topY) * (topX - left);
+        };
+        var plannedX = diagX(plannedY);
+        var safetyX = diagX(safetyY);
+        var terms = TERMINOLOGY;
+        var one = function(label, value) {
+          return label + ": " + value;
+        };
+        movableText(svg, 325, -12, profileTitle(view), "z-title", {
+          "text-anchor": "middle",
+          "font-size": 27,
+          "font-weight": 900
+        });
+        movableText(svg, 58, 82, format(result.resolvedInitialAltitudeMslFt, 0) + " ft", "z-initial", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 270, 82, format(result.resolvedInitialSpeedKcas, 0) + " KCAS", "z-initial", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        line(svg, left, topY, topX, topY, { "stroke-width": 3.5, "stroke-linecap": "square" });
+        line(svg, left, baseY, topX, topY, { "stroke-width": 3.5, "stroke-linecap": "square" });
+        line(svg, left, baseY, topX, baseY, { "stroke-width": 3.5, "stroke-linecap": "square" });
+        movableText(svg, 390, 82, one(terms.angleOff, format(input.angleOffDeg, 0) + "\xB0"), "z-right", {
+          "text-anchor": "start",
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 390, 110, one(terms.baseDistance, format(result.rollInLateralSeparationNm, 1) + " NM"), "z-right", {
+          "text-anchor": "start",
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 390, 138, one(terms.rollInSlant, format(local.baseDistanceSlantNm, 1) + " NM"), "z-right", {
+          "text-anchor": "start",
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 390, 166, one(terms.groundRange, format(result.groundRangeNm, 1) + " NM"), "z-right", {
+          "text-anchor": "start",
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 320, 132, format(angle, 0) + "\xB0", "z-dive-angle", {
+          "text-anchor": "end",
+          "font-size": 13,
+          "font-weight": 900
+        });
+        line(svg, plannedX - 100, plannedY, 356, plannedY, { "stroke-width": 3 });
+        movableText(svg, 382, plannedY + 6, one("Release Altitude", format(result.effectiveReleaseAltitudeMslFt, 0) + " ft"), "z-release", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        line(svg, safetyX - 76, safetyY, 356, safetyY, { "stroke-width": 3 });
+        movableText(svg, 382, safetyY + 6, one(safetyLabel(view), format(result.safetyReleaseMslFt, 0) + " ft"), "z-release", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 68, 268, "Release Speed", "z-speed", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 68, 292, ": " + format(result.releaseSpeedKcas, 0) + " KCAS", "z-speed", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 326, 426, one("MINALT", format(result.minAltMslFt, 0) + " ft"), "z-minalt", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 60, 480, one("Roll-in Lead Angle", format(result.leadAngleDeg, 0) + "\xB0"), "z-bottom", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 60, 516, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + "\xB0"), "z-bottom", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 60, 552, one("Tracking Time", format(result.trackingTimeSec, 0) + " s"), "z-bottom", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        movableText(svg, 60, 588, one("Bomb TOF", format(result.bombTofSec, 0) + " s"), "z-bottom", {
+          "font-size": 13,
+          "font-weight": 900
+        });
+        enableLabelDrag(svg);
+        return true;
+      }
+      function addGrid(svg, width, height, xStep, yStep) {
+        var group = append(svg, "g", { stroke: "#e5e7eb", "stroke-width": 1 });
+        var x;
+        var y;
+        for (x = 40; x < width; x += xStep) line(group, x, 35, x, height - 35, { stroke: "#e5e7eb", "stroke-width": 1 });
+        for (y = 45; y < height; y += yStep) line(group, 35, y, width - 35, y, { stroke: "#e5e7eb", "stroke-width": 1 });
+      }
+      function marker(defs, id, color, size) {
+        defs.appendChild(commonDiagram.createOpenArrowMarker(id, color, {
+          markerWidth: size,
+          markerHeight: size,
+          refX: size - 2,
+          refY: size / 2,
+          path: "M2,2 L" + (size - 2) + "," + size / 2 + " L2," + (size - 2),
+          strokeWidth: 2.2
+        }));
+      }
+      function point(svg, p, color, radius) {
+        append(svg, "circle", {
+          cx: finite(p.x, 0),
+          cy: finite(p.y, 0),
+          r: radius || 6,
+          fill: "#fff",
+          stroke: color,
+          "stroke-width": 3
+        });
+      }
+      function angleArc(parent, center, radius, startAngle, endAngle, role, color) {
+        var tau = Math.PI * 2;
+        var delta = endAngle - startAngle;
+        while (delta <= -Math.PI) delta += tau;
+        while (delta > Math.PI) delta -= tau;
+        var resolvedEnd = startAngle + delta;
+        var start = {
+          x: center.x + radius * Math.cos(startAngle),
+          y: center.y + radius * Math.sin(startAngle)
+        };
+        var end = {
+          x: center.x + radius * Math.cos(resolvedEnd),
+          y: center.y + radius * Math.sin(resolvedEnd)
+        };
+        return append(parent, "path", {
+          d: "M" + start.x.toFixed(1) + "," + start.y.toFixed(1) + " A" + radius + "," + radius + " 0 0 " + (delta >= 0 ? 1 : 0) + " " + end.x.toFixed(1) + "," + end.y.toFixed(1),
+          fill: "none",
+          stroke: color,
+          "stroke-width": 2.2,
+          "stroke-linecap": "round",
+          "data-profile-angle": role
+        });
+      }
+      function placeholder(svg, label) {
+        append(svg, "rect", { width: "100%", height: "100%", fill: "#fff", "data-plot-background": "true" });
+        text(svg, 450, 300, label, {
+          "text-anchor": "middle",
+          "font-size": 20,
+          "font-weight": 850,
+          fill: "#687787"
+        });
+      }
+      function renderProfile(svg, view) {
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 980 700");
+        svg.dataset.baseViewBox = "0 0 980 700";
+        append(svg, "rect", { width: 980, height: 700, fill: "#fff", "data-plot-background": "true" });
+        var visual = view.visualization && view.visualization.profile;
+        if (!visual || !visual.points) {
+          placeholder(svg, "Profile geometry provider not connected");
+          enableLabelDrag(svg);
+          return false;
+        }
+        var defs = append(svg, "defs", {});
+        marker(defs, "profile-blue-arrow", "#176dac", 12);
+        marker(defs, "profile-green-arrow", "#087b4c", 12);
+        marker(defs, "profile-amber-arrow", "#a35d00", 12);
+        marker(defs, "profile-map-arrow", "#d64b4b", 12);
+        addGrid(svg, 980, 700, 80, 70);
+        var p = visual.points;
+        var groundY = p.target.y;
+        var dimensionY = 560;
+        var mapY = 640;
+        var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
+        var isLevel = Math.abs(finite(view.input && view.input.diveAngleDeg, 0)) < 1e-3;
+        var trackPointLabel = isLevel ? "Track: " + clock(view.public.trackingTimeSec) : "Track: " + format(view.public.trackPointAltitudeMslFt, 0) + " ft, " + format(view.public.trackingTimeSec, 0) + " sec";
+        var releaseLabel = (isLevel ? "Initial" : "Release") + ": " + format(view.public.effectiveReleaseAltitudeMslFt, 0) + " ft msl";
+        line(svg, 48, groundY, 932, groundY, {
+          stroke: "#556270",
+          "stroke-width": 2,
+          "data-profile-line": "ground"
+        });
+        [
+          { point: p.trackPoint, endY: mapY },
+          { point: p.release, endY: dimensionY },
+          { point: p.target, endY: mapY },
+          { point: p.aimOff, endY: dimensionY, optional: true }
+        ].forEach(function(station) {
+          if (station.optional && !hasAod) return;
+          line(svg, station.point.x, station.point.y + 9, station.point.x, station.endY + 8, {
+            stroke: "#b45a5a",
+            "stroke-width": 1.1,
+            "stroke-dasharray": "5 5",
+            opacity: 0.58,
+            "data-profile-line": "station-projection"
+          });
+        });
+        line(svg, p.trackPoint.x, p.trackPoint.y, p.aimOff.x, p.aimOff.y, {
+          stroke: "#374151",
+          "stroke-width": 2.1,
+          "data-profile-line": "flight-path-reference"
+        });
+        line(svg, p.trackPoint.x, p.trackPoint.y, p.target.x, p.target.y, {
+          stroke: "#111827",
+          "stroke-width": 1.8,
+          "data-profile-line": "target-los"
+        });
+        append(svg, "path", {
+          d: pathFromPoints(visual.flightPath || [p.trackPoint, p.release]),
+          fill: "none",
+          stroke: "#176dac",
+          "stroke-width": 4,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "data-profile-path": "tracking"
+        });
+        append(svg, "path", {
+          d: pathFromPoints(visual.bombPath || [p.release, p.target]),
+          fill: "none",
+          stroke: "#087b4c",
+          "stroke-width": 4,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "marker-end": "url(#profile-green-arrow)",
+          "data-profile-path": "bomb"
+        });
+        point(svg, p.trackPoint, "#176dac", 6);
+        point(svg, p.release, "#a35d00", 6);
+        point(svg, p.target, "#087b4c", 7);
+        if (hasAod) point(svg, p.aimOff, "#176dac", 5);
+        text(svg, p.trackPoint.x, p.trackPoint.y - 21, trackPointLabel, { "text-anchor": "start", class: "label-halo" });
+        text(svg, isLevel ? p.release.x + 18 : p.release.x, p.release.y - 21, releaseLabel, {
+          "text-anchor": isLevel ? "start" : "middle",
+          class: "label-halo"
+        });
+        var targetAimOffY = p.target.y + 34;
+        if (hasAod) {
+          var stationLabelBoundary = (p.target.x + p.aimOff.x) / 2;
+          movableText(svg, stationLabelBoundary - 12, targetAimOffY, "Target", "profile-target", {
+            "text-anchor": "end",
+            class: "label-halo"
+          });
+          movableText(
+            svg,
+            stationLabelBoundary + 12,
+            targetAimOffY,
+            "Aim Off Point",
+            "profile-aim-off",
+            {
+              "text-anchor": "start",
+              class: "label-halo"
+            }
+          );
+        } else {
+          movableText(svg, p.target.x, targetAimOffY, "Target", "profile-target", {
+            "text-anchor": "middle",
+            class: "label-halo"
+          });
+        }
+        var fpaAngle = Math.atan2(p.aimOff.y - p.trackPoint.y, p.aimOff.x - p.trackPoint.x);
+        var losAngle = Math.atan2(p.target.y - p.trackPoint.y, p.target.x - p.trackPoint.x);
+        if (!isLevel) {
+          if (Math.abs(fpaAngle - losAngle) > 1e-3) {
+            angleArc(svg, p.trackPoint, 70, fpaAngle, losAngle, "iaa", "#a35d00");
+          }
+          text(
+            svg,
+            p.trackPoint.x + 170,
+            p.trackPoint.y + 58,
+            "IAA: " + format(view.local.aimOffAngleDeg, 0) + " deg",
+            {
+              "text-anchor": "middle",
+              fill: "#a35d00",
+              "font-size": 12,
+              "font-weight": 850,
+              class: "label-halo"
+            }
+          );
+        }
+        if (finite(view.input.diveAngleDeg, 0) > 0) {
+          angleArc(
+            svg,
+            p.aimOff,
+            56,
+            Math.PI,
+            Math.atan2(p.trackPoint.y - p.aimOff.y, p.trackPoint.x - p.aimOff.x),
+            "dive-angle",
+            "#176dac"
+          );
+          text(
+            svg,
+            p.aimOff.x - 128,
+            p.aimOff.y - 54,
+            "Dive Angle: " + format(view.input.diveAngleDeg, 0) + " deg",
+            {
+              "text-anchor": "middle",
+              fill: "#176dac",
+              "font-size": 13,
+              "font-weight": 850,
+              class: "label-halo"
+            }
+          );
+        }
+        line(svg, p.trackPoint.x, dimensionY, p.release.x, dimensionY, {
+          stroke: "#176dac",
+          "stroke-width": 1.7,
+          "marker-start": "url(#profile-blue-arrow)",
+          "marker-end": "url(#profile-blue-arrow)",
+          "data-profile-dimension": "tracking-distance"
+        });
+        line(svg, p.release.x, dimensionY, p.target.x, dimensionY, {
+          stroke: "#087b4c",
+          "stroke-width": 1.7,
+          "marker-start": "url(#profile-green-arrow)",
+          "marker-end": "url(#profile-green-arrow)",
+          "data-profile-dimension": "bomb-range"
+        });
+        if (hasAod) line(svg, p.target.x, dimensionY, p.aimOff.x, dimensionY, {
+          stroke: "#a35d00",
+          "stroke-width": 1.7,
+          "marker-start": "url(#profile-amber-arrow)",
+          "marker-end": "url(#profile-amber-arrow)",
+          "data-profile-dimension": "aod"
+        });
+        dimensionValue(
+          svg,
+          (p.trackPoint.x + p.release.x) / 2,
+          dimensionY - 36,
+          "Tracking Distance",
+          format(view.public.downRangeTravelNm, 1) + " nm",
+          "profile-tracking-distance",
+          { fill: "#176dac" }
+        );
+        dimensionValue(
+          svg,
+          (p.release.x + p.target.x) / 2,
+          dimensionY - 36,
+          "Bomb Range",
+          format(view.public.bombRangeNm, 1) + " nm",
+          "profile-bomb-range",
+          { fill: "#087b4c" }
+        );
+        if (hasAod) dimensionValue(
+          svg,
+          (p.target.x + p.aimOff.x) / 2,
+          dimensionY - 36,
+          "AOD",
+          format(view.local.aimOffDistanceNm, 1) + " nm",
+          "profile-aod",
+          { fill: "#a35d00" }
+        );
+        line(svg, p.trackPoint.x, mapY, p.target.x, mapY, {
+          stroke: "#d64b4b",
+          "stroke-width": 1.7,
+          "marker-start": "url(#profile-map-arrow)",
+          "marker-end": "url(#profile-map-arrow)",
+          "data-profile-dimension": "map-ground-range"
+        });
+        dimensionValue(
+          svg,
+          (p.trackPoint.x + p.target.x) / 2,
+          mapY - 36,
+          "MAP",
+          format(view.public.groundRangeNm, 1) + " nm",
+          "profile-map",
+          { fill: "#d64b4b" }
+        );
+        enableLabelDrag(svg);
+        return true;
+      }
+      function renderTop(svg, view) {
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 900 620");
+        svg.dataset.baseViewBox = "0 0 900 620";
+        append(svg, "rect", { width: 900, height: 620, fill: "#fff", "data-plot-background": "true" });
+        var visual = view.visualization && view.visualization.top;
+        if (!visual || !visual.points) {
+          placeholder(svg, "Top View geometry provider not connected");
+          enableLabelDrag(svg);
+          return false;
+        }
+        var defs = append(svg, "defs", {});
+        marker(defs, "top-blue-arrow", "#2f6fc2", 14);
+        marker(defs, "top-amber-arrow", "#d59400", 14);
+        marker(defs, "top-dim-arrow", "#2f6fc2", 11);
+        addGrid(svg, 900, 620, 80, 70);
+        var p = visual.points;
+        var terms = TERMINOLOGY;
+        append(svg, "circle", {
+          cx: p.target.x,
+          cy: p.target.y,
+          r: finite(visual.groundRangeRadiusPx, 175),
+          fill: "#f5f8fd",
+          "fill-opacity": 0.68,
+          stroke: "#203a63",
+          "stroke-width": 2
+        });
+        line(svg, p.initial.x, p.initial.y, p.rollInStart.x, p.rollInStart.y, {
+          stroke: "#2f6fc2",
+          "stroke-width": 4,
+          "marker-end": "url(#top-blue-arrow)"
+        });
+        append(svg, "path", {
+          d: pathFromPoints(visual.rollPath || [p.rollInStart, p.trackPoint]),
+          fill: "none",
+          stroke: "#c85ac8",
+          "stroke-width": 5,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round"
+        });
+        line(svg, p.trackPoint.x, p.trackPoint.y, p.target.x, p.target.y, {
+          stroke: "#d59400",
+          "stroke-width": 4,
+          "marker-end": "url(#top-amber-arrow)"
+        });
+        line(svg, p.rollInStart.x, p.rollInStart.y, p.target.x, p.target.y, {
+          stroke: "#d64b4b",
+          "stroke-width": 2.8
+        });
+        point(svg, p.rollInStart, "#c85ac8", 7);
+        point(svg, p.trackPoint, "#c85ac8", 6);
+        append(svg, "circle", { cx: p.target.x, cy: p.target.y, r: 7, fill: "#d64b4b" });
+        var baseDx = p.initial.x - p.rollInStart.x;
+        var baseDy = p.initial.y - p.rollInStart.y;
+        var baseLength = Math.max(1, Math.hypot(baseDx, baseDy));
+        var baseUnit = { x: baseDx / baseLength, y: baseDy / baseLength };
+        var baseNormal = { x: -baseUnit.y, y: baseUnit.x };
+        if (baseNormal.y > 0) {
+          baseNormal.x *= -1;
+          baseNormal.y *= -1;
+        }
+        var baseLabelX = p.rollInStart.x + baseUnit.x * (TOP_FONT_SIZE * 2) + baseNormal.x * 16;
+        var baseLabelY = p.rollInStart.y + baseUnit.y * (TOP_FONT_SIZE * 2) + baseNormal.y * 16;
+        baseLabelX = Math.max(220, Math.min(870, baseLabelX));
+        baseLabelY = Math.max(125, Math.min(570, baseLabelY));
+        movableText(
+          svg,
+          baseLabelX,
+          baseLabelY - TOP_FONT_SIZE * 2,
+          terms.leadAngle + ": " + format(view.public.leadAngleDeg, 0) + " deg",
+          "top-base-condition",
+          {
+            "text-anchor": "end",
+            fill: "#d64b4b",
+            "font-size": TOP_FONT_SIZE,
+            class: "label-halo"
+          }
+        );
+        movableText(
+          svg,
+          baseLabelX,
+          baseLabelY,
+          format(view.public.resolvedInitialAltitudeMslFt, 0) + " ft msl \xB7 " + format(view.public.resolvedInitialSpeedKcas, 0) + " kcas",
+          "top-base-condition",
+          {
+            "text-anchor": "end",
+            fill: "#203a63",
+            "font-size": TOP_FONT_SIZE,
+            class: "label-halo"
+          }
+        );
+        var windSpeedKt = finite(view.input.windSpeedKt, 0);
+        var contextLines = [
+          "Attack Heading: " + format(view.input.attackHeadingDeg, 0) + " deg",
+          terms.angleOff + ": " + format(view.input.angleOffDeg, 0) + " deg"
+        ];
+        if (Math.abs(windSpeedKt) > 1e-4) {
+          contextLines.push("Wind: " + format(view.input.windDirectionDeg, 0) + " deg from \xB7 " + format(Math.abs(windSpeedKt), 0) + " kt");
+        }
+        var contextGap = 24;
+        var contextStartY = p.target.y - 52 - (contextLines.length - 1) * contextGap;
+        if (contextStartY < 28) contextStartY = 28;
+        contextLines.forEach(function(value, index) {
+          movableText(svg, p.target.x, contextStartY + index * contextGap, value, "top-context", {
+            "text-anchor": "middle",
+            fill: "#203a63",
+            "font-size": TOP_FONT_SIZE,
+            class: "label-halo"
+          });
+        });
+        text(svg, p.rollInStart.x - 10, p.rollInStart.y + 29, terms.rollInStart, { "text-anchor": "end", fill: "#a443aa", "font-size": TOP_FONT_SIZE, class: "label-halo" });
+        var trackLabelOnRight = p.target.x < p.trackPoint.x || Math.abs(p.trackPoint.y - 17 - (baseLabelY - TOP_FONT_SIZE * 2)) < TOP_FONT_SIZE * 2.5;
+        text(svg, p.trackPoint.x + (trackLabelOnRight ? 10 : -10), p.trackPoint.y - 17, terms.trackPoint, {
+          "text-anchor": trackLabelOnRight ? "start" : "end",
+          fill: "#a443aa",
+          "font-size": TOP_FONT_SIZE,
+          class: "label-halo"
+        });
+        text(svg, p.target.x + 10, p.target.y - 8, "Target", { fill: "#203a63", "font-size": TOP_FONT_SIZE, class: "label-halo" });
+        movableText(
+          svg,
+          (p.trackPoint.x + p.target.x) / 2,
+          (p.trackPoint.y + p.target.y) / 2 - 34,
+          terms.groundRange + ": " + format(view.public.groundRangeNm, 1) + " nm",
+          "top-map",
+          {
+            "text-anchor": "middle",
+            fill: "#b77d00",
+            "font-size": TOP_FONT_SIZE,
+            class: "label-halo"
+          }
+        );
+        var dimensions = visual.dimensions || {};
+        if (dimensions.baseDistance) {
+          drawTopDimension(
+            svg,
+            dimensions.baseDistance,
+            "base-distance",
+            terms.baseDistance,
+            format(view.public.rollInLateralSeparationNm, 1) + " nm",
+            "top-base-distance"
+          );
+        }
+        if (dimensions.rollInLateralDistance) {
+          var lateralDimension = Object.assign({}, dimensions.rollInLateralDistance, {
+            guides: (dimensions.rollInLateralDistance.guides || []).map(function(guide, index) {
+              return index === 0 ? { start: p.rollInStart, end: guide.end } : guide;
+            })
+          });
+          drawTopDimension(
+            svg,
+            lateralDimension,
+            "roll-in-lateral-distance",
+            terms.rollInLateralDistance.replace(/ Distance$/, ""),
+            "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
+            "top-roll-in-lateral"
+          );
+        }
+        if (dimensions.rollInLongitudinalDistance) {
+          drawTopDimension(
+            svg,
+            dimensions.rollInLongitudinalDistance,
+            "roll-in-longitudinal-distance",
+            terms.rollInLongitudinalDistance.replace(/ Distance$/, ""),
+            "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
+            "top-roll-in-longitudinal"
+          );
+        }
+        enableLabelDrag(svg);
+        return true;
+      }
+      function enableLabelDrag(svg) {
+        if (svg.__bdpLabelDragBound) return;
+        svg.__bdpLabelDragBound = true;
+        var pending = null;
+        var active = null;
+        function nodesFor(target) {
+          var group = target.getAttribute("data-drag-group");
+          if (!group) return [target];
+          return Array.prototype.slice.call(svg.querySelectorAll('[data-drag-group="' + group + '"]'));
+        }
+        function pointFromEvent(event) {
+          if (typeof svg.createSVGPoint !== "function") return { x: event.clientX, y: event.clientY };
+          var point2 = svg.createSVGPoint();
+          point2.x = event.clientX;
+          point2.y = event.clientY;
+          var matrix = svg.getScreenCTM();
+          return matrix ? point2.matrixTransform(matrix.inverse()) : point2;
+        }
+        svg.addEventListener("pointerdown", function(event) {
+          var target = event.target.closest && event.target.closest(".movable-label");
+          if (!target || !svg.contains(target)) return;
+          if (event.preventDefault) event.preventDefault();
+          var start = pointFromEvent(event);
+          var items = nodesFor(target).map(function(item) {
+            return { item, transform: item.getAttribute("transform") || "" };
+          });
+          var hold = {
+            pointerId: event.pointerId,
+            start,
+            items,
+            timer: null
+          };
+          hold.timer = global.setTimeout(function() {
+            if (pending !== hold) return;
+            active = hold;
+            pending = null;
+            active.items.forEach(function(entry) {
+              entry.item.classList.add("dragging");
+            });
+          }, 500);
+          pending = hold;
+          if (typeof svg.setPointerCapture === "function") {
+            try {
+              svg.setPointerCapture(event.pointerId);
+            } catch (error) {
+            }
+          }
+        });
+        svg.addEventListener("pointermove", function(event) {
+          if (pending && event.pointerId === pending.pointerId || active && event.pointerId === active.pointerId) {
+            if (event.preventDefault) event.preventDefault();
+          }
+          if (!active || event.pointerId !== active.pointerId) return;
+          var current = pointFromEvent(event);
+          var dx = current.x - active.start.x;
+          var dy = current.y - active.start.y;
+          active.items.forEach(function(entry) {
+            entry.item.setAttribute("transform", (entry.transform ? entry.transform + " " : "") + "translate(" + dx.toFixed(2) + " " + dy.toFixed(2) + ")");
+          });
+        });
+        function finish(event) {
+          if (pending && event.pointerId === pending.pointerId) {
+            global.clearTimeout(pending.timer);
+            pending = null;
+          }
+          if (active && event.pointerId === active.pointerId) {
+            active.items.forEach(function(entry) {
+              entry.item.classList.remove("dragging");
+            });
+            active = null;
+          }
+          if (typeof svg.releasePointerCapture === "function") {
+            try {
+              svg.releasePointerCapture(event.pointerId);
+            } catch (error) {
+            }
+          }
+        }
+        svg.addEventListener("pointerup", finish);
+        svg.addEventListener("pointercancel", finish);
+      }
+      function renderAll(elements, view) {
+        return {
+          zAvailable: renderZ(elements.z, view),
+          profileAvailable: renderProfile(elements.profile, view),
+          topAvailable: renderTop(elements.top, view)
+        };
+      }
+      global.BDPGraphRenderers = Object.freeze({
+        terminology: TERMINOLOGY,
+        renderAll,
+        renderError,
+        renderErrors,
+        renderZ,
+        renderProfile,
+        renderTop
+      });
+    })(window);
+  }
+});
+
+// bdp-top-view-visibility.js?v=ba58cceba53e
+var require_bdp_top_view_visibility = __commonJS({
+  "bdp-top-view-visibility.js?v=ba58cceba53e"() {
+    (function(global) {
+      "use strict";
+      var original = global.BDPGraphRenderers;
+      if (!original || typeof original.renderTop !== "function") {
+        throw new Error("BDP graph renderers must load before Top View visibility rules");
+      }
+      var ZERO_EPSILON = 1e-9;
+      var STATION_EPSILON = 1e-6;
+      function isZeroResult(value) {
+        var number = Number(value);
+        return Number.isFinite(number) && Math.abs(number) <= ZERO_EPSILON;
+      }
+      function removeNodes(svg, selector, predicate) {
+        if (!svg || typeof svg.querySelectorAll !== "function") return;
+        Array.prototype.slice.call(svg.querySelectorAll(selector)).forEach(function(element) {
+          if (!predicate || predicate(element)) element.remove();
+        });
+      }
+      function removeDimension(svg, role, group) {
+        removeNodes(svg, '[data-drag-group="' + group + '"]');
+        removeNodes(svg, '[data-top-dimension="' + role + '"]');
+        removeNodes(svg, '[data-top-guide="' + role + '"]');
+      }
+      function sameCoordinate(value, expected) {
+        var number = Number(value);
+        var target = Number(expected);
+        return Number.isFinite(number) && Number.isFinite(target) && Math.abs(number - target) <= STATION_EPSILON;
+      }
+      function removeStation(svg, view, pointKey, label, radius) {
+        removeNodes(svg, "text", function(element) {
+          return String(element.textContent || "") === label;
+        });
+        var points = view && view.visualization && view.visualization.top && view.visualization.top.points;
+        var point = points ? points[pointKey] : null;
+        if (!point) return;
+        removeNodes(svg, "circle", function(element) {
+          return sameCoordinate(element.getAttribute("cx"), point.x) && sameCoordinate(element.getAttribute("cy"), point.y) && Number(element.getAttribute("r")) === radius;
+        });
+      }
+      function removeZeroAngleOffStations(svg, view) {
+        var terms = original.terminology;
+        removeStation(svg, view, "rollInStart", terms && terms.rollInStart || "Roll-in Point", 7);
+        removeStation(svg, view, "trackPoint", terms && terms.trackPoint || "Track Point", 6);
+      }
+      function formatNm(value) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) return null;
+        return number.toLocaleString("en-US", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1
+        });
+      }
+      function appendLevelBombRange(svg, view) {
+        var input = view && view.input;
+        var result = view && view.public;
+        var points = view && view.visualization && view.visualization.top && view.visualization.top.points;
+        if (!svg || !input || !result || !points || !isZeroResult(input.diveAngleDeg)) return;
+        if (isZeroResult(result.bombRangeNm)) return;
+        var bombRangeText = formatNm(result.bombRangeNm);
+        if (bombRangeText === null || !points.trackPoint || !points.target) return;
+        var track = points.trackPoint;
+        var target = points.target;
+        var groundRangeNm = Number(result.groundRangeNm);
+        var bombRangeNm = Number(result.bombRangeNm);
+        var releaseFraction = 0.5;
+        if (Number.isFinite(groundRangeNm) && Math.abs(groundRangeNm) > ZERO_EPSILON && Number.isFinite(bombRangeNm)) {
+          releaseFraction = Math.max(0, Math.min(1, (groundRangeNm - bombRangeNm) / groundRangeNm));
+        }
+        var release = {
+          x: Number(track.x) + (Number(target.x) - Number(track.x)) * releaseFraction,
+          y: Number(track.y) + (Number(target.y) - Number(track.y)) * releaseFraction
+        };
+        var labelPoint = {
+          x: (release.x + Number(target.x)) / 2,
+          y: (release.y + Number(target.y)) / 2 + 34
+        };
+        var commonDiagram = global.BDPCommonDiagram;
+        if (!commonDiagram || typeof commonDiagram.svgNode !== "function") return;
+        svg.appendChild(commonDiagram.svgNode("text", {
+          x: labelPoint.x,
+          y: labelPoint.y,
+          fill: "#087b4c",
+          "font-size": 13,
+          "font-weight": 820,
+          "text-anchor": "middle",
+          class: "movable-label label-halo",
+          "data-drag-group": "top-bomb-range",
+          "data-top-result": "bomb-range"
+        }, "Bomb Range: " + bombRangeText + " nm"));
+      }
+      function applyTopViewRules(svg, view) {
+        var result = view && view.public;
+        if (!svg || !result) return;
+        if (isZeroResult(result.leadAngleDeg)) {
+          var terms = original.terminology;
+          var leadPrefix = (terms && terms.leadAngle || "Roll-in Lead Angle") + ":";
+          removeNodes(svg, '[data-drag-group="top-base-condition"]', function(element) {
+            return String(element.textContent || "").indexOf(leadPrefix) === 0;
+          });
+        }
+        if (isZeroResult(result.groundRangeNm)) {
+          removeNodes(svg, '[data-drag-group="top-map"]');
+        }
+        if (isZeroResult(result.rollInLateralSeparationNm)) {
+          removeDimension(svg, "base-distance", "top-base-distance");
+        }
+        var displacement = result.rollInDisplacement || {};
+        if (isZeroResult(displacement.turnSideNm)) {
+          removeDimension(svg, "roll-in-lateral-distance", "top-roll-in-lateral");
+        }
+        if (isZeroResult(displacement.forwardNm)) {
+          removeDimension(svg, "roll-in-longitudinal-distance", "top-roll-in-longitudinal");
+        }
+        if (view.input && isZeroResult(view.input.angleOffDeg)) {
+          removeZeroAngleOffStations(svg, view);
+        }
+        appendLevelBombRange(svg, view);
+      }
+      function renderTop(svg, view) {
+        var available = original.renderTop(svg, view);
+        if (available !== false) applyTopViewRules(svg, view);
+        return available;
+      }
+      function renderAll(elements, view) {
+        var availability = original.renderAll(elements, view);
+        if (!availability || availability.topAvailable !== false) {
+          applyTopViewRules(elements && elements.top, view);
+        }
+        return availability;
+      }
+      global.BDPTopViewVisibility = Object.freeze({
+        zeroEpsilon: ZERO_EPSILON,
+        isZeroResult,
+        apply: applyTopViewRules
+      });
+      global.BDPGraphRenderers = Object.freeze({
+        terminology: original.terminology,
+        renderAll,
+        renderError: original.renderError,
+        renderErrors: original.renderErrors,
+        renderZ: original.renderZ,
+        renderProfile: original.renderProfile,
+        renderTop
+      });
+    })(window);
+  }
+});
+
+// bdp-ui-adapter.js?v=ba58cceba53e
+var require_bdp_ui_adapter = __commonJS({
+  "bdp-ui-adapter.js?v=ba58cceba53e"() {
+    (function(global) {
+      "use strict";
+      var STORAGE_KEY = "bdp-common-ui-preview-v2-provider-v1";
+      var FONT_BASE_MULTIPLIER = 1.5;
+      var DESKTOP_FONT_SCALE = Object.freeze({
+        "z-diagram": 0.8,
+        "profile-diagram": 1,
+        "top-diagram": 1
+      });
+      var MOBILE_FONT_SCALE = Object.freeze({
+        "z-diagram": 1,
+        "profile-diagram": 1.2,
+        "top-diagram": 1.2
+      });
+      function isMobileDevice() {
+        var navigator = global.navigator || {};
+        var userAgentData = navigator.userAgentData;
+        if (userAgentData && typeof userAgentData.mobile === "boolean") {
+          return userAgentData.mobile;
+        }
+        var userAgent = String(navigator.userAgent || "");
+        if (/(Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini|Mobile)/i.test(userAgent)) {
+          return true;
+        }
+        return /Macintosh/i.test(userAgent) && Number(navigator.maxTouchPoints) > 1;
+      }
+      function defaultFontScale(targetId) {
+        var defaults = isMobileDevice() ? MOBILE_FONT_SCALE : DESKTOP_FONT_SCALE;
+        return defaults[targetId] || 1;
+      }
+      var DEFAULTS = Object.freeze({
+        weaponId: "M82",
+        targetElevationMslFt: "31",
+        attackHeadingDeg: "0",
+        windDirectionDeg: "0",
+        windSpeedKt: "0",
+        fragmentHeightMarginPercent: "20",
+        speedOvershootKcas: "50",
+        gOnsetTimeSec: "2",
+        initialSpeedValue: "350",
+        initialSpeedMode: "CAS",
+        rollInStartAltitudeMslFt: "16000",
+        diveAngleDeg: "45",
+        angleOffDeg: "90",
+        trackingTimeSec: "18",
+        levelMapNm: "5.0",
+        levelTurnEnabled: true,
+        releaseAltitudeMslFt: "6800",
+        releaseSpeedKcas: "450",
+        rollInBankAngleDeg: "112.5",
+        rollInG: "4"
+      });
+      var STRING_KEYS = Object.freeze({
+        weaponId: true,
+        initialSpeedMode: true
+      });
+      var BOOLEAN_KEYS = Object.freeze({
+        levelTurnEnabled: true
+      });
+      var state = {
+        provider: null,
+        lastView: null,
+        requestId: 0,
+        hasRendered: false,
+        changeTimers: {},
+        bankLinked: true,
+        levelMode: false,
+        nonLevelRollInG: "4",
+        fontScale: {
+          "z-diagram": defaultFontScale("z-diagram"),
+          "profile-diagram": defaultFontScale("profile-diagram"),
+          "top-diagram": defaultFontScale("top-diagram")
+        },
+        resultFontScale: {
+          "result-summary": 1
+        },
+        zoom: {
+          "z-diagram": 1,
+          "profile-diagram": 1,
+          "top-diagram": 1
+        },
+        pan: {
+          "z-diagram": { x: 0, y: 0 },
+          "profile-diagram": { x: 0, y: 0 },
+          "top-diagram": { x: 0, y: 0 }
+        }
+      };
+      var app = document.getElementById("app") || document.getElementById("bdp-app");
+      var providerStatus = document.getElementById("provider-status");
+      var calculateButton = document.getElementById("calculate-button");
+      var advancedToggle = document.getElementById("advancedToggle") || document.getElementById("advanced-toggle");
+      var defaultButton = document.getElementById("defaultBtn") || document.getElementById("default-button");
+      var solveModeNode = document.getElementById("solveMode") || document.getElementById("solve-mode");
+      var providerError = document.getElementById("provider-error");
+      function controls(key) {
+        return Array.prototype.slice.call(document.querySelectorAll('[data-bdp-input="' + key + '"]'));
+      }
+      function firstControl(key) {
+        return controls(key)[0] || null;
+      }
+      function dependentFlash(element) {
+        global.clearTimeout(element.__bdpDependentTimer);
+        element.classList.remove("value-dependent-change");
+        if (element.disabled || element.classList.contains("value-result")) {
+          element.classList.remove("value-dependent-input");
+          return;
+        }
+        element.classList.add("value-dependent-input");
+      }
+      function confirmDependentInput(key) {
+        controls(key).forEach(function(element) {
+          global.clearTimeout(element.__bdpDependentTimer);
+          element.classList.remove("value-dependent-input");
+        });
+      }
+      function setControls(key, value, except, flash) {
+        controls(key).forEach(function(element) {
+          var checkbox = element.getAttribute && element.getAttribute("type") === "checkbox";
+          var changed = checkbox ? element.checked !== Boolean(value) : element.value !== String(value);
+          if (element !== except && changed) {
+            if (checkbox) element.checked = Boolean(value);
+            else element.value = String(value);
+            if (flash) dependentFlash(element);
+          }
+        });
+      }
+      function collectInput() {
+        var input = {};
+        Object.keys(DEFAULTS).forEach(function(key) {
+          var element = firstControl(key);
+          if (!element) return;
+          if (BOOLEAN_KEYS[key]) {
+            input[key] = Boolean(element.checked);
+            return;
+          }
+          if (STRING_KEYS[key]) {
+            input[key] = element.value;
+            return;
+          }
+          var number = Number(element.value);
+          input[key] = Number.isFinite(number) ? number : NaN;
+        });
+        input.solveMode = solveModeNode.dataset.mode || "initialAltitude";
+        return input;
+      }
+      function loadInput() {
+        var saved = {};
+        try {
+          saved = JSON.parse(global.localStorage.getItem(STORAGE_KEY) || "{}");
+        } catch (error) {
+          saved = {};
+        }
+        Object.keys(DEFAULTS).forEach(function(key) {
+          setControls(key, saved[key] !== void 0 ? saved[key] : DEFAULTS[key]);
+        });
+        state.bankLinked = saved.rollInBankAngleDeg === void 0 || levelTurnActive();
+      }
+      function saveInput() {
+        var saved = {};
+        Object.keys(DEFAULTS).forEach(function(key) {
+          var element = firstControl(key);
+          if (element) saved[key] = BOOLEAN_KEYS[key] ? Boolean(element.checked) : element.value;
+        });
+        global.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      }
+      function resetInput() {
+        Object.keys(DEFAULTS).forEach(function(key) {
+          setControls(key, DEFAULTS[key]);
+        });
+        solveModeNode.dataset.mode = "initialAltitude";
+        solveModeNode.textContent = "Initial Altitude \uAE30\uC900";
+        state.bankLinked = true;
+        state.levelMode = false;
+        state.nonLevelRollInG = DEFAULTS.rollInG;
+        state.fontScale["z-diagram"] = defaultFontScale("z-diagram");
+        state.fontScale["profile-diagram"] = defaultFontScale("profile-diagram");
+        state.fontScale["top-diagram"] = defaultFontScale("top-diagram");
+        state.resultFontScale["result-summary"] = 1;
+        state.zoom["z-diagram"] = 1;
+        state.zoom["profile-diagram"] = 1;
+        state.zoom["top-diagram"] = 1;
+        state.pan["z-diagram"] = { x: 0, y: 0 };
+        state.pan["profile-diagram"] = { x: 0, y: 0 };
+        state.pan["top-diagram"] = { x: 0, y: 0 };
+        Array.prototype.slice.call(document.querySelectorAll(".value-dependent-input")).forEach(function(element) {
+          element.classList.remove("value-dependent-input");
+        });
+        applyLevelMode(false);
+        saveInput();
+        calculate();
+      }
+      function outputNodes(key) {
+        return Array.prototype.slice.call(document.querySelectorAll('[data-bdp-output="' + key + '"]'));
+      }
+      function setOutput(key, value) {
+        var nodes = outputNodes(key);
+        var changed = state.hasRendered && nodes.some(function(element) {
+          return element.textContent !== value;
+        });
+        nodes.forEach(function(element) {
+          element.textContent = value;
+        });
+        if (!changed) return;
+        global.clearTimeout(state.changeTimers[key]);
+        nodes.forEach(function(element) {
+          element.classList.add("value-dependent-change");
+        });
+        state.changeTimers[key] = global.setTimeout(function() {
+          nodes.forEach(function(element) {
+            element.classList.remove("value-dependent-change");
+          });
+        }, 1200);
+      }
+      function numberText(value, digits, unit) {
+        if (value === null || value === void 0 || value === "") return "\u2014";
+        var number = Number(value);
+        if (!Number.isFinite(number)) return "\u2014";
+        return number.toLocaleString("en-US", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        }) + (unit ? " " + unit : "");
+      }
+      function clockText(value) {
+        var totalSeconds = Math.max(0, Math.round(Number(value) || 0));
+        var minutes = Math.floor(totalSeconds / 60);
+        var seconds = totalSeconds % 60;
+        return String(minutes).padStart(2, "0") + " min " + String(seconds).padStart(2, "0") + " sec";
+      }
+      function compactNumber(value) {
+        return String(Math.round(Number(value) * 10) / 10);
+      }
+      function levelTurnActive() {
+        var control = firstControl("levelTurnEnabled");
+        return state.levelMode && Boolean(control && control.checked);
+      }
+      function setControlDisabled(key, disabled) {
+        controls(key).forEach(function(element) {
+          element.disabled = Boolean(disabled);
+        });
+      }
+      function setControlDerived(key, derived) {
+        controls(key).forEach(function(element) {
+          element.disabled = Boolean(derived);
+          if (derived) {
+            element.classList.remove("value-dependent-input");
+            element.classList.add("value-result");
+          } else {
+            element.classList.remove("value-result");
+          }
+        });
+      }
+      function syncAutomaticBank(flash) {
+        if (!state.bankLinked) return;
+        var bankAngle;
+        if (levelTurnActive()) {
+          var turnG = Number(firstControl("rollInG") && firstControl("rollInG").value);
+          if (!(turnG >= 1)) return;
+          bankAngle = Math.acos(1 / turnG) * 180 / Math.PI;
+        } else {
+          var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+          if (!Number.isFinite(diveAngle)) return;
+          bankAngle = 90 + diveAngle / 2;
+        }
+        setControls("rollInBankAngleDeg", compactNumber(bankAngle), null, flash);
+      }
+      function applyLevelMode(flash) {
+        var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+        var nextLevelMode = Number.isFinite(diveAngle) && Math.abs(diveAngle) < 1e-3;
+        var levelTurnControl2 = firstControl("levelTurnEnabled");
+        if (nextLevelMode && !state.levelMode) {
+          var currentG = firstControl("rollInG");
+          if (currentG && Number.isFinite(Number(currentG.value))) state.nonLevelRollInG = currentG.value;
+          if (levelTurnControl2 && levelTurnControl2.checked) setControls("rollInG", "2", null, flash);
+        } else if (!nextLevelMode && state.levelMode) {
+          setControls("rollInG", state.nonLevelRollInG || DEFAULTS.rollInG, null, flash);
+        }
+        state.levelMode = nextLevelMode;
+        if (nextLevelMode) app.classList.add("level-mode");
+        else app.classList.remove("level-mode");
+        if (levelTurnControl2) levelTurnControl2.disabled = !nextLevelMode;
+        setControlDisabled("trackingTimeSec", nextLevelMode);
+        setControlDisabled("levelMapNm", !nextLevelMode);
+        setControlDerived("rollInBankAngleDeg", levelTurnActive());
+        if (nextLevelMode) {
+          solveModeNode.dataset.mode = "levelMap";
+          solveModeNode.textContent = "MAP \uAE30\uC900";
+        } else if (solveModeNode.dataset.mode === "levelMap") {
+          solveModeNode.dataset.mode = "initialAltitude";
+          solveModeNode.textContent = "Initial Altitude \uAE30\uC900";
+        }
+        if (levelTurnActive()) state.bankLinked = true;
+        syncAutomaticBank(flash);
+      }
+      function titleFor(view) {
+        if (view.profileTitle) return view.profileTitle;
+        var angle = Number(view.input && view.input.diveAngleDeg);
+        if (!Number.isFinite(angle)) return "\u2014";
+        var highDrag = Boolean(view.input && view.input.highDragWeapon);
+        var suffix = angle === 0 ? "VLD" : angle > 30 ? "HADB" : angle === 30 ? "DB" : highDrag ? "LAHD" : "LALD";
+        return Math.round(angle) + "\xB0 " + suffix;
+      }
+      function setSafetyLabel(label) {
+        var value = label || "NLT Release";
+        Array.prototype.slice.call(document.querySelectorAll("[data-safety-release-label]")).forEach(function(element) {
+          element.textContent = value + " (ft msl)";
+        });
+        Array.prototype.slice.call(document.querySelectorAll("[data-safety-release-result-label]")).forEach(function(element) {
+          element.textContent = value;
+        });
+      }
+      function renderOutputs(view) {
+        var result = view.public || {};
+        var local = view.local || {};
+        var displacement = result.rollInDisplacement || {};
+        var level = Math.abs(Number(view.input && view.input.diveAngleDeg)) < 1e-3;
+        setOutput("recoveryG", numberText(view.input && view.input.recoveryG, 1, ""));
+        setOutput("attackHeadingDeg", numberText(view.input && view.input.attackHeadingDeg, 0, "deg"));
+        setOutput("profileTitle", titleFor(view));
+        setOutput("effectiveReleaseAltitudeMslFt", numberText(result.effectiveReleaseAltitudeMslFt, 0, "ft msl"));
+        setOutput("minAltMslFt", numberText(result.minAltMslFt, 0, "ft msl"));
+        setOutput("safetyReleaseMslFt", numberText(result.safetyReleaseMslFt, 0, "ft msl"));
+        setOutput("leadAngleDeg", numberText(result.leadAngleDeg, 1, "deg"));
+        setOutput("rollInAltitudeLossFt", numberText(result.rollInAltitudeLossFt, 0, "ft"));
+        setOutput("resolvedInitialAltitudeMslFt", numberText(result.resolvedInitialAltitudeMslFt, 0, "ft msl"));
+        setOutput("resolvedInitialSpeedKcas", numberText(result.resolvedInitialSpeedKcas, 1, "kcas"));
+        setOutput("trackPointAltitudeMslFt", numberText(result.trackPointAltitudeMslFt, 0, "ft msl"));
+        setOutput("rollInRangeNm", numberText(result.rollInRangeNm, 1, "nm"));
+        setOutput("rollInSlantNm", numberText(local.rollInSlantNm, 1, "nm"));
+        setOutput("baseDistanceNm", numberText(result.rollInLateralSeparationNm, 1, "nm"));
+        setOutput("rollInLongitudinalDistanceNm", numberText(displacement.forwardNm, 1, "nm"));
+        setOutput("rollInLateralDistanceNm", numberText(Math.abs(displacement.turnSideNm), 1, "nm"));
+        setOutput("groundRangeNm", numberText(result.groundRangeNm, 1, "nm"));
+        setOutput("downRangeTravelNm", numberText(result.downRangeTravelNm, 3, "nm"));
+        setOutput("bombRangeNm", numberText(result.bombRangeNm, 3, "nm"));
+        setOutput("trackingTimeSec", level ? clockText(result.trackingTimeSec) : numberText(result.trackingTimeSec, 0, "sec"));
+        setOutput("levelTrackingTime", clockText(result.trackingTimeSec));
+        setOutput("bombTofSec", numberText(result.bombTofSec, 0, "sec"));
+        setOutput("rollInRadiusTime", numberText(result.rollInRadiusNm, 3, "nm") + " / " + numberText(result.rollInTimeSec, 0, "sec"));
+        setOutput("rollInGroundArcNm", numberText(result.rollInGroundArcNm, 3, "nm"));
+        setOutput("rollInDisplacement", numberText(result.rollInDisplacement && result.rollInDisplacement.forwardNm, 3, "") + " / " + numberText(result.rollInDisplacement && result.rollInDisplacement.turnSideNm, 3, "nm"));
+        setOutput("rollInLateralSeparationNm", numberText(result.rollInLateralSeparationNm, 3, "nm"));
+        setOutput("minAltResultMslFt", numberText(result.minAltMslFt, 0, "ft msl"));
+        setOutput("safetyReleaseResultMslFt", numberText(result.safetyReleaseMslFt, 0, "ft msl"));
+        setOutput("rollInStartAltitudeMslFt", numberText(result.resolvedInitialAltitudeMslFt, 0, "ft msl"));
+        setOutput("aimOffPointRangeNm", numberText(local.aimOffPointRangeNm, 3, "nm"));
+        setOutput("aimOffAngleDeg", numberText(local.aimOffAngleDeg, 1, "deg"));
+        setOutput("aimOffDistanceNm", numberText(local.aimOffDistanceNm, 3, "nm"));
+        setOutput("rollInRangeProfileFitNm", numberText(local.rollInRangeProfileFitNm, 3, "nm"));
+        setOutput("bdpModel", view.model ? view.model.id + " / " + view.model.version : "\u2014");
+        setOutput("ballisticModel", view.diagnostics ? view.diagnostics.ballisticModelId + " / " + view.diagnostics.ballisticModelVersion : "\u2014");
+        setSafetyLabel(view.safety && view.safety.releaseLabel);
+        state.hasRendered = true;
+      }
+      function syncSolvedInputs(view) {
+        var result = view.public || {};
+        var mode = solveModeNode.dataset.mode || "initialAltitude";
+        if (Math.abs(Number(view.input && view.input.diveAngleDeg)) < 1e-3) {
+          var levelTrackingTime = Number(result.trackingTimeSec);
+          if (Number.isFinite(levelTrackingTime)) {
+            setControls("trackingTimeSec", Math.round(levelTrackingTime), null, state.hasRendered);
+          }
+          return;
+        }
+        if (mode === "trackingTime") {
+          var initialAltitude = Number(result.resolvedInitialAltitudeMslFt);
+          if (Number.isFinite(initialAltitude)) {
+            setControls("rollInStartAltitudeMslFt", Math.round(initialAltitude), null, state.hasRendered);
+          }
+          return;
+        }
+        var trackingTime = Number(result.trackingTimeSec);
+        if (Number.isFinite(trackingTime)) {
+          setControls("trackingTimeSec", Math.round(trackingTime), null, state.hasRendered);
+        }
+      }
+      function normalizeView(raw, input) {
+        var view = state.provider && typeof state.provider.toViewModel === "function" ? state.provider.toViewModel(raw, input) : raw;
+        if (!view || typeof view !== "object") throw new Error("Provider returned no view model");
+        view.input = Object.assign({}, input, view.input || {});
+        view.public = Object.assign({
+          releaseSpeedKcas: input.releaseSpeedKcas
+        }, view.public || {});
+        view.local = Object.assign({}, view.local || {});
+        view.safety = Object.assign({ releaseLabel: "NLT Release" }, view.safety || {});
+        return view;
+      }
+      function setProviderStatus(kind, label) {
+        if (!providerStatus) return;
+        providerStatus.classList.remove("connected", "error");
+        if (kind) providerStatus.classList.add(kind);
+        providerStatus.textContent = label;
+      }
+      function clearOutputs() {
+        state.hasRendered = false;
+        Array.prototype.slice.call(document.querySelectorAll("[data-bdp-output]")).forEach(function(element) {
+          element.textContent = "\u2014";
+        });
+      }
+      function classifyError(error) {
+        var message = error && error.message ? error.message : String(error || "Calculation failed");
+        var code = error && error.code ? String(error.code) : "BDP-E-CALCULATION";
+        if (!error || !error.code) {
+          if (message === "Level MAP must be at least the computed Bomb Range") code = "BDP-E-LEVEL-MAP-RANGE";
+          else if (/must be a number$/i.test(message)) code = "BDP-E-INPUT-NUMBER";
+          else if (/Attack Heading must be between/i.test(message)) code = "BDP-E-ATTACK-HEADING";
+          else if (message === "Unknown weapon") code = "BDP-E-WEAPON";
+          else if (message === "Bomb impact integration limit") code = "BDP-E-BALLISTIC-INTEGRATION";
+          else if (/Initial altitude minus roll-in loss/i.test(message)) code = "BDP-E-INITIAL-ALTITUDE";
+          else if (/Provider returned no view model/i.test(message)) code = "BDP-E-PROVIDER-VIEW";
+        }
+        return { code, message };
+      }
+      function renderDiagramErrors(errorInfo) {
+        state.lastView = null;
+        if (global.BDPGraphRenderers && typeof global.BDPGraphRenderers.renderErrors === "function") {
+          global.BDPGraphRenderers.renderErrors({
+            z: document.getElementById("z-diagram"),
+            profile: document.getElementById("profile-diagram"),
+            top: document.getElementById("top-diagram")
+          }, errorInfo);
+          applyAllFontScale();
+        }
+        Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function(button) {
+          button.disabled = true;
+        });
+      }
+      function applyZoom(targetId) {
+        var svg = document.getElementById(targetId);
+        var toolbar = document.querySelector('[data-zoom-target="' + targetId + '"]');
+        if (!svg || !toolbar) return;
+        var base = (svg.dataset.baseViewBox || svg.getAttribute("viewBox") || "0 0 900 620").split(/\s+/).map(Number);
+        if (base.length !== 4 || base.some(function(value) {
+          return !Number.isFinite(value);
+        })) return;
+        var zoom = Math.max(0.5, Math.min(2, state.zoom[targetId] || 1));
+        state.zoom[targetId] = zoom;
+        var width = base[2] / zoom;
+        var height = base[3] / zoom;
+        var pan = state.pan[targetId] || { x: 0, y: 0 };
+        var maxPanX = Math.max(0, (base[2] - width) / 2);
+        var maxPanY = Math.max(0, (base[3] - height) / 2);
+        if (zoom <= 1) {
+          pan.x = 0;
+          pan.y = 0;
+        }
+        pan.x = Math.max(-maxPanX, Math.min(maxPanX, Number(pan.x) || 0));
+        pan.y = Math.max(-maxPanY, Math.min(maxPanY, Number(pan.y) || 0));
+        state.pan[targetId] = pan;
+        var x = base[0] + (base[2] - width) / 2 + pan.x;
+        var y = base[1] + (base[3] - height) / 2 + pan.y;
+        svg.setAttribute("viewBox", [x, y, width, height].join(" "));
+        if (zoom > 1) svg.classList.add("plot-pan-enabled");
+        else {
+          svg.classList.remove("plot-pan-enabled");
+          svg.classList.remove("plot-panning");
+        }
+        var valueButton = toolbar.querySelector('[data-zoom="reset"]');
+        var outButton = toolbar.querySelector('[data-zoom="out"]');
+        var inButton = toolbar.querySelector('[data-zoom="in"]');
+        if (valueButton) valueButton.textContent = Math.round(zoom * 100) + "%";
+        if (outButton) outButton.disabled = zoom <= 0.5;
+        if (inButton) inButton.disabled = zoom >= 2;
+      }
+      function applyAllZoom() {
+        applyZoom("z-diagram");
+        applyZoom("profile-diagram");
+        applyZoom("top-diagram");
+      }
+      function bindPlotPan(targetId) {
+        var svg = document.getElementById(targetId);
+        if (!svg || svg.__bdpPlotPanBound) return;
+        svg.__bdpPlotPanBound = true;
+        var active = null;
+        svg.addEventListener("pointerdown", function(event) {
+          if ((state.zoom[targetId] || 1) <= 1) return;
+          if (event.button !== void 0 && event.button !== 0) return;
+          var eventTarget = event.target;
+          if (eventTarget && typeof eventTarget.closest === "function" && eventTarget.closest(".movable-label")) return;
+          var viewport = (svg.getAttribute("viewBox") || "").split(/\s+/).map(Number);
+          var bounds = typeof svg.getBoundingClientRect === "function" ? svg.getBoundingClientRect() : { width: viewport[2], height: viewport[3] };
+          if (viewport.length !== 4 || !bounds.width || !bounds.height) return;
+          var pan = state.pan[targetId] || { x: 0, y: 0 };
+          active = {
+            pointerId: event.pointerId,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            panX: pan.x,
+            panY: pan.y,
+            unitsPerPixelX: viewport[2] / bounds.width,
+            unitsPerPixelY: viewport[3] / bounds.height
+          };
+          if (event.preventDefault) event.preventDefault();
+          svg.classList.add("plot-panning");
+          if (typeof svg.setPointerCapture === "function") {
+            try {
+              svg.setPointerCapture(event.pointerId);
+            } catch (error) {
+            }
+          }
+        });
+        svg.addEventListener("pointermove", function(event) {
+          if (!active || event.pointerId !== active.pointerId) return;
+          if (event.preventDefault) event.preventDefault();
+          state.pan[targetId] = {
+            x: active.panX - (event.clientX - active.clientX) * active.unitsPerPixelX,
+            y: active.panY - (event.clientY - active.clientY) * active.unitsPerPixelY
+          };
+          applyZoom(targetId);
+        });
+        function finish(event) {
+          if (!active || event.pointerId !== active.pointerId) return;
+          active = null;
+          svg.classList.remove("plot-panning");
+          if (typeof svg.releasePointerCapture === "function") {
+            try {
+              svg.releasePointerCapture(event.pointerId);
+            } catch (error) {
+            }
+          }
+        }
+        svg.addEventListener("pointerup", finish);
+        svg.addEventListener("pointercancel", finish);
+      }
+      function applyFontScale(targetId) {
+        var svg = document.getElementById(targetId);
+        var toolbar = document.querySelector('[data-font-target="' + targetId + '"]');
+        if (!svg || !toolbar) return;
+        var scale = Math.max(0.5, Math.min(2, state.fontScale[targetId] || 1));
+        state.fontScale[targetId] = scale;
+        if (typeof svg.querySelectorAll === "function") {
+          Array.prototype.slice.call(svg.querySelectorAll("text")).forEach(function(element) {
+            var baseSize = Number(element.dataset && element.dataset.baseFontSize);
+            if (!Number.isFinite(baseSize)) {
+              baseSize = Number(element.getAttribute("font-size"));
+              if (!Number.isFinite(baseSize)) baseSize = 14;
+              if (element.dataset) element.dataset.baseFontSize = String(baseSize);
+            }
+            element.setAttribute("font-size", (baseSize * FONT_BASE_MULTIPLIER * scale).toFixed(2));
+          });
+        }
+        var valueButton = toolbar.querySelector('[data-font-scale="reset"]');
+        var outButton = toolbar.querySelector('[data-font-scale="out"]');
+        var inButton = toolbar.querySelector('[data-font-scale="in"]');
+        if (valueButton) valueButton.textContent = Math.round(scale * 100) + "%";
+        if (outButton) outButton.disabled = scale <= 0.5;
+        if (inButton) inButton.disabled = scale >= 2;
+      }
+      function applyAllFontScale() {
+        applyFontScale("z-diagram");
+        applyFontScale("profile-diagram");
+        applyFontScale("top-diagram");
+      }
+      function applyResultFontScale(targetId) {
+        var target = document.getElementById(targetId);
+        var toolbar = document.querySelector('[data-result-font-target="' + targetId + '"]');
+        if (!target || !toolbar) return;
+        var scale = Math.max(0.5, Math.min(2, state.resultFontScale[targetId] || 1));
+        state.resultFontScale[targetId] = scale;
+        target.style.fontSize = (13 * scale).toFixed(2) + "px";
+        var valueButton = toolbar.querySelector('[data-result-font-scale="reset"]');
+        var outButton = toolbar.querySelector('[data-result-font-scale="out"]');
+        var inButton = toolbar.querySelector('[data-result-font-scale="in"]');
+        if (valueButton) valueButton.textContent = Math.round(scale * 100) + "%";
+        if (outButton) outButton.disabled = scale <= 0.5;
+        if (inButton) inButton.disabled = scale >= 2;
+      }
+      function applyAllResultFontScale() {
+        applyResultFontScale("result-summary");
+      }
+      function renderView(view) {
+        state.lastView = view;
+        syncSolvedInputs(view);
+        renderOutputs(view);
+        var availability = global.BDPGraphRenderers.renderAll({
+          z: document.getElementById("z-diagram"),
+          profile: document.getElementById("profile-diagram"),
+          top: document.getElementById("top-diagram")
+        }, view);
+        var availabilityByTarget = {
+          "z-diagram": availability.zAvailable,
+          "profile-diagram": availability.profileAvailable,
+          "top-diagram": availability.topAvailable
+        };
+        Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function(button) {
+          var targetId = button.getAttribute("data-export-svg");
+          button.disabled = availabilityByTarget[targetId] === false;
+        });
+        applyAllZoom();
+        applyAllFontScale();
+        applyAllResultFontScale();
+      }
+      function resetPlot(targetId) {
+        if (!state.lastView) return;
+        var svg = document.getElementById(targetId);
+        if (!svg) return;
+        state.fontScale[targetId] = defaultFontScale(targetId);
+        state.zoom[targetId] = 1;
+        state.pan[targetId] = { x: 0, y: 0 };
+        if (targetId === "z-diagram") {
+          var zAvailable = global.BDPGraphRenderers.renderZ(svg, state.lastView);
+          var zExport = document.querySelector('[data-export-svg="z-diagram"]');
+          if (zExport) zExport.disabled = !zAvailable;
+        }
+        if (targetId === "profile-diagram") global.BDPGraphRenderers.renderProfile(svg, state.lastView);
+        if (targetId === "top-diagram") global.BDPGraphRenderers.renderTop(svg, state.lastView);
+        applyZoom(targetId);
+        applyFontScale(targetId);
+      }
+      async function calculate() {
+        if (!state.provider) {
+          setProviderStatus("error", "Provider \uBBF8\uC5F0\uACB0");
+          return;
+        }
+        var requestId = ++state.requestId;
+        var input = collectInput();
+        app.setAttribute("aria-busy", "true");
+        if (calculateButton) calculateButton.disabled = true;
+        setProviderStatus("", "Calculating\u2026");
+        try {
+          var raw = await state.provider.calculate(input);
+          if (requestId !== state.requestId) return;
+          var view = normalizeView(raw, input);
+          renderView(view);
+          setProviderStatus("connected", state.provider.label || state.provider.id || "Provider connected");
+        } catch (error) {
+          if (requestId !== state.requestId) return;
+          var errorInfo = classifyError(error);
+          clearOutputs();
+          renderDiagramErrors(errorInfo);
+          setProviderStatus("error", errorInfo.code + " \xB7 " + errorInfo.message);
+          if (providerError) providerError.textContent = errorInfo.code + " \xB7 " + errorInfo.message;
+        } finally {
+          if (requestId === state.requestId) {
+            app.removeAttribute("aria-busy");
+            if (calculateButton) calculateButton.disabled = false;
+          }
+        }
+      }
+      function connectProvider(provider) {
+        if (!provider || typeof provider.calculate !== "function") {
+          throw new TypeError("BDP provider must expose calculate(input)");
+        }
+        state.provider = provider;
+        setProviderStatus("connected", provider.label || provider.id || "Provider connected");
+        calculate();
+      }
+      function savePng(svg, filename) {
+        if (!global.BDPCommonDiagram || typeof global.BDPCommonDiagram.saveSvgAsPng !== "function") {
+          throw new Error("Common SVG PNG exporter is not connected");
+        }
+        global.BDPCommonDiagram.saveSvgAsPng(svg, filename, { background: "#fff" }).catch(function(error) {
+          setProviderStatus("error", error && error.message ? error.message : String(error));
+        });
+      }
+      if (advancedToggle) advancedToggle.addEventListener("click", function() {
+        var active = document.body.classList.toggle("show-advanced");
+        advancedToggle.classList.toggle("active", active);
+        advancedToggle.setAttribute("aria-pressed", String(active));
+        advancedToggle.textContent = "Advanced: " + (active ? "On" : "Off");
+      });
+      if (defaultButton) defaultButton.addEventListener("click", resetInput);
+      if (calculateButton) calculateButton.addEventListener("click", calculate);
+      app.addEventListener("keydown", function(event) {
+        if (!event || event.key !== "Enter") return;
+        var key = event.target && event.target.getAttribute("data-bdp-input");
+        if (!key) return;
+        confirmDependentInput(key);
+        global.clearTimeout(app.__bdpInputTimer);
+        saveInput();
+        calculate();
+      });
+      app.addEventListener("input", function(event) {
+        var key = event.target && event.target.getAttribute("data-bdp-input");
+        if (!key) return;
+        if (key === "angleOffDeg") {
+          setControls(key, event.target.value, event.target, true);
+        }
+        if (key === "diveAngleDeg") {
+          state.bankLinked = true;
+          applyLevelMode(true);
+        }
+        if (key === "rollInBankAngleDeg") state.bankLinked = false;
+        if (key === "rollInG") {
+          if (levelTurnActive()) {
+            state.bankLinked = true;
+            syncAutomaticBank(true);
+          } else if (!state.levelMode) {
+            state.nonLevelRollInG = event.target.value;
+          }
+        }
+        if (key === "rollInStartAltitudeMslFt") {
+          solveModeNode.dataset.mode = "initialAltitude";
+          solveModeNode.textContent = "Initial Altitude \uAE30\uC900";
+        }
+        if (key === "trackingTimeSec") {
+          solveModeNode.dataset.mode = "trackingTime";
+          solveModeNode.textContent = "Tracking Time \uAE30\uC900";
+        }
+        if (key === "levelMapNm") {
+          solveModeNode.dataset.mode = "levelMap";
+          solveModeNode.textContent = "MAP \uAE30\uC900";
+        }
+        saveInput();
+        global.clearTimeout(app.__bdpInputTimer);
+        app.__bdpInputTimer = global.setTimeout(calculate, 120);
+      });
+      app.addEventListener("change", function(event) {
+        var key = event.target && event.target.getAttribute("data-bdp-input");
+        if (key === "levelTurnEnabled") {
+          state.bankLinked = true;
+          applyLevelMode(true);
+        }
+        if (event.target && event.target.hasAttribute("data-bdp-input")) {
+          saveInput();
+          calculate();
+        }
+      });
+      Array.prototype.slice.call(document.querySelectorAll("[data-zoom-target]")).forEach(function(toolbar) {
+        toolbar.addEventListener("click", function(event) {
+          var action = event.target && event.target.getAttribute("data-zoom");
+          if (!action) return;
+          var targetId = toolbar.getAttribute("data-zoom-target");
+          if (action === "out") state.zoom[targetId] -= 0.25;
+          if (action === "in") state.zoom[targetId] += 0.25;
+          if (action === "reset") {
+            state.zoom[targetId] = 1;
+            state.pan[targetId] = { x: 0, y: 0 };
+          }
+          applyZoom(targetId);
+        });
+      });
+      Array.prototype.slice.call(document.querySelectorAll("[data-font-target]")).forEach(function(toolbar) {
+        toolbar.addEventListener("click", function(event) {
+          var action = event.target && event.target.getAttribute("data-font-scale");
+          if (!action) return;
+          var targetId = toolbar.getAttribute("data-font-target");
+          if (action === "out") state.fontScale[targetId] -= 0.1;
+          if (action === "in") state.fontScale[targetId] += 0.1;
+          if (action === "reset") state.fontScale[targetId] = defaultFontScale(targetId);
+          applyFontScale(targetId);
+        });
+      });
+      Array.prototype.slice.call(document.querySelectorAll("[data-result-font-target]")).forEach(function(toolbar) {
+        toolbar.addEventListener("click", function(event) {
+          var action = event.target && event.target.getAttribute("data-result-font-scale");
+          if (!action) return;
+          var targetId = toolbar.getAttribute("data-result-font-target");
+          if (action === "out") state.resultFontScale[targetId] -= 0.1;
+          if (action === "in") state.resultFontScale[targetId] += 0.1;
+          if (action === "reset") state.resultFontScale[targetId] = 1;
+          applyResultFontScale(targetId);
+        });
+      });
+      Array.prototype.slice.call(document.querySelectorAll("[data-export-svg]")).forEach(function(button) {
+        button.addEventListener("click", function() {
+          var svg = document.getElementById(button.getAttribute("data-export-svg"));
+          savePng(svg, button.getAttribute("data-export-name") || "BDP_Diagram.png");
+        });
+      });
+      Array.prototype.slice.call(document.querySelectorAll("[data-reset-plot]")).forEach(function(button) {
+        button.addEventListener("click", function() {
+          resetPlot(button.getAttribute("data-reset-plot"));
+        });
+      });
+      ["z-diagram", "profile-diagram", "top-diagram"].forEach(bindPlotPan);
+      var levelTurnControl = firstControl("levelTurnEnabled");
+      var levelTurnOption = document.getElementById("level-turn-option");
+      if (levelTurnOption) levelTurnOption.addEventListener("click", function(event) {
+        if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+      });
+      loadInput();
+      var loadedRollInG = firstControl("rollInG");
+      var loadedDiveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+      if (loadedRollInG && Math.abs(loadedDiveAngle) >= 1e-3) {
+        state.nonLevelRollInG = loadedRollInG.value || DEFAULTS.rollInG;
+      }
+      solveModeNode.dataset.mode = "initialAltitude";
+      solveModeNode.textContent = "Initial Altitude \uAE30\uC900";
+      applyLevelMode(false);
+      global.BDPUI = Object.freeze({
+        connectProvider,
+        calculate,
+        getInput: collectInput,
+        defaults: DEFAULTS
+      });
+    })(window);
+  }
+});
+
+// bdp-v2-core.js?v=ba58cceba53e
+var require_bdp_v2_core = __commonJS({
+  "bdp-v2-core.js?v=ba58cceba53e"() {
+    (function(global) {
+      "use strict";
+      var FTNM = 6076.11549;
+      var G = 32.174;
+      var KTFPS = 1.687809857;
+      var WEAPONS = Object.freeze([
+        Object.freeze({ id: "M82", name: "Mk-82 (LD)", drag: 0.165, fragAlt0: 2140, fragAlt5: 2500, fragRange0: 2550, fragRange5: 2900, fragTime0: 24.4, fragTime5: 25.9 }),
+        Object.freeze({ id: "B49", name: "Mk-82 AIR (HD)", drag: 1, fragAlt0: 2140, fragAlt5: 2500, fragRange0: 2550, fragRange5: 2900, fragTime0: 24.4, fragTime5: 25.9 }),
+        Object.freeze({ id: "M83", name: "Mk-83 (LD)", drag: 0.165, fragAlt0: 2455, fragAlt5: 2825, fragRange0: 2905, fragRange5: 3307.5, fragTime0: 26.2, fragTime5: 27.8 }),
+        Object.freeze({ id: "B85", name: "Mk-83 AIR (HD)", drag: 1, fragAlt0: 2455, fragAlt5: 2825, fragRange0: 2905, fragRange5: 3307.5, fragTime0: 26.2, fragTime5: 27.8 }),
+        Object.freeze({ id: "M84", name: "Mk-84 (LD)", drag: 0.165, fragAlt0: 2770, fragAlt5: 3150, fragRange0: 3260, fragRange5: 3715, fragTime0: 28, fragTime5: 29.7 }),
+        Object.freeze({ id: "B50", name: "Mk-84 AIR (HD)", drag: 1, fragAlt0: 2770, fragAlt5: 3150, fragRange0: 3260, fragRange5: 3715, fragTime0: 28, fragTime5: 29.7 })
+      ]);
+      function weapon(id) {
+        var found = WEAPONS.find(function(item) {
+          return item.id === id;
+        });
+        if (!found) throw new Error("Unknown weapon");
+        return found;
+      }
+      function atmosphere(altitudeFt) {
+        var altitudeM = Math.max(-1e3, altitudeFt) * 0.3048;
+        var temperature;
+        var pressure;
+        if (altitudeM <= 11e3) {
+          temperature = 288.15 - 65e-4 * altitudeM;
+          pressure = 101325 * Math.pow(temperature / 288.15, 5.2558798127);
+        } else {
+          temperature = 216.65;
+          pressure = 22632.06 * Math.exp(-9.80665 * (altitudeM - 11e3) / (287.05287 * temperature));
+        }
+        return {
+          pressure,
+          speedOfSoundKt: Math.sqrt(1.4 * 287.05287 * temperature) * 1.943844492
+        };
+      }
+      function casToTas(casKt, altitudeFt) {
+        var atm = atmosphere(altitudeFt);
+        var seaLevelMach = casKt / 661.4788;
+        var dynamicPressure = 101325 * (Math.pow(1 + 0.2 * seaLevelMach * seaLevelMach, 3.5) - 1);
+        var mach = Math.sqrt(5 * (Math.pow(dynamicPressure / atm.pressure + 1, 2 / 7) - 1));
+        return mach * atm.speedOfSoundKt;
+      }
+      function tasToCas(tasKt, altitudeFt) {
+        var atm = atmosphere(altitudeFt);
+        var mach = tasKt / atm.speedOfSoundKt;
+        var dynamicPressure = atm.pressure * (Math.pow(1 + 0.2 * mach * mach, 3.5) - 1);
+        var seaLevelMach = Math.sqrt(5 * (Math.pow(dynamicPressure / 101325 + 1, 2 / 7) - 1));
+        return seaLevelMach * 661.4788;
+      }
+      function machToTas(mach, altitudeFt) {
+        return mach * atmosphere(altitudeFt).speedOfSoundKt;
+      }
+      function onsetLoad(baseLoad, targetLoad, totalSec, elapsedSec) {
+        var fraction = Math.max(0, Math.min(1, elapsedSec / totalSec));
+        return baseLoad + (targetLoad - baseLoad) * fraction;
+      }
+      function recovery(input) {
+        var state = {
+          timeSec: 0,
+          horizontalFt: 0,
+          altitudeMslFt: input.startAltitudeMslFt,
+          minimumAltitudeMslFt: input.startAltitudeMslFt,
+          speedFps: casToTas(input.startSpeedKcas, input.startAltitudeMslFt) * KTFPS,
+          fpaRad: input.startFpaDeg * Math.PI / 180
+        };
+        var targetFpaRad = input.targetFpaDeg * Math.PI / 180;
+        var fixedStepSec = 0.01;
+        var baseLoad = Math.cos(state.fpaRad);
+        function step(load, dt) {
+          var speedRate = -G * Math.sin(state.fpaRad);
+          var fpaRate = G / state.speedFps * (load - Math.cos(state.fpaRad));
+          var midpointSpeed = Math.max(80, state.speedFps + speedRate * dt / 2);
+          var midpointFpa = state.fpaRad + fpaRate * dt / 2;
+          var midpointSpeedRate = -G * Math.sin(midpointFpa);
+          var midpointFpaRate = G / midpointSpeed * (load - Math.cos(midpointFpa));
+          state.speedFps = Math.max(80, state.speedFps + midpointSpeedRate * dt);
+          state.fpaRad += midpointFpaRate * dt;
+          state.horizontalFt += midpointSpeed * Math.cos(midpointFpa) * dt;
+          state.altitudeMslFt += midpointSpeed * Math.sin(midpointFpa) * dt;
+          state.timeSec += dt;
+          state.minimumAltitudeMslFt = Math.min(state.minimumAltitudeMslFt, state.altitudeMslFt);
+        }
+        var delayElapsed = 0;
+        while (delayElapsed < input.maneuverInitiationDelaySec - 1e-12) {
+          var delayStep = Math.min(fixedStepSec, input.maneuverInitiationDelaySec - delayElapsed);
+          step(baseLoad, delayStep);
+          delayElapsed += delayStep;
+        }
+        var onsetElapsed = 0;
+        while (state.fpaRad < targetFpaRad && onsetElapsed < input.gOnsetTimeSec - 1e-12) {
+          var onsetStep = Math.min(fixedStepSec, input.gOnsetTimeSec - onsetElapsed);
+          step(onsetLoad(baseLoad, input.recoveryG, input.gOnsetTimeSec, onsetElapsed + onsetStep / 2), onsetStep);
+          onsetElapsed += onsetStep;
+        }
+        var guard = 0;
+        while (state.fpaRad < targetFpaRad && guard++ < 6e4) step(input.recoveryG, fixedStepSec);
+        return {
+          minAltitudeMslFt: state.minimumAltitudeMslFt,
+          elapsedTimeSec: state.timeSec,
+          horizontalDistanceNm: state.horizontalFt / FTNM
+        };
+      }
+      function fragmentData(selectedWeapon, targetElevationMslFt) {
+        var ratio = targetElevationMslFt / 5e3;
+        var lerp = function(low, high) {
+          return low + (high - low) * ratio;
+        };
+        return {
+          altitudeFt: lerp(selectedWeapon.fragAlt0, selectedWeapon.fragAlt5),
+          rangeFt: lerp(selectedWeapon.fragRange0, selectedWeapon.fragRange5),
+          timeSec: lerp(selectedWeapon.fragTime0, selectedWeapon.fragTime5)
+        };
+      }
+      function semSafety(input) {
+        var fragment = fragmentData(input.weapon, input.targetElevationMslFt);
+        var fragmentMarginFactor = 1 + input.fragmentHeightMarginPercent / 100;
+        var minAltMslFt = input.targetElevationMslFt + fragment.altitudeFt * fragmentMarginFactor;
+        var recoverySpeedKcas = input.releaseSpeedKcas + input.speedOvershootKcas;
+        if (Math.abs(input.releaseFpaDeg) < 1e-12) {
+          return { minAltMslFt, nltReleaseMslFt: minAltMslFt };
+        }
+        function evaluate(startAltitudeMslFt) {
+          var result = recovery({
+            startAltitudeMslFt,
+            startSpeedKcas: recoverySpeedKcas,
+            startFpaDeg: input.releaseFpaDeg,
+            targetFpaDeg: 0,
+            recoveryG: input.recoveryG,
+            gOnsetTimeSec: input.gOnsetTimeSec,
+            maneuverInitiationDelaySec: input.maneuverInitiationDelaySec
+          });
+          return { result, residual: result.minAltitudeMslFt - minAltMslFt };
+        }
+        var low = minAltMslFt;
+        var high = minAltMslFt + 2e3;
+        var evaluation = evaluate(high);
+        var expansion;
+        for (expansion = 0; evaluation.residual < 0 && expansion < 20; expansion += 1) {
+          high += Math.max(2e3, (high - minAltMslFt) * 0.75);
+          evaluation = evaluate(high);
+        }
+        var iteration;
+        for (iteration = 0; iteration < 48; iteration += 1) {
+          var middle = (low + high) / 2;
+          var middleEvaluation = evaluate(middle);
+          if (middleEvaluation.residual >= 0) {
+            high = middle;
+            evaluation = middleEvaluation;
+          } else {
+            low = middle;
+          }
+        }
+        return { minAltMslFt, nltReleaseMslFt: Math.max(minAltMslFt, high) };
+      }
+      function bombTrajectory(profile, selectedWeapon, releaseTasKt) {
+        var config = {
+          stepSec: 0.01,
+          maxSteps: 18002,
+          sampleSec: 0.1,
+          dragFps2: 160,
+          lowDragScale: 0.2,
+          highDragScale: 0.88,
+          highDragVerticalG: 0.65,
+          dragDelaySec: 1
+        };
+        var angleRad = profile.diveAngleDeg * Math.PI / 180;
+        var speedFps = releaseTasKt * KTFPS;
+        var drag = selectedWeapon.drag < 1 ? selectedWeapon.drag * config.lowDragScale : config.highDragScale;
+        var highDrag = selectedWeapon.drag >= 1;
+        var windAngleRad = profile.windDirectionDeg * Math.PI / 180;
+        var windFps = profile.windSpeedMps * 3.280839895;
+        var alongWindFps = -windFps * Math.cos(windAngleRad);
+        var state = {
+          timeSec: 0,
+          xFt: 0,
+          downFt: 0,
+          horizontalSpeedFps: speedFps * Math.cos(angleRad),
+          downSpeedFps: speedFps * Math.sin(angleRad)
+        };
+        var samples = [{ xFt: 0, altitudeAglFt: profile.releaseAglFt }];
+        var nextSampleSec = config.sampleSec;
+        var stepIndex;
+        for (stepIndex = 0; stepIndex < config.maxSteps; stepIndex += 1) {
+          var old = Object.assign({}, state);
+          var nextTimeSec = state.timeSec + config.stepSec;
+          var nextHorizontalSpeedFps = state.horizontalSpeedFps;
+          var nextDownSpeedFps = state.downSpeedFps;
+          if (nextTimeSec <= config.dragDelaySec + 1e-12) {
+            nextDownSpeedFps += G * config.stepSec;
+          } else {
+            nextHorizontalSpeedFps = Math.max(0, state.horizontalSpeedFps - drag * config.dragFps2 * config.stepSec);
+            nextDownSpeedFps += G * (highDrag ? config.highDragVerticalG : 1) * config.stepSec;
+          }
+          state = {
+            timeSec: nextTimeSec,
+            xFt: state.xFt + (state.horizontalSpeedFps + alongWindFps) * config.stepSec,
+            downFt: state.downFt + state.downSpeedFps * config.stepSec,
+            horizontalSpeedFps: nextHorizontalSpeedFps,
+            downSpeedFps: nextDownSpeedFps
+          };
+          if (state.downFt >= profile.releaseAglFt) {
+            var fraction = (profile.releaseAglFt - old.downFt) / (state.downFt - old.downFt || 1);
+            fraction = Math.max(0, Math.min(1, fraction));
+            var impactXFt = old.xFt + (state.xFt - old.xFt) * fraction;
+            var impactTimeSec = old.timeSec + (state.timeSec - old.timeSec) * fraction;
+            samples.push({ xFt: impactXFt, altitudeAglFt: 0 });
+            var level = Math.abs(profile.diveAngleDeg) < 1e-9;
+            var lineOfSightRangeFt = level ? null : profile.releaseAglFt / Math.tan(angleRad);
+            return {
+              modelId: "bms-4.38-acmi-v1",
+              modelVersion: "1.0.0",
+              bombRangeFt: impactXFt,
+              bombTofSec: impactTimeSec,
+              aimOffDistanceFt: level ? null : lineOfSightRangeFt - impactXFt,
+              samples
+            };
+          }
+          if (state.timeSec >= nextSampleSec) {
+            samples.push({ xFt: state.xFt, altitudeAglFt: Math.max(0, profile.releaseAglFt - state.downFt) });
+            nextSampleSec += config.sampleSec;
+          }
+        }
+        throw new Error("Bomb impact integration limit");
+      }
+      function rollIn(profile, initialAltitudeMslFt) {
+        var bankRad = profile.rollInBankAngleDeg * Math.PI / 180;
+        var headingChangeRad = profile.angleOffDeg * Math.PI / 180;
+        var diveRad = profile.diveAngleDeg * Math.PI / 180;
+        var level = Math.abs(profile.diveAngleDeg) < 1e-9;
+        var initialSpeedFps = (profile.initialSpeedMode === "MACH" ? machToTas(profile.initialSpeedValue, initialAltitudeMslFt) : casToTas(profile.initialSpeedValue, initialAltitudeMslFt)) * KTFPS;
+        var speedFps = initialSpeedFps;
+        var fpaRad = 0;
+        var headingRad = 0;
+        var timeSec = 0;
+        var rawSamples = [{ timeSec: 0, diveRad: 0, headingRad: 0 }];
+        function rates(speed, fpa) {
+          var cosine = Math.max(0.08, Math.cos(fpa));
+          return {
+            speedRate: -G * Math.sin(fpa),
+            fpaRate: G / speed * (profile.rollInG * Math.cos(bankRad) - Math.cos(fpa)),
+            headingRate: G * profile.rollInG * Math.abs(Math.sin(bankRad)) / (speed * cosine)
+          };
+        }
+        var stepIndex;
+        for (stepIndex = 0; stepIndex < 24e3 && headingRad < headingChangeRad - 1e-10; stepIndex += 1) {
+          var startRates = rates(speedFps, fpaRad);
+          var dt = Math.min(0.01, (headingChangeRad - headingRad) / startRates.headingRate);
+          var midpointSpeed = speedFps + startRates.speedRate * dt / 2;
+          var midpointFpa = fpaRad + startRates.fpaRate * dt / 2;
+          var midpointRates = rates(midpointSpeed, midpointFpa);
+          dt = Math.min(dt, (headingChangeRad - headingRad) / midpointRates.headingRate);
+          speedFps += midpointRates.speedRate * dt;
+          fpaRad += midpointRates.fpaRate * dt;
+          headingRad = Math.min(headingChangeRad, headingRad + midpointRates.headingRate * dt);
+          timeSec += dt;
+          rawSamples.push({ timeSec, diveRad: Math.max(0, -fpaRad), headingRad });
+        }
+        var rawFinalDive = rawSamples[rawSamples.length - 1].diveRad;
+        var diveScale = level ? 0 : diveRad / rawFinalDive;
+        var integratedSpeedFps = initialSpeedFps;
+        var altitudeLossFt = 0;
+        var groundArcFt = 0;
+        var forwardFt = 0;
+        var turnSideFt = 0;
+        var samples = [{ groundArcFt: 0, altitudeLossFt: 0, forwardFt: 0, turnSideFt: 0, headingChangeRad: 0 }];
+        var nextSampleSec = 0.1;
+        var sampleIndex;
+        for (sampleIndex = 1; sampleIndex < rawSamples.length; sampleIndex += 1) {
+          var prior = rawSamples[sampleIndex - 1];
+          var current = rawSamples[sampleIndex];
+          var priorDive = prior.diveRad * diveScale;
+          var currentDive = current.diveRad * diveScale;
+          var midpointDive = (priorDive + currentDive) / 2;
+          var midpointHeading = (prior.headingRad + current.headingRad) / 2;
+          var sampleDt = current.timeSec - prior.timeSec;
+          var accelerationFps2 = G * Math.sin(midpointDive);
+          var sampleMidpointSpeed = integratedSpeedFps + accelerationFps2 * sampleDt / 2;
+          integratedSpeedFps += accelerationFps2 * sampleDt;
+          var segmentFt = sampleMidpointSpeed * Math.cos(midpointDive) * sampleDt;
+          groundArcFt += segmentFt;
+          forwardFt += segmentFt * Math.cos(midpointHeading);
+          turnSideFt += segmentFt * Math.sin(midpointHeading);
+          altitudeLossFt += sampleMidpointSpeed * Math.sin(midpointDive) * sampleDt;
+          if (sampleIndex === rawSamples.length - 1 || current.timeSec >= nextSampleSec - 1e-9) {
+            samples.push({
+              groundArcFt,
+              altitudeLossFt,
+              forwardFt,
+              turnSideFt,
+              headingChangeRad: current.headingRad
+            });
+            nextSampleSec += 0.1;
+          }
+        }
+        return {
+          initialTasKt: initialSpeedFps / KTFPS,
+          finalTasKt: integratedSpeedFps / KTFPS,
+          rollInTimeSec: timeSec,
+          displacementForwardFt: forwardFt,
+          displacementTurnSideFt: turnSideFt,
+          altitudeLossFt,
+          groundArcFt,
+          equivalentRadiusFt: groundArcFt / headingChangeRad,
+          samples
+        };
+      }
+      function geometry(input, bomb, effectiveReleaseAltitudeMslFt) {
+        var diveRad = input.diveAngleDeg * Math.PI / 180;
+        var level = Math.abs(input.diveAngleDeg) < 1e-9;
+        var releaseAglFt = effectiveReleaseAltitudeMslFt - input.targetElevationMslFt;
+        var releaseTasKt = casToTas(input.releaseSpeedKcas, effectiveReleaseAltitudeMslFt);
+        var initialAglFt;
+        var initialMslFt;
+        var trackAglFt;
+        var trackingPathFt;
+        var trackingTimeSec;
+        var requestedLevelMapNm = Number(input.levelMapNm);
+        var roll;
+        var rollProfile = {
+          initialSpeedValue: input.initialSpeedValue,
+          initialSpeedMode: input.initialSpeedMode,
+          diveAngleDeg: input.diveAngleDeg,
+          angleOffDeg: input.angleOffDeg,
+          rollInBankAngleDeg: input.rollInBankAngleDeg,
+          rollInG: input.rollInG
+        };
+        var iteration;
+        if (level) {
+          initialAglFt = releaseAglFt;
+          for (iteration = 0; iteration < 12; iteration += 1) {
+            initialMslFt = input.targetElevationMslFt + initialAglFt;
+            roll = rollIn(rollProfile, initialMslFt);
+            initialAglFt = releaseAglFt + roll.altitudeLossFt;
+          }
+          initialMslFt = input.targetElevationMslFt + initialAglFt;
+          roll = rollIn(rollProfile, initialMslFt);
+          trackAglFt = initialAglFt - roll.altitudeLossFt;
+          var levelTrackingSpeedFps = (roll.finalTasKt + releaseTasKt) / 2 * KTFPS;
+          if (Number.isFinite(requestedLevelMapNm)) {
+            trackingPathFt = requestedLevelMapNm * FTNM - bomb.bombRangeFt;
+            if (trackingPathFt < 0) {
+              throw new Error("Level MAP must be at least the computed Bomb Range");
+            }
+            trackingTimeSec = trackingPathFt / levelTrackingSpeedFps;
+          } else {
+            trackingTimeSec = input.trackingTimeSec;
+            trackingPathFt = levelTrackingSpeedFps * trackingTimeSec;
+          }
+        } else if (input.solveMode === "height") {
+          initialMslFt = input.initialAltitudeMslFt;
+          initialAglFt = initialMslFt - input.targetElevationMslFt;
+          roll = rollIn(rollProfile, initialMslFt);
+          trackAglFt = initialAglFt - roll.altitudeLossFt;
+          if (!(trackAglFt > releaseAglFt)) {
+            throw new Error("Initial altitude minus roll-in loss is below effective Release altitude");
+          }
+          trackingPathFt = (trackAglFt - releaseAglFt) / Math.sin(diveRad);
+          trackingTimeSec = trackingPathFt / ((roll.finalTasKt + releaseTasKt) / 2 * KTFPS);
+        } else {
+          trackingTimeSec = input.trackingTimeSec;
+          initialAglFt = releaseAglFt + trackingTimeSec * releaseTasKt * KTFPS * Math.sin(diveRad) + 2500;
+          for (iteration = 0; iteration < 30; iteration += 1) {
+            initialMslFt = input.targetElevationMslFt + initialAglFt;
+            roll = rollIn(rollProfile, initialMslFt);
+            trackingPathFt = (roll.finalTasKt + releaseTasKt) / 2 * KTFPS * trackingTimeSec;
+            var nextInitialAglFt = releaseAglFt + trackingPathFt * Math.sin(diveRad) + roll.altitudeLossFt;
+            initialAglFt = 0.45 * initialAglFt + 0.55 * nextInitialAglFt;
+          }
+          initialMslFt = input.targetElevationMslFt + initialAglFt;
+          roll = rollIn(rollProfile, initialMslFt);
+          trackingPathFt = (roll.finalTasKt + releaseTasKt) / 2 * KTFPS * trackingTimeSec;
+          trackAglFt = initialAglFt - roll.altitudeLossFt;
+        }
+        var downRangeTravelFt = trackingPathFt * Math.cos(diveRad);
+        var groundRangeFt = downRangeTravelFt + bomb.bombRangeFt;
+        var lineOfSightAngleDeg = Math.atan2(trackAglFt, groundRangeFt) * 180 / Math.PI;
+        var aimOffRangeFt = bomb.aimOffDistanceFt === null ? null : groundRangeFt + bomb.aimOffDistanceFt;
+        var offsetRangeFt = aimOffRangeFt === null ? groundRangeFt : aimOffRangeFt;
+        var headingRad = input.angleOffDeg * Math.PI / 180;
+        var targetForwardFt = roll.displacementForwardFt + groundRangeFt * Math.cos(headingRad);
+        var targetTurnSideFt = roll.displacementTurnSideFt + groundRangeFt * Math.sin(headingRad);
+        var offsetForwardFt = roll.displacementForwardFt + offsetRangeFt * Math.cos(headingRad);
+        var offsetTurnSideFt = roll.displacementTurnSideFt + offsetRangeFt * Math.sin(headingRad);
+        var targetBearingDeg = Math.atan2(targetTurnSideFt, targetForwardFt) * 180 / Math.PI;
+        var offsetBearingDeg = Math.atan2(offsetTurnSideFt, offsetForwardFt) * 180 / Math.PI;
+        return {
+          initialMslFt,
+          initialTasKt: roll.initialTasKt,
+          trackMslFt: input.targetElevationMslFt + trackAglFt,
+          effectiveReleaseAltitudeMslFt,
+          releaseTasKt,
+          trackingTimeSec,
+          downRangeTravelFt,
+          groundRangeFt,
+          aimOffRangeFt,
+          rollInRangeFt: Math.hypot(targetForwardFt, targetTurnSideFt),
+          targetForwardFt,
+          targetTurnSideFt,
+          leadAngleDeg: input.angleOffDeg - targetBearingDeg,
+          legacyOffsetLeadDeg: input.angleOffDeg - offsetBearingDeg,
+          aimOffAngleDeg: lineOfSightAngleDeg - input.diveAngleDeg,
+          roll
+        };
+      }
+      function calculate(rawInput) {
+        var input = Object.assign({}, rawInput, {
+          gOnsetTimeSec: rawInput.gOnsetTimeSec === void 0 ? 2 : rawInput.gOnsetTimeSec,
+          fragmentHeightMarginPercent: rawInput.fragmentHeightMarginPercent === void 0 ? 20 : rawInput.fragmentHeightMarginPercent,
+          releaseFpaDeg: rawInput.releaseFpaDeg === void 0 ? -rawInput.diveAngleDeg : rawInput.releaseFpaDeg,
+          windSpeedMps: rawInput.windSpeedMps === void 0 ? 0 : rawInput.windSpeedMps
+        });
+        var selectedWeapon = weapon(input.weaponId);
+        var nltSupported = input.diveAngleDeg >= 10;
+        var safety;
+        if (nltSupported) {
+          safety = semSafety(Object.assign({}, input, { weapon: selectedWeapon }));
+          safety.applicability = "NLT_SUPPORTED";
+        } else {
+          var fragment = fragmentData(selectedWeapon, input.targetElevationMslFt);
+          safety = {
+            minAltMslFt: input.targetElevationMslFt + fragment.altitudeFt * (1 + input.fragmentHeightMarginPercent / 100),
+            nltReleaseMslFt: null,
+            applicability: "MINALT_ONLY"
+          };
+        }
+        var effectiveReleaseAltitudeMslFt = nltSupported ? Math.max(input.releaseAltitudeMslFt, safety.nltReleaseMslFt) : input.releaseAltitudeMslFt;
+        var bomb = bombTrajectory({
+          diveAngleDeg: input.diveAngleDeg,
+          releaseAglFt: effectiveReleaseAltitudeMslFt - input.targetElevationMslFt,
+          windDirectionDeg: input.windDirectionDeg,
+          windSpeedMps: input.windSpeedMps
+        }, selectedWeapon, casToTas(input.releaseSpeedKcas, effectiveReleaseAltitudeMslFt));
+        var profile = geometry(input, bomb, effectiveReleaseAltitudeMslFt);
+        var publicResult = {
+          effectiveReleaseAltitudeMslFt: profile.effectiveReleaseAltitudeMslFt,
+          resolvedInitialAltitudeMslFt: profile.initialMslFt,
+          resolvedInitialSpeedKcas: input.initialSpeedMode === "CAS" ? input.initialSpeedValue : tasToCas(profile.initialTasKt, profile.initialMslFt),
+          trackPointAltitudeMslFt: profile.trackMslFt,
+          trackingTimeSec: profile.trackingTimeSec,
+          rollInRangeNm: profile.rollInRangeFt / FTNM,
+          groundRangeNm: profile.groundRangeFt / FTNM,
+          downRangeTravelNm: profile.downRangeTravelFt / FTNM,
+          bombRangeNm: bomb.bombRangeFt / FTNM,
+          bombTofSec: bomb.bombTofSec,
+          rollInRadiusNm: profile.roll.equivalentRadiusFt / FTNM,
+          rollInTimeSec: profile.roll.rollInTimeSec,
+          rollInGroundArcNm: profile.roll.groundArcFt / FTNM,
+          rollInDisplacement: {
+            forwardNm: profile.roll.displacementForwardFt / FTNM,
+            turnSideNm: profile.roll.displacementTurnSideFt / FTNM
+          },
+          rollInLateralSeparationNm: Math.abs(profile.targetTurnSideFt) / FTNM,
+          rollInAltitudeLossFt: profile.roll.altitudeLossFt,
+          leadAngleDeg: profile.leadAngleDeg,
+          minAltMslFt: safety.minAltMslFt,
+          nltReleaseMslFt: safety.nltReleaseMslFt
+        };
+        var localResult = {
+          aimOffPointRangeNm: profile.aimOffRangeFt === null ? null : profile.aimOffRangeFt / FTNM,
+          aimOffAngleDeg: profile.aimOffAngleDeg,
+          aimOffDistanceNm: bomb.aimOffDistanceFt === null ? null : bomb.aimOffDistanceFt / FTNM,
+          rollInRangeProfileFitNm: (profile.rollInRangeFt - profile.groundRangeFt) / FTNM,
+          legacyOffsetLeadDeg: profile.legacyOffsetLeadDeg
+        };
+        var headingRad = input.angleOffDeg * Math.PI / 180;
+        var axis = { forward: Math.cos(headingRad), side: Math.sin(headingRad) };
+        var rollInStart = { forwardNm: 0, turnSideNm: 0, altitudeMslFt: publicResult.resolvedInitialAltitudeMslFt };
+        var trackPoint = {
+          forwardNm: publicResult.rollInDisplacement.forwardNm,
+          turnSideNm: publicResult.rollInDisplacement.turnSideNm,
+          altitudeMslFt: publicResult.trackPointAltitudeMslFt
+        };
+        var along = function(origin, distanceNm, altitudeMslFt) {
+          return {
+            forwardNm: origin.forwardNm + distanceNm * axis.forward,
+            turnSideNm: origin.turnSideNm + distanceNm * axis.side,
+            altitudeMslFt
+          };
+        };
+        var release = along(trackPoint, publicResult.downRangeTravelNm, publicResult.effectiveReleaseAltitudeMslFt);
+        var target = along(trackPoint, publicResult.groundRangeNm, input.targetElevationMslFt);
+        var aimOffPoint = localResult.aimOffPointRangeNm === null ? null : along(trackPoint, localResult.aimOffPointRangeNm, input.targetElevationMslFt);
+        return {
+          model: { id: "bomb-delivery-planner-v0.3-js-facade", version: "0.3.3-ui-preview" },
+          canonicalInputs: input,
+          public: publicResult,
+          local: localResult,
+          safety: { applicability: safety.applicability },
+          diagnostics: {
+            ballisticModelId: bomb.modelId,
+            ballisticModelVersion: bomb.modelVersion,
+            nltSupported
+          },
+          visualization: {
+            rollInTrajectorySamples: profile.roll.samples.map(function(sample) {
+              return {
+                forwardNm: sample.forwardFt / FTNM,
+                turnSideNm: sample.turnSideFt / FTNM,
+                groundArcNm: sample.groundArcFt / FTNM,
+                altitudeLossFt: sample.altitudeLossFt
+              };
+            }),
+            bombTrajectorySamples: bomb.samples.map(function(sample) {
+              return { downRangeNm: sample.xFt / FTNM, altitudeAglFt: sample.altitudeAglFt };
+            }),
+            semanticState: {
+              stations: {
+                rollInStart,
+                trackPoint,
+                release,
+                target,
+                aimOffPoint
+              },
+              paths: {
+                rollIn: profile.roll.samples.map(function(sample) {
+                  return { forwardNm: sample.forwardFt / FTNM, turnSideNm: sample.turnSideFt / FTNM };
+                }),
+                tracking: [trackPoint, release]
+              }
+            }
+          }
+        };
+      }
+      function profileTitle(result) {
+        var angle = result.canonicalInputs.diveAngleDeg;
+        var selectedWeapon = weapon(result.canonicalInputs.weaponId);
+        var suffix = angle === 0 ? "VLD" : angle > 30 ? "HADB" : angle === 30 ? "DB" : selectedWeapon.drag >= 1 ? "LAHD" : "LALD";
+        return Math.round(angle) + "\xB0 " + suffix;
+      }
+      global.BDPV2Core = Object.freeze({
+        id: "bomb-delivery-planner-v0.3-js-facade",
+        version: "0.3.2",
+        sourceArtifact: "BDP_V2_REV1.9_ORACLE_FIDELITY_MOBILE_WORK_FIX7-1.html",
+        sourceSha256: "82ed448c1cf63ed92c016597a726a37e162b023444921782fa4ed7810b545a20",
+        calculate,
+        profileTitle
+      });
+    })(window);
+  }
+});
+
+// bdp-v2-provider.js?v=ba58cceba53e
+var require_bdp_v2_provider = __commonJS({
+  "bdp-v2-provider.js?v=ba58cceba53e"() {
+    (function(global) {
+      "use strict";
+      var FTNM = 6076.11549;
+      var MPS_PER_KT = 0.5144444444444445;
+      if (!global.BDPUI) throw new Error("BDP UI adapter must load before the V2 provider");
+      if (!global.BDPV2Core) throw new Error("BDP V2 core must load before the V2 provider");
+      function finite(value, name) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) throw new Error(name + " must be a number");
+        return number;
+      }
+      function absoluteHeading(value) {
+        var number = finite(value, "Attack Heading");
+        if (number < 0 || number > 360) throw new Error("Attack Heading must be between 0 and 360 deg");
+        return number;
+      }
+      function toCoreInput(input) {
+        return {
+          weaponId: input.weaponId,
+          targetElevationMslFt: finite(input.targetElevationMslFt, "Target Elevation"),
+          attackHeadingDeg: absoluteHeading(input.attackHeadingDeg),
+          releaseSpeedKcas: finite(input.releaseSpeedKcas, "Release Speed"),
+          speedOvershootKcas: finite(input.speedOvershootKcas, "Speed Overshoot"),
+          maneuverInitiationDelaySec: 0,
+          recoveryG: 5,
+          gOnsetTimeSec: finite(input.gOnsetTimeSec, "G Onset Time"),
+          fragmentHeightMarginPercent: finite(input.fragmentHeightMarginPercent, "Fragment Height Margin"),
+          diveAngleDeg: finite(input.diveAngleDeg, "Dive Angle"),
+          releaseFpaDeg: -finite(input.diveAngleDeg, "Dive Angle"),
+          windDirectionDeg: finite(input.windDirectionDeg, "Wind Direction"),
+          windSpeedMps: finite(input.windSpeedKt, "Wind Speed") * MPS_PER_KT,
+          initialSpeedValue: finite(input.initialSpeedValue, "Initial Speed"),
+          initialSpeedMode: input.initialSpeedMode,
+          initialAltitudeMslFt: finite(input.rollInStartAltitudeMslFt, "Roll-in Start Altitude"),
+          solveMode: input.solveMode === "trackingTime" ? "time" : "height",
+          trackingTimeSec: finite(input.trackingTimeSec, "Tracking Time"),
+          levelMapNm: finite(input.levelMapNm === void 0 ? 5 : input.levelMapNm, "Level MAP"),
+          levelTurnEnabled: Boolean(input.levelTurnEnabled),
+          releaseAltitudeMslFt: finite(input.releaseAltitudeMslFt, "Release Altitude"),
+          angleOffDeg: finite(input.angleOffDeg, "Angle-off"),
+          rollInBankAngleDeg: finite(input.rollInBankAngleDeg, "Roll-in Bank Angle"),
+          rollInG: finite(input.rollInG, "Roll-in Bank G")
+        };
+      }
+      function buildProfileGeometry(raw) {
+        var result = raw.public;
+        var local = raw.local;
+        var input = raw.canonicalInputs;
+        var plot = { left: 80, right: 830, top: 95, bottom: 390 };
+        var trackAglFt = result.trackPointAltitudeMslFt - input.targetElevationMslFt;
+        var releaseAglFt = result.effectiveReleaseAltitudeMslFt - input.targetElevationMslFt;
+        var trackingFt = result.downRangeTravelNm * FTNM;
+        var groundRangeFt = result.groundRangeNm * FTNM;
+        var bombRangeFt = result.bombRangeNm * FTNM;
+        var aimOffDistanceFt = Number.isFinite(local.aimOffDistanceNm) ? local.aimOffDistanceNm * FTNM : 0;
+        var aimOffRangeFt = groundRangeFt + aimOffDistanceFt;
+        var maxDistanceFt = Math.max(groundRangeFt, aimOffRangeFt, trackingFt + bombRangeFt, 1);
+        var maxAltitudeFt = Math.max(trackAglFt, releaseAglFt, 1);
+        var horizontalScale = (plot.right - plot.left) / maxDistanceFt;
+        var verticalScale = (plot.bottom - plot.top) / maxAltitudeFt;
+        var groundY = plot.bottom;
+        var x = function(distanceFt) {
+          return plot.left + distanceFt * horizontalScale;
+        };
+        var y = function(altitudeAglFt) {
+          return groundY - altitudeAglFt * verticalScale;
+        };
+        var trackPoint = { x: x(0), y: y(trackAglFt) };
+        var release = { x: x(trackingFt), y: y(releaseAglFt) };
+        var target = { x: x(groundRangeFt), y: groundY };
+        var aimOff = { x: x(aimOffRangeFt), y: groundY };
+        var bombSamples = raw.visualization.bombTrajectorySamples || [];
+        return {
+          points: {
+            trackPoint,
+            release,
+            target,
+            aimOff
+          },
+          flightPath: [trackPoint, release],
+          flightPathReference: [trackPoint, aimOff],
+          targetLineOfSight: [trackPoint, target],
+          bombPath: bombSamples.map(function(sample) {
+            return {
+              x: x(trackingFt + sample.downRangeNm * FTNM),
+              y: y(sample.altitudeAglFt)
+            };
+          })
+        };
+      }
+      function buildTopGeometry(raw) {
+        var semantic = raw.visualization.semanticState;
+        var stations = semantic.stations;
+        var localRollInStart = { x: stations.rollInStart.forwardNm, y: stations.rollInStart.turnSideNm };
+        var localTrackPoint = { x: stations.trackPoint.forwardNm, y: stations.trackPoint.turnSideNm };
+        var localTarget = { x: stations.target.forwardNm, y: stations.target.turnSideNm };
+        var localAimOff = stations.aimOffPoint ? { x: stations.aimOffPoint.forwardNm, y: stations.aimOffPoint.turnSideNm } : localTarget;
+        var groundRangeNm = raw.public.groundRangeNm;
+        var localIngress = {
+          x: localRollInStart.x - Math.max(groundRangeNm * 1.5, 1),
+          y: localRollInStart.y
+        };
+        var localRollPath = (semantic.paths.rollIn || []).map(function(point2) {
+          return { x: point2.forwardNm, y: point2.turnSideNm };
+        });
+        var attackHeadingDeg = absoluteHeading(raw.canonicalInputs.attackHeadingDeg);
+        var forwardSign = localTarget.x >= localRollInStart.x ? 1 : -1;
+        var sideSign = localTarget.y >= localRollInStart.y ? 1 : -1;
+        var dimensionGap = Math.max(groundRangeNm * 0.12, 0.18);
+        var farForward = forwardSign > 0 ? Math.max(localTarget.x, localTrackPoint.x) + dimensionGap * 2 : Math.min(localTarget.x, localTrackPoint.x) - dimensionGap * 2;
+        var nearForward = forwardSign > 0 ? Math.max(localTrackPoint.x, localRollInStart.x) + dimensionGap : Math.min(localTrackPoint.x, localRollInStart.x) - dimensionGap;
+        var outsideSide = sideSign > 0 ? Math.min(localRollInStart.y, localTrackPoint.y) - dimensionGap : Math.max(localRollInStart.y, localTrackPoint.y) + dimensionGap;
+        var localTargetFoot = { x: localTarget.x, y: localRollInStart.y };
+        var localTrackFoot = { x: localTrackPoint.x, y: localRollInStart.y };
+        var localDimensions = {
+          baseDistance: {
+            start: { x: farForward, y: localRollInStart.y },
+            end: { x: farForward, y: localTarget.y },
+            guides: [
+              { start: localTargetFoot, end: { x: farForward, y: localRollInStart.y } },
+              { start: localTarget, end: { x: farForward, y: localTarget.y } }
+            ]
+          },
+          rollInLateralDistance: {
+            start: { x: nearForward, y: localRollInStart.y },
+            end: { x: nearForward, y: localTrackPoint.y },
+            guides: [
+              { start: localRollInStart, end: { x: nearForward, y: localRollInStart.y } },
+              { start: localTrackPoint, end: { x: nearForward, y: localTrackPoint.y } }
+            ]
+          },
+          rollInLongitudinalDistance: {
+            start: { x: localRollInStart.x, y: outsideSide },
+            end: { x: localTrackPoint.x, y: outsideSide },
+            guides: [
+              { start: localRollInStart, end: { x: localRollInStart.x, y: outsideSide } },
+              { start: localTrackFoot, end: { x: localTrackPoint.x, y: outsideSide } }
+            ]
+          }
+        };
+        var dimensionFocus = [];
+        Object.keys(localDimensions).forEach(function(key) {
+          var dimension = localDimensions[key];
+          dimensionFocus.push(dimension.start, dimension.end);
+          dimension.guides.forEach(function(guide) {
+            dimensionFocus.push(guide.start, guide.end);
+          });
+        });
+        var focus = [localRollInStart, localTrackPoint, localTarget, localAimOff].concat(localRollPath, dimensionFocus);
+        var xs = focus.map(function(point2) {
+          return point2.x;
+        });
+        var ys = focus.map(function(point2) {
+          return point2.y;
+        });
+        var rawMinX = Math.min.apply(Math, xs);
+        var rawMaxX = Math.max.apply(Math, xs);
+        var rawMinY = Math.min.apply(Math, ys);
+        var rawMaxY = Math.max.apply(Math, ys);
+        var spanSum = rawMaxX - rawMinX + (rawMaxY - rawMinY);
+        var padding = Math.max(groundRangeNm * 0.14, spanSum * 0.045, 0.15);
+        var minX = rawMinX - padding;
+        var maxX = rawMaxX + padding;
+        var minY = rawMinY - padding;
+        var maxY = rawMaxY + padding;
+        var plot = { left: 300, right: 865, top: 110, bottom: 525 };
+        var scale = Math.min(
+          (plot.right - plot.left) / Math.max(1e-3, maxX - minX),
+          (plot.bottom - plot.top) / Math.max(1e-3, maxY - minY)
+        );
+        var usedWidth = (maxX - minX) * scale;
+        var usedHeight = (maxY - minY) * scale;
+        var scaledLeft = plot.left + (plot.right - plot.left - usedWidth) / 2;
+        var scaledTop = plot.top + (plot.bottom - plot.top - usedHeight) / 2;
+        var point = function(source) {
+          return {
+            x: scaledLeft + (source.x - minX) * scale,
+            y: scaledTop + (maxY - source.y) * scale
+          };
+        };
+        var mapSegment = function(segment) {
+          return {
+            start: point(segment.start),
+            end: point(segment.end),
+            guides: segment.guides.map(function(guide) {
+              return { start: point(guide.start), end: point(guide.end) };
+            })
+          };
+        };
+        return {
+          northUp: false,
+          orientation: "initial-horizontal",
+          attackHeadingDeg,
+          points: {
+            initial: point(localIngress),
+            rollInStart: point(localRollInStart),
+            trackPoint: point(localTrackPoint),
+            target: point(localTarget),
+            aimOff: point(localAimOff)
+          },
+          rollPath: localRollPath.map(point),
+          groundRangeRadiusPx: groundRangeNm * scale,
+          dimensions: {
+            baseDistance: mapSegment(localDimensions.baseDistance),
+            rollInLateralDistance: mapSegment(localDimensions.rollInLateralDistance),
+            rollInLongitudinalDistance: mapSegment(localDimensions.rollInLongitudinalDistance)
+          }
+        };
+      }
+      function toViewModel(raw, uiInput) {
+        var targetElevationMslFt = raw.canonicalInputs.targetElevationMslFt;
+        var initialAglFt = raw.public.resolvedInitialAltitudeMslFt - targetElevationMslFt;
+        var rollInSlantNm = Math.hypot(initialAglFt / FTNM, raw.public.rollInRangeNm);
+        var baseDistanceSlantNm = Math.hypot(initialAglFt / FTNM, raw.public.rollInLateralSeparationNm);
+        var publicResult = Object.assign({}, raw.public, {
+          safetyReleaseMslFt: raw.public.nltReleaseMslFt,
+          releaseSpeedKcas: raw.canonicalInputs.releaseSpeedKcas
+        });
+        var localResult = Object.assign({}, raw.local, {
+          rollInSlantNm,
+          baseDistanceSlantNm
+        });
+        return {
+          profileTitle: global.BDPV2Core.profileTitle(raw),
+          input: Object.assign({}, uiInput, {
+            highDragWeapon: /^B/.test(raw.canonicalInputs.weaponId || ""),
+            recoveryG: raw.canonicalInputs.recoveryG
+          }),
+          public: publicResult,
+          local: localResult,
+          safety: {
+            releaseLabel: "NLT Release",
+            applicability: raw.safety.applicability
+          },
+          model: raw.model,
+          diagnostics: raw.diagnostics,
+          provenance: {
+            sourceArtifact: global.BDPV2Core.sourceArtifact,
+            sourceSha256: global.BDPV2Core.sourceSha256
+          },
+          visualization: Object.assign({}, raw.visualization, {
+            profile: buildProfileGeometry(raw),
+            top: buildTopGeometry(raw)
+          })
+        };
+      }
+      global.BDPUI.connectProvider({
+        id: "bdp-v2-common-ui-provider",
+        label: "V2 core connected \xB7 UI Preview",
+        notice: "Common UI Preview V2 shell\uC5D0 BDP \uACC4\uC0B0 Provider\uB97C \uC5F0\uACB0\uD55C Work \uBC84\uC804\uC774\uB2E4.",
+        calculate: function(input) {
+          return global.BDPV2Core.calculate(toCoreInput(input));
+        },
+        toViewModel
+      });
+    })(window);
+  }
+});
+
+// common/diagram/svg-primitives-v0.1.mjs?v=ba58cceba53e
+var SVG_DIAGRAM_PRIMITIVES_V0_1 = Object.freeze({
+  id: "svg-diagram-primitives-v0.1",
+  version: "0.1.2",
+  purpose: "Policy-free SVG drawing primitives and normalized visual metrics shared by BE diagram renderers"
+});
+var SVG_DIAGRAM_STYLE_V0_1 = Object.freeze({
+  font: Object.freeze({
+    primaryPx: 14,
+    lineTitlePx: 13,
+    dimensionTitlePx: 12.5,
+    detailPx: 11.5,
+    smartLabelPx: 11,
+    compactPx: 10,
+    majorValuePx: 19
+  }),
+  arrow: Object.freeze({
+    tactical: Object.freeze({ markerWidth: 14, markerHeight: 14, refX: 12, refY: 7, strokeWidth: 2.7, path: "M2,2 L12,7 L2,12" }),
+    leader: Object.freeze({ markerWidth: 6, markerHeight: 6, refX: 5.5, refY: 3, strokeWidth: 1.3, path: "M1,1 L5.5,3 L1,5" })
+  }),
+  line: Object.freeze({ directedPx: 1.7, dimensionPx: 1.6, leaderPx: 1 }),
+  label: Object.freeze({ haloPx: 3, edgePadPx: 10, labelPadPx: 8, pathPadPx: 6, longPressMs: 500, dragCancelPx: 8 })
+});
+var SVG_DIAGRAM_TEXT_SCALE_V0_1 = Object.freeze({
+  mobileMaxWidthPx: 620,
+  desktopBaseScale: 1.5,
+  mobileBaseScale: 2,
+  userMinScale: 0.5,
+  userMaxScale: 2,
+  userStepScale: 0.1,
+  userDefaultScale: 1
+});
+var SVG_NS = "http://www.w3.org/2000/svg";
+function svgNode(name, attrs = {}, text) {
+  const element = document.createElementNS(SVG_NS, name);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value !== void 0 && value !== null && value !== "") element.setAttribute(key, String(value));
+  }
+  if (text !== void 0) element.textContent = text;
+  return element;
+}
+function createOpenArrowMarker(id, color, options = {}) {
+  const standard = SVG_DIAGRAM_STYLE_V0_1.arrow.tactical;
+  const marker = svgNode("marker", {
+    id,
+    markerWidth: options.markerWidth ?? standard.markerWidth,
+    markerHeight: options.markerHeight ?? standard.markerHeight,
+    refX: options.refX ?? standard.refX,
+    refY: options.refY ?? standard.refY,
+    orient: "auto-start-reverse",
+    markerUnits: "userSpaceOnUse"
+  });
+  marker.append(svgNode("path", {
+    d: options.path ?? standard.path,
+    fill: "none",
+    stroke: color,
+    "stroke-width": options.strokeWidth ?? standard.strokeWidth,
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round"
+  }));
+  return marker;
+}
+function appendGrid(root, options = {}) {
+  const group = svgNode("g", { class: options.className ?? "diagram-grid" });
+  const minX = options.minX ?? 20;
+  const maxX = options.maxX ?? 880;
+  const minY = options.minY ?? 15;
+  const maxY = options.maxY ?? 685;
+  const stepX = options.stepX ?? 80;
+  const stepY = options.stepY ?? 70;
+  for (let x = minX; x <= maxX; x += stepX) group.append(svgNode("line", { x1: x, y1: minY, x2: x, y2: maxY }));
+  for (let y = minY; y <= maxY; y += stepY) group.append(svgNode("line", { x1: minX, y1: y, x2: maxX, y2: y }));
+  root.append(group);
+  return group;
+}
+
+// common/diagram/svg-png-export-v0.1.mjs?v=ba58cceba53e
+var SVG_PNG_EXPORT_V0_1 = Object.freeze({
+  id: "svg-png-export-v0.1",
+  version: "0.1.0"
+});
+function saveSvgAsPng(svg, filename, options = {}) {
+  if (!(svg instanceof SVGElement)) throw new TypeError("svg must be an SVGElement");
+  const scale = options.scale ?? 2;
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  const sourceNodes = [svg, ...svg.querySelectorAll("*")];
+  const cloneNodes = [clone, ...clone.querySelectorAll("*")];
+  sourceNodes.forEach((source, index) => {
+    const target = cloneNodes[index];
+    const computed = window.getComputedStyle(source);
+    ["fill", "stroke", "color", "font-family", "font-size", "font-weight"].forEach((property) => {
+      const value = computed.getPropertyValue(property);
+      if (value && value !== "none") target.style.setProperty(property, value);
+    });
+  });
+  const viewBox = svg.viewBox.baseVal;
+  clone.setAttribute("width", viewBox.width * scale);
+  clone.setAttribute("height", viewBox.height * scale);
+  const markup = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const image = new Image();
+  return new Promise((resolve, reject) => {
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = viewBox.width * scale;
+      canvas.height = viewBox.height * scale;
+      const context = canvas.getContext("2d");
+      const background = options.background ?? window.getComputedStyle(svg.parentElement).backgroundColor;
+      context.fillStyle = background && background !== "rgba(0, 0, 0, 0)" ? background : "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((png) => {
+        if (!png) {
+          reject(new Error("PNG blob creation failed"));
+          return;
+        }
+        const pngUrl = URL.createObjectURL(png);
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(pngUrl), 1e3);
+        resolve({ width: canvas.width, height: canvas.height, filename });
+      }, "image/png");
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("PNG rasterization failed"));
+    };
+    image.src = url;
+  });
+}
+
+// bdp-app.mjs
+window.BDPCommonDiagram = Object.freeze({
+  primitivesModel: SVG_DIAGRAM_PRIMITIVES_V0_1,
+  pngExportModel: SVG_PNG_EXPORT_V0_1,
+  SVG_NS,
+  appendGrid,
+  createOpenArrowMarker,
+  saveSvgAsPng,
+  svgNode
+});
+await Promise.resolve().then(() => __toESM(require_bdp_graph_renderers(), 1));
+await Promise.resolve().then(() => __toESM(require_bdp_top_view_visibility(), 1));
+await Promise.resolve().then(() => __toESM(require_bdp_ui_adapter(), 1));
+await Promise.resolve().then(() => __toESM(require_bdp_v2_core(), 1));
+await Promise.resolve().then(() => __toESM(require_bdp_v2_provider(), 1));
+
+</script>
+</body>
+</html>
