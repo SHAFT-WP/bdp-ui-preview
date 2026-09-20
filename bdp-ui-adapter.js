@@ -632,18 +632,10 @@
     if (!state.lastView) return;
     var svg = document.getElementById(targetId);
     if (!svg) return;
-    state.fontScale[targetId] = defaultFontScale(targetId);
     state.zoom[targetId] = 1;
     state.pan[targetId] = { x: 0, y: 0 };
-    if (targetId === "z-diagram") {
-      var zAvailable = global.BDPGraphRenderers.renderZ(svg, state.lastView);
-      var zExport = document.querySelector('[data-export-svg="z-diagram"]');
-      if (zExport) zExport.disabled = !zAvailable;
-    }
-    if (targetId === "profile-diagram") global.BDPGraphRenderers.renderProfile(svg, state.lastView);
-    if (targetId === "top-diagram") global.BDPGraphRenderers.renderTop(svg, state.lastView);
+    // Preserve the rendered nodes: they hold user font sizes and label offsets.
     applyZoom(targetId);
-    applyFontScale(targetId);
   }
 
   async function calculate() {
