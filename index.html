@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=7bffc412690c">
-  <link rel="stylesheet" href="./bdp-ui.css?v=7bffc412690c">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=6b39385014b8">
+  <link rel="stylesheet" href="./bdp-ui.css?v=6b39385014b8">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -92,12 +92,6 @@
     .result-table td{padding:11px 10px;border-bottom:1px solid var(--line)}
     .result-table td:first-child{width:38%;color:var(--muted)}
     .result-value,.value-result{color:var(--blue);font-weight:850;background:var(--blue-soft)}
-    .result-summary td:first-child{width:52%}
-    .result-summary-card{font-size:13px}
-    .result-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--line)}
-    .result-compact-item{display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,auto);align-items:center;gap:8px;min-height:58px;padding:8px 10px;background:var(--panel)}
-    .result-compact-label{color:var(--muted);font-size:.92em;line-height:1.15;font-weight:750}
-    .result-compact-value{display:inline-flex;align-items:center;justify-content:flex-end;min-height:30px;padding:4px 6px;border-radius:7px;font-size:1em;line-height:1.1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     svg .value-result{fill:var(--blue)}
     .note{padding:10px 12px;border-radius:10px;background:var(--violet-soft);color:var(--violet);font-size:12px;font-weight:750}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -110,12 +104,10 @@
       input,select,.readout{min-height:46px;font-size:16px;padding:8px 9px}
       .section-head{align-items:flex-start}.plot-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
       .plot-controls{width:100%;justify-content:flex-start;overflow-x:auto}
-      .result-summary-head{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-      .result-compact-item{grid-template-columns:minmax(0,1fr);align-content:center;gap:5px;min-height:72px}
-      .result-compact-value{justify-content:flex-start;text-align:left}
     }
     @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-input,.value-dependent-change,svg .value-dependent-change{transition:none}}
   </style>
+  <link rel="stylesheet" href="./common/ui/result-panel-v0.1.css">
 </head>
 <body>
 <main class="app" id="app" data-status="work">
@@ -281,8 +273,9 @@
       <button class="btn" data-reset-plot="profile-diagram" type="button" aria-label="Reset Profile plot">Reset</button><button class="btn" data-export-svg="profile-diagram" data-export-name="BDP_Profile.png" type="button">PNG</button>
     </div></div>
     <div class="card"><div class="canvas">
-      <svg id="profile-diagram" viewBox="0 0 980 700" role="img" aria-label="Profile"></svg>
-    </div></div>
+      <svg data-export-legend="profile-legend" id="profile-diagram" viewBox="0 0 980 700" role="img" aria-label="Profile"></svg>
+    </div>
+<svg class="diagram-legend-box" id="profile-legend" role="img" aria-label="Profile legend"></svg></div>
   </section>
 
   <section class="section">
@@ -296,62 +289,40 @@
       <button class="btn" data-reset-plot="top-diagram" type="button" aria-label="Reset Top View plot">Reset</button><button class="btn" data-export-svg="top-diagram" data-export-name="BDP_Top_View.png" type="button">PNG</button>
     </div></div>
     <div class="card"><div class="canvas">
-      <svg id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
-    </div></div>
+      <svg data-export-legend="top-legend" id="top-diagram" viewBox="0 0 900 620" role="img" aria-label="Top View"></svg>
+    </div>
+<svg class="diagram-legend-box" id="top-legend" role="img" aria-label="Top legend"></svg></div>
   </section>
 
-  <section class="section">
-    <div class="section-head result-summary-head">
-      <h2>Result</h2>
-      <div class="control-group" data-result-font-target="result-summary" aria-label="Result text size">
-        <span class="control-label">Text</span><button class="btn" data-result-font-scale="out" type="button" aria-label="Decrease Result text">-</button><button class="btn scale-value" data-result-font-scale="reset" type="button" aria-label="Reset Result text size">100%</button><button class="btn" data-result-font-scale="in" type="button" aria-label="Increase Result text">+</button>
-      </div>
-    </div>
-    <div class="card result-summary-card" id="result-summary">
-      <div class="result-summary-grid">
-        <div class="result-compact-item"><span class="result-compact-label">Profile</span><output class="result-value result-compact-value" data-bdp-output="profileTitle">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Attack Heading</span><output class="result-value result-compact-value" data-bdp-output="attackHeadingDeg">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Roll-in Start<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Track<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="trackPointAltitudeMslFt">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Planned Release<br>Altitude</span><output class="result-value result-compact-value" data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Base Distance</span><output class="result-value result-compact-value" data-bdp-output="baseDistanceNm">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lateral<br>Distance</span><output class="result-value result-compact-value" data-bdp-output="rollInLateralDistanceNm">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">MAP</span><output class="result-value result-compact-value" data-bdp-output="groundRangeNm">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">IAA</span><output class="result-value result-compact-value" data-bdp-output="aimOffAngleDeg">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Roll-in Lead</span><output class="result-value result-compact-value" data-bdp-output="leadAngleDeg">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Tracking Time</span><output class="result-value result-compact-value" data-bdp-output="trackingTimeSec">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Bomb Range</span><output class="result-value result-compact-value" data-bdp-output="bombRangeNm">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">Bomb TOF</span><output class="result-value result-compact-value" data-bdp-output="bombTofSec">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label">MINALT</span><output class="result-value result-compact-value" data-bdp-output="minAltResultMslFt">—</output></div>
-        <div class="result-compact-item"><span class="result-compact-label" data-safety-release-result-label>NLT Release</span><output class="result-value result-compact-value" data-bdp-output="safetyReleaseResultMslFt">—</output></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section advanced-only">
-    <div class="section-head"><h2>Detailed Result <span class="adv-tag">ADV</span></h2></div>
-    <div class="card">
-      <div class="note">Detailed Result는 Advanced. 값 자체에 Result 전용 색을 사용하며, 다른 변수 때문에 바뀌면 같은 값의 모든 표시 위치에서 잠시 별도 변경색으로 표시.</div>
-      <table class="result-table" style="margin-top:10px">
-        <tr><td>Initial Altitude</td><td class="result-value" data-bdp-output="resolvedInitialAltitudeMslFt">—</td></tr>
-        <tr><td>Roll-in Start Altitude</td><td class="result-value" data-bdp-output="rollInStartAltitudeMslFt">—</td></tr>
-        <tr><td>Track Point Altitude</td><td class="result-value" data-bdp-output="trackPointAltitudeMslFt">—</td></tr>
-        <tr><td>Roll-in Range</td><td class="result-value" data-bdp-output="rollInRangeNm">—</td></tr>
-        <tr><td>Roll-in Slant Range</td><td class="result-value" data-bdp-output="rollInSlantNm">—</td></tr>
-        <tr><td>Base Distance (USAF)</td><td class="result-value" data-bdp-output="baseDistanceNm">—</td></tr>
-        <tr><td>Roll-in Distance (Shaft legacy)</td><td class="result-value" data-bdp-output="rollInRangeProfileFitNm">—</td></tr>
-        <tr><td>Roll-in Longitudinal Distance</td><td class="result-value" data-bdp-output="rollInLongitudinalDistanceNm">—</td></tr>
-        <tr><td>Roll-in Lateral Distance</td><td class="result-value" data-bdp-output="rollInLateralDistanceNm">—</td></tr>
-        <tr><td>Ground Range</td><td class="result-value" data-bdp-output="groundRangeNm">—</td></tr>
-        <tr><td>MINALT</td><td class="result-value" data-bdp-output="minAltResultMslFt">—</td></tr>
-        <tr><td data-safety-release-result-label>NLT Release</td><td class="result-value" data-bdp-output="safetyReleaseResultMslFt">—</td></tr>
-      </table>
-    </div>
-  </section>
+  <section class="section compact-results" id="result-section" data-result-panel>
+<div class="result-panel-head"><h2>Result</h2><div data-result-controls aria-label="Result display controls"></div></div>
+<div class="result-panel-body" id="result-summary"><div class="result-rows">
+<div class="result-row" data-result-row data-summary="true"><span>Profile</span><output class="result-value" data-result-value data-bdp-output="profileTitle">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Attack Heading</span><output class="result-value" data-result-value data-bdp-output="attackHeadingDeg">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Start Altitude</span><output class="result-value" data-result-value data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Track Altitude</span><output class="result-value" data-result-value data-bdp-output="trackPointAltitudeMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Release Altitude</span><output class="result-value" data-result-value data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Base Distance</span><output class="result-value" data-result-value data-bdp-output="baseDistanceNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Lateral Distance</span><output class="result-value" data-result-value data-bdp-output="rollInLateralDistanceNm">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>MAP</span><output class="result-value" data-result-value data-bdp-output="groundRangeNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>IAA</span><output class="result-value" data-result-value data-bdp-output="aimOffAngleDeg">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Roll-in Lead Angle</span><output class="result-value" data-result-value data-bdp-output="leadAngleDeg">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Tracking Time</span><output class="result-value" data-result-value data-bdp-output="trackingTimeSec">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Bomb Range</span><output class="result-value" data-result-value data-bdp-output="bombRangeNm">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Bomb TOF</span><output class="result-value" data-result-value data-bdp-output="bombTofSec">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>MINALT</span><output class="result-value" data-result-value data-bdp-output="minAltResultMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Initial Altitude</span><output class="result-value" data-result-value data-bdp-output="resolvedInitialAltitudeMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Range</span><output class="result-value" data-result-value data-bdp-output="rollInRangeNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Slant Range</span><output class="result-value" data-result-value data-bdp-output="rollInSlantNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Distance (Shaft legacy)</span><output class="result-value" data-result-value data-bdp-output="rollInRangeProfileFitNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Roll-in Longitudinal Distance</span><output class="result-value" data-result-value data-bdp-output="rollInLongitudinalDistanceNm">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span data-safety-release-result-label>NLT Release</span><output class="result-value" data-result-value data-bdp-output="safetyReleaseResultMslFt">—</output></div>
+</div><p data-result-empty>No available summary results.</p></div>
+</section>
 
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=7bffc412690c"></script>
+<script type="module" src="./bdp-app.mjs?v=6b39385014b8"></script>
 </body>
 </html>

@@ -77,9 +77,6 @@
       "profile-diagram": defaultFontScale("profile-diagram"),
       "top-diagram": defaultFontScale("top-diagram")
     },
-    resultFontScale: {
-      "result-summary": 1
-    },
     zoom: {
       "z-diagram": 1,
       "profile-diagram": 1,
@@ -192,7 +189,7 @@
     state.fontScale["z-diagram"] = defaultFontScale("z-diagram");
     state.fontScale["profile-diagram"] = defaultFontScale("profile-diagram");
     state.fontScale["top-diagram"] = defaultFontScale("top-diagram");
-    state.resultFontScale["result-summary"] = 1;
+    global.BDPResultPanel?.resetText();
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
     state.zoom["top-diagram"] = 1;
@@ -586,25 +583,6 @@
     applyFontScale("top-diagram");
   }
 
-  function applyResultFontScale(targetId) {
-    var target = document.getElementById(targetId);
-    var toolbar = document.querySelector('[data-result-font-target="' + targetId + '"]');
-    if (!target || !toolbar) return;
-    var scale = Math.max(0.5, Math.min(2, state.resultFontScale[targetId] || 1));
-    state.resultFontScale[targetId] = scale;
-    target.style.fontSize = (13 * scale).toFixed(2) + "px";
-    var valueButton = toolbar.querySelector('[data-result-font-scale="reset"]');
-    var outButton = toolbar.querySelector('[data-result-font-scale="out"]');
-    var inButton = toolbar.querySelector('[data-result-font-scale="in"]');
-    if (valueButton) valueButton.textContent = Math.round(scale * 100) + "%";
-    if (outButton) outButton.disabled = scale <= 0.5;
-    if (inButton) inButton.disabled = scale >= 2;
-  }
-
-  function applyAllResultFontScale() {
-    applyResultFontScale("result-summary");
-  }
-
   function renderView(view) {
     state.lastView = view;
     syncSolvedInputs(view);
@@ -625,7 +603,7 @@
     });
     applyAllZoom();
     applyAllFontScale();
-    applyAllResultFontScale();
+    global.BDPResultPanel?.refresh();
   }
 
   function resetPlot(targetId) {
@@ -658,6 +636,7 @@
       if (requestId !== state.requestId) return;
       var errorInfo = classifyError(error);
       clearOutputs();
+      global.BDPResultPanel?.refresh();
       renderDiagramErrors(errorInfo);
       setProviderStatus("error", errorInfo.code + " · " + errorInfo.message);
       if (providerError) providerError.textContent = errorInfo.code + " · " + errorInfo.message;
@@ -779,18 +758,6 @@
       if (action === "in") state.fontScale[targetId] += 0.1;
       if (action === "reset") state.fontScale[targetId] = defaultFontScale(targetId);
       applyFontScale(targetId);
-    });
-  });
-
-  Array.prototype.slice.call(document.querySelectorAll("[data-result-font-target]")).forEach(function (toolbar) {
-    toolbar.addEventListener("click", function (event) {
-      var action = event.target && event.target.getAttribute("data-result-font-scale");
-      if (!action) return;
-      var targetId = toolbar.getAttribute("data-result-font-target");
-      if (action === "out") state.resultFontScale[targetId] -= 0.1;
-      if (action === "in") state.resultFontScale[targetId] += 0.1;
-      if (action === "reset") state.resultFontScale[targetId] = 1;
-      applyResultFontScale(targetId);
     });
   });
 
