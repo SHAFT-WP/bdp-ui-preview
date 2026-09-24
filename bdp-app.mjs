@@ -1,5 +1,5 @@
-import { installResultPanel } from "./common/ui/result-panel-v0.1.mjs?v=580326cb9832";
-import { installSvgLegend } from "./common/diagram/svg-legend-v0.1.mjs?v=580326cb9832";
+import { installResultPanel } from "./common/ui/result-panel-v0.1.mjs?v=a03e419b855d";
+import { installSvgLegend } from "./common/diagram/svg-legend-v0.1.mjs?v=a03e419b855d";
 import {
   SVG_DIAGRAM_PRIMITIVES_V0_1,
   SVG_NS,
@@ -7,11 +7,11 @@ import {
   createOpenArrowMarker,
   svgNode,
   trimPolylineAtNodes,
-} from "./common/diagram/svg-primitives-v0.1.mjs?v=580326cb9832";
+} from "./common/diagram/svg-primitives-v0.1.mjs?v=a03e419b855d";
 import {
   SVG_PNG_EXPORT_V0_1,
   saveSvgAsPng,
-} from "./common/diagram/svg-png-export-v0.1.mjs?v=580326cb9832";
+} from "./common/diagram/svg-png-export-v0.1.mjs?v=a03e419b855d";
 
 window.BDPCommonDiagram = Object.freeze({
   primitivesModel: SVG_DIAGRAM_PRIMITIVES_V0_1,
@@ -45,8 +45,8 @@ window.BDPTopLegend = Object.freeze({
   },
 });
 
-await import("./bdp-graph-renderers.js?v=580326cb9832");
-await import("./bdp-top-view-visibility.js?v=580326cb9832");
-await import("./bdp-ui-adapter.js?v=580326cb9832");
-await import("./bdp-v2-core.js?v=580326cb9832");
-await import("./bdp-v2-provider.js?v=580326cb9832");
+await import("./bdp-graph-renderers.js?v=a03e419b855d");
+await import("./bdp-top-view-visibility.js?v=a03e419b855d");
+await import("./bdp-ui-adapter.js?v=a03e419b855d");
+await import("./bdp-v2-core.js?v=a03e419b855d");
+await import("./bdp-v2-provider.js?v=a03e419b855d");

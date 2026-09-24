@@ -11,7 +11,7 @@
   var MOBILE_FONT_SCALE = Object.freeze({
     "z-diagram": 1,
     "profile-diagram": 1.2,
-    "top-diagram": 1.2
+    "top-diagram": 1.4
   });
 
   function isMobileDevice() {
