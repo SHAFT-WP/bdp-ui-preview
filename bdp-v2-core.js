@@ -83,10 +83,18 @@
       fpaRad: input.startFpaDeg * Math.PI / 180
     };
     var targetFpaRad = input.targetFpaDeg * Math.PI / 180;
+    var sampleTimeSec = input.sampleAtSec;
+    var sampled = sampleTimeSec === 0 ? { altitudeMslFt: state.altitudeMslFt, horizontalFt: 0 } : null;
+    if (sampleTimeSec !== undefined && !(Number.isFinite(sampleTimeSec) && sampleTimeSec >= 0)) {
+      throw new RangeError("sampleAtSec must be finite and nonnegative");
+    }
     var fixedStepSec = 0.01;
     var baseLoad = Math.cos(state.fpaRad);
 
     function step(load, dt) {
+      var previousTimeSec = state.timeSec;
+      var previousAltitudeMslFt = state.altitudeMslFt;
+      var previousHorizontalFt = state.horizontalFt;
       var speedRate = -G * Math.sin(state.fpaRad);
       var fpaRate = G / state.speedFps * (load - Math.cos(state.fpaRad));
       var midpointSpeed = Math.max(80, state.speedFps + speedRate * dt / 2);
@@ -100,6 +108,13 @@
       state.altitudeMslFt += midpointSpeed * Math.sin(midpointFpa) * dt;
       state.timeSec += dt;
       state.minimumAltitudeMslFt = Math.min(state.minimumAltitudeMslFt, state.altitudeMslFt);
+      if (sampleTimeSec !== undefined && sampled === null && sampleTimeSec <= state.timeSec) {
+        var fraction = (sampleTimeSec - previousTimeSec) / dt;
+        sampled = {
+          altitudeMslFt: previousAltitudeMslFt + (state.altitudeMslFt - previousAltitudeMslFt) * fraction,
+          horizontalFt: previousHorizontalFt + (state.horizontalFt - previousHorizontalFt) * fraction
+        };
+      }
     }
 
     var delayElapsed = 0;
@@ -119,11 +134,24 @@
     var guard = 0;
     while (state.fpaRad < targetFpaRad && guard++ < 60000) step(input.recoveryG, fixedStepSec);
 
-    return {
+    var result = {
       minAltitudeMslFt: state.minimumAltitudeMslFt,
       elapsedTimeSec: state.timeSec,
       horizontalDistanceNm: state.horizontalFt / FTNM
     };
+    if (sampleTimeSec !== undefined) {
+      // Once level, continue straight at terminal TAS until the requested time.
+      if (sampled === null) sampled = {
+        altitudeMslFt: state.altitudeMslFt,
+        horizontalFt: state.horizontalFt + state.speedFps * (sampleTimeSec - state.timeSec)
+      };
+      result.atRequestedTime = {
+        altitudeMslFt: sampled.altitudeMslFt,
+        horizontalDistanceNm: sampled.horizontalFt / FTNM,
+        phase: sampleTimeSec < state.timeSec ? "RECOVERING" : "LEVEL"
+      };
+    }
+    return result;
   }
 
   function fragmentData(selectedWeapon, targetElevationMslFt) {
@@ -479,6 +507,22 @@
       windSpeedMps: input.windSpeedMps
     }, selectedWeapon, casToTas(input.releaseSpeedKcas, effectiveReleaseAltitudeMslFt));
     var profile = geometry(input, bomb, effectiveReleaseAltitudeMslFt);
+    var fighterAtImpact = null;
+    if (nltSupported) {
+      // The existing NLT recovery is sampled at the already solved Bomb TOF.
+      // This uses its 5 G / onset / speed-overshoot assumptions and then
+      // straight, constant-TAS level flight if impact occurs after level-off.
+      fighterAtImpact = recovery({
+        startAltitudeMslFt: effectiveReleaseAltitudeMslFt,
+        startSpeedKcas: input.releaseSpeedKcas + input.speedOvershootKcas,
+        startFpaDeg: input.releaseFpaDeg,
+        targetFpaDeg: 0,
+        recoveryG: input.recoveryG,
+        gOnsetTimeSec: input.gOnsetTimeSec,
+        maneuverInitiationDelaySec: input.maneuverInitiationDelaySec,
+        sampleAtSec: bomb.bombTofSec
+      }).atRequestedTime;
+    }
     var publicResult = {
       effectiveReleaseAltitudeMslFt: profile.effectiveReleaseAltitudeMslFt,
       resolvedInitialAltitudeMslFt: profile.initialMslFt,
@@ -510,7 +554,11 @@
       aimOffAngleDeg: profile.aimOffAngleDeg,
       aimOffDistanceNm: bomb.aimOffDistanceFt === null ? null : bomb.aimOffDistanceFt / FTNM,
       rollInRangeProfileFitNm: (profile.rollInRangeFt - profile.groundRangeFt) / FTNM,
-      legacyOffsetLeadDeg: profile.legacyOffsetLeadDeg
+      legacyOffsetLeadDeg: profile.legacyOffsetLeadDeg,
+      fighterAltitudeAtBombImpactMslFt: fighterAtImpact && fighterAtImpact.altitudeMslFt,
+      fighterDistanceToTargetAtBombImpactNm: fighterAtImpact &&
+        Math.abs(bomb.bombRangeFt / FTNM - fighterAtImpact.horizontalDistanceNm),
+      fighterPhaseAtBombImpact: fighterAtImpact && fighterAtImpact.phase
     };
     var headingRad = input.angleOffDeg * Math.PI / 180;
     var axis = { forward: Math.cos(headingRad), side: Math.sin(headingRad) };

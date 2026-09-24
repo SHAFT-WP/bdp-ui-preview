@@ -378,7 +378,13 @@
       "Roll-in Point — Target Bearing @ Roll-in (Nose / toward turn): " + numberText(local.targetRelativeBearingAtRollInDeg, 1, "deg"),
       "Roll-in Point — Target Distance @ Roll-in: " + numberText(local.targetDistanceAtRollInNm, 1, "nm"),
       "Roll-in Longitudinal Distance: " + numberText(displacement.forwardNm, 1, "nm"),
-      "Roll-in Lateral Distance: " + numberText(Math.abs(displacement.turnSideNm), 1, "nm")
+      "Roll-in Lateral Distance: " + numberText(Math.abs(displacement.turnSideNm), 1, "nm"),
+      "Tracking Time: " + (level ? clockText(result.trackingTimeSec) : numberText(result.trackingTimeSec, 0, "sec")),
+      "Bomb TOF: " + numberText(result.bombTofSec, 0, "sec"),
+      "Fighter @ Bomb Impact (SEM: 5 G Level) — Altitude: " +
+        numberText(local.fighterAltitudeAtBombImpactMslFt, 0, "ft msl"),
+      "Fighter @ Bomb Impact (SEM: 5 G Level) — Distance to Target: " +
+        numberText(local.fighterDistanceToTargetAtBombImpactNm, 3, "nm")
     ]);
     state.hasRendered = true;
   }
