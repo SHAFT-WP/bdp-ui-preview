@@ -71,6 +71,7 @@
     changeTimers: {},
     bankLinked: true,
     levelMode: false,
+    topAdvanced: false,
     nonLevelRollInG: "4",
     fontScale: {
       "z-diagram": defaultFontScale("z-diagram"),
@@ -185,6 +186,7 @@
     solveModeNode.textContent = "Initial Altitude 기준";
     state.bankLinked = true;
     state.levelMode = false;
+    state.topAdvanced = false;
     state.nonLevelRollInG = DEFAULTS.rollInG;
     state.fontScale["z-diagram"] = defaultFontScale("z-diagram");
     state.fontScale["profile-diagram"] = defaultFontScale("profile-diagram");
@@ -342,7 +344,7 @@
     setOutput("safetyReleaseMslFt", numberText(result.safetyReleaseMslFt, 0, "ft msl"));
     setOutput("leadAngleDeg", numberText(result.leadAngleDeg, 1, "deg"));
     setOutput("targetRelativeBearingAtRollInDeg", numberText(local.targetRelativeBearingAtRollInDeg, 1, "deg"));
-    setOutput("targetRangeAtRollInNm", numberText(local.targetRangeAtRollInNm, 1, "nm"));
+    setOutput("targetDistanceAtRollInNm", numberText(local.targetDistanceAtRollInNm, 1, "nm"));
     setOutput("rollInAltitudeLossFt", numberText(result.rollInAltitudeLossFt, 0, "ft"));
     setOutput("resolvedInitialAltitudeMslFt", numberText(result.resolvedInitialAltitudeMslFt, 0, "ft msl"));
     setOutput("resolvedInitialSpeedKcas", numberText(result.resolvedInitialSpeedKcas, 1, "kcas"));
@@ -374,7 +376,7 @@
     setSafetyLabel(view.safety && view.safety.releaseLabel);
     if (global.BDPTopLegend) global.BDPTopLegend.update([
       "Roll-in Point — Target Bearing @ Roll-in (Nose / toward turn): " + numberText(local.targetRelativeBearingAtRollInDeg, 1, "deg"),
-      "Roll-in Point — Target Range @ Roll-in: " + numberText(local.targetRangeAtRollInNm, 1, "nm"),
+      "Roll-in Point — Target Distance @ Roll-in: " + numberText(local.targetDistanceAtRollInNm, 1, "nm"),
       "Roll-in Longitudinal Distance: " + numberText(displacement.forwardNm, 1, "nm"),
       "Roll-in Lateral Distance: " + numberText(Math.abs(displacement.turnSideNm), 1, "nm")
     ]);
@@ -575,7 +577,7 @@
           if (!Number.isFinite(baseSize)) baseSize = 14;
           if (element.dataset) element.dataset.baseFontSize = String(baseSize);
         }
-        element.setAttribute("font-size", (baseSize * FONT_BASE_MULTIPLIER * scale).toFixed(2));
+        element.setAttribute("font-size", (baseSize * (targetId === "top-diagram" && !isMobileDevice() ? 0.75 : FONT_BASE_MULTIPLIER) * scale).toFixed(2));
       });
     }
     var valueButton = toolbar.querySelector('[data-font-scale="reset"]');
@@ -590,6 +592,18 @@
     applyFontScale("z-diagram");
     applyFontScale("profile-diagram");
     applyFontScale("top-diagram");
+  }
+
+  function applyTopAdvanced() {
+    var svg = document.getElementById("top-diagram");
+    if (svg) Array.prototype.slice.call(svg.querySelectorAll("[data-top-advanced]")).forEach(function (group) {
+      group.setAttribute("display", state.topAdvanced ? "inline" : "none");
+    });
+    var button = document.getElementById("top-advanced-toggle");
+    if (button) {
+      button.setAttribute("aria-pressed", String(state.topAdvanced));
+      button.textContent = "Advanced: " + (state.topAdvanced ? "On" : "Off");
+    }
   }
 
   function renderView(view) {
@@ -610,6 +624,7 @@
       var targetId = button.getAttribute("data-export-svg");
       button.disabled = availabilityByTarget[targetId] === false;
     });
+    applyTopAdvanced();
     applyAllZoom();
     applyAllFontScale();
     global.BDPResultPanel?.refresh();
@@ -680,6 +695,12 @@
     advancedToggle.classList.toggle("active", active);
     advancedToggle.setAttribute("aria-pressed", String(active));
     advancedToggle.textContent = "Advanced: " + (active ? "On" : "Off");
+  });
+
+  var topAdvancedToggle = document.getElementById("top-advanced-toggle");
+  if (topAdvancedToggle) topAdvancedToggle.addEventListener("click", function () {
+    state.topAdvanced = !state.topAdvanced;
+    applyTopAdvanced();
   });
 
   if (defaultButton) defaultButton.addEventListener("click", resetInput);

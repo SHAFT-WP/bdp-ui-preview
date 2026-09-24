@@ -76,6 +76,12 @@
     }, options), value);
   }
 
+  function nodeLine(parent, from, to, startRadius, endRadius, attrs) {
+    var points = commonDiagram.trimPolylineAtNodes([from, to], startRadius, endRadius);
+    if (points.length < 2) return null;
+    return line(parent, points[0].x, points[0].y, points[1].x, points[1].y, attrs);
+  }
+
   function pathFromPoints(points) {
     if (!Array.isArray(points) || points.length === 0) return "";
     return points.map(function (point, index) {
@@ -252,7 +258,7 @@
     });
     line(svg, segment.start.x, segment.start.y, segment.end.x, segment.end.y, {
       stroke: "#2f6fc2",
-      "stroke-width": 1.5,
+      "stroke-width": 1.7,
       "marker-start": "url(#top-dim-arrow)",
       "marker-end": "url(#top-dim-arrow)",
       "data-top-dimension": role
@@ -409,7 +415,7 @@
       refX: size - 2,
       refY: size / 2,
       path: "M2,2 L" + (size - 2) + "," + (size / 2) + " L2," + (size - 2),
-      strokeWidth: 2.2
+      strokeWidth: 1.7
     }));
   }
 
@@ -420,7 +426,7 @@
       r: radius || 6,
       fill: "#fff",
       stroke: color,
-      "stroke-width": 3
+      "stroke-width": 1.7
     });
   }
 
@@ -444,7 +450,7 @@
         " " + end.x.toFixed(1) + "," + end.y.toFixed(1),
       fill: "none",
       stroke: color,
-      "stroke-width": 2.2,
+      "stroke-width": 1.7,
       "stroke-linecap": "round",
       "data-profile-angle": role
     });
@@ -482,8 +488,8 @@
 
     var p = visual.points;
     var groundY = p.target.y;
-    var dimensionY = 560;
-    var mapY = 640;
+    var dimensionY = groundY + 125;
+    var mapY = dimensionY + 80;
     var hasAod = Math.abs(p.aimOff.x - p.target.x) > 1;
     var isLevel = Math.abs(finite(view.input && view.input.diveAngleDeg, 0)) < 0.001;
     var trackPointLabel = isLevel
@@ -495,7 +501,7 @@
 
     line(svg, 48, groundY, 932, groundY, {
       stroke: "#556270",
-      "stroke-width": 2,
+      "stroke-width": 1.7,
       "data-profile-line": "ground"
     });
 
@@ -517,28 +523,28 @@
 
     line(svg, p.trackPoint.x, p.trackPoint.y, p.aimOff.x, p.aimOff.y, {
       stroke: "#374151",
-      "stroke-width": 2.1,
+      "stroke-width": 1.7,
       "data-profile-line": "flight-path-reference"
     });
     line(svg, p.trackPoint.x, p.trackPoint.y, p.target.x, p.target.y, {
       stroke: "#111827",
-      "stroke-width": 1.8,
+      "stroke-width": 1.7,
       "data-profile-line": "target-los"
     });
     append(svg, "path", {
-      d: pathFromPoints(visual.flightPath || [p.trackPoint, p.release]),
+      d: pathFromPoints(commonDiagram.trimPolylineAtNodes(visual.flightPath || [p.trackPoint, p.release], 8.2, 8.2)),
       fill: "none",
       stroke: "#176dac",
-      "stroke-width": 4,
+      "stroke-width": 1.7,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
       "data-profile-path": "tracking"
     });
     append(svg, "path", {
-      d: pathFromPoints(visual.bombPath || [p.release, p.target]),
+      d: pathFromPoints(commonDiagram.trimPolylineAtNodes(visual.bombPath || [p.release, p.target], 8.2, 9.2)),
       fill: "none",
       stroke: "#087b4c",
-      "stroke-width": 4,
+      "stroke-width": 1.7,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
       "marker-end": "url(#profile-green-arrow)",
@@ -677,29 +683,29 @@
       fill: "#f5f8fd",
       "fill-opacity": 0.68,
       stroke: "#203a63",
-      "stroke-width": 2
+      "stroke-width": 1.7
     });
-    line(svg, p.initial.x, p.initial.y, p.rollInStart.x, p.rollInStart.y, {
+    nodeLine(svg, p.initial, p.rollInStart, 0, 9.2, {
       stroke: "#2f6fc2",
-      "stroke-width": 4,
+      "stroke-width": 1.7,
       "marker-end": "url(#top-blue-arrow)"
     });
     append(svg, "path", {
-      d: pathFromPoints(visual.rollPath || [p.rollInStart, p.trackPoint]),
+      d: pathFromPoints(commonDiagram.trimPolylineAtNodes(visual.rollPath || [p.rollInStart, p.trackPoint], 9.2, 8.2)),
       fill: "none",
       stroke: "#c85ac8",
-      "stroke-width": 5,
+      "stroke-width": 1.7,
       "stroke-linecap": "round",
       "stroke-linejoin": "round"
     });
-    line(svg, p.trackPoint.x, p.trackPoint.y, p.target.x, p.target.y, {
+    nodeLine(svg, p.trackPoint, p.target, 8.2, 9.2, {
       stroke: "#d59400",
-      "stroke-width": 4,
+      "stroke-width": 1.7,
       "marker-end": "url(#top-amber-arrow)"
     });
-    line(svg, p.rollInStart.x, p.rollInStart.y, p.target.x, p.target.y, {
+    nodeLine(svg, p.rollInStart, p.target, 9.2, 9.2, {
       stroke: "#d64b4b",
-      "stroke-width": 2.8
+      "stroke-width": 1.7
     });
 
     point(svg, p.rollInStart, "#c85ac8", 7);
@@ -745,11 +751,12 @@
       contextLines.push("Wind: " + format(view.input.windDirectionDeg, 0) + " deg from · " + format(Math.abs(windSpeedKt), 0) + " kt");
     }
     var contextGap = 24;
-    var contextStartY = p.target.y - 52 - (contextLines.length - 1) * contextGap;
-    if (contextStartY < 28) contextStartY = 28;
+    var contextStartY = Math.max(28, p.target.y - 16);
+    var contextOnRight = p.target.x < 260;
+    var contextX = p.target.x + (contextOnRight ? 32 : -32);
     contextLines.forEach(function (value, index) {
-      movableText(svg, p.target.x, contextStartY + index * contextGap, value, "top-context", {
-        "text-anchor": "middle",
+      movableText(svg, contextX, contextStartY + index * contextGap, value, "top-context", {
+        "text-anchor": contextOnRight ? "start" : "end",
         fill: "#203a63",
         "font-size": TOP_FONT_SIZE,
         class: "label-halo"
@@ -783,13 +790,15 @@
           return index === 0 ? { start: p.rollInStart, end: guide.end } : guide;
         })
       });
-      drawTopDimension(svg, lateralDimension, "roll-in-lateral-distance",
+      var lateralGroup = append(svg, "g", { "data-top-advanced": "lateral", display: "none" });
+      drawTopDimension(lateralGroup, lateralDimension, "roll-in-lateral-distance",
         terms.rollInLateralDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.turnSideNm), 1) + " nm",
         "top-roll-in-lateral");
     }
     if (dimensions.rollInLongitudinalDistance) {
-      drawTopDimension(svg, dimensions.rollInLongitudinalDistance, "roll-in-longitudinal-distance",
+      var longitudinalGroup = append(svg, "g", { "data-top-advanced": "longitudinal", display: "none" });
+      drawTopDimension(longitudinalGroup, dimensions.rollInLongitudinalDistance, "roll-in-longitudinal-distance",
         terms.rollInLongitudinalDistance.replace(/ Distance$/, ""),
         "Distance: " + format(Math.abs(view.public.rollInDisplacement && view.public.rollInDisplacement.forwardNm), 1) + " nm",
         "top-roll-in-longitudinal");

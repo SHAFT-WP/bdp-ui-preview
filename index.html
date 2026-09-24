@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=cc7e9de379c8">
-  <link rel="stylesheet" href="./bdp-ui.css?v=cc7e9de379c8">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=580326cb9832">
+  <link rel="stylesheet" href="./bdp-ui.css?v=580326cb9832">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -214,8 +214,8 @@
             <output class="readout" data-bdp-output="targetRelativeBearingAtRollInDeg" aria-label="Target Bearing @ Roll-in, relative to Nose">—</output>
           </div>
           <div class="field" title="Roll-in Point에서 Target까지의 수평 직선거리입니다. Slant Range 또는 Aim Off Point까지의 거리가 아닙니다.">
-            <span class="field-label">Target Range @ Roll-in (nm)</span>
-            <output class="readout" data-bdp-output="targetRangeAtRollInNm" aria-label="Target Range @ Roll-in">—</output>
+            <span class="field-label">Target Distance @ Roll-in (nm)</span>
+            <output class="readout" data-bdp-output="targetDistanceAtRollInNm" aria-label="Target Distance @ Roll-in">—</output>
           </div>
         </div></div>
       </details>
@@ -287,7 +287,7 @@
   </section>
 
   <section class="section">
-    <div class="section-head plot-section-head"><h2>Top View</h2><div class="plot-controls">
+    <div class="section-head plot-section-head"><h2>Top View</h2><div class="plot-controls"><button class="btn" id="top-advanced-toggle" type="button" aria-pressed="false" aria-controls="top-diagram">Advanced: Off</button>
       <div class="control-group" data-font-target="top-diagram" aria-label="Top View text size">
         <span class="control-label">Text</span><button class="btn" data-font-scale="out" type="button" aria-label="Decrease Top View text">-</button><button class="btn scale-value" data-font-scale="reset" type="button" aria-label="Reset Top View text size">100%</button><button class="btn" data-font-scale="in" type="button" aria-label="Increase Top View text">+</button>
       </div>
@@ -311,7 +311,7 @@
 <div class="result-row" data-result-row data-summary="false"><span>Track Altitude</span><output class="result-value" data-result-value data-bdp-output="trackPointAltitudeMslFt">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>Release Altitude</span><output class="result-value" data-result-value data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
 <div class="result-row" data-result-row data-summary="true" title="Nose 기준, 선회 방향으로 측정한 상대각"><span>Target Bearing @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="targetRelativeBearingAtRollInDeg">—</output></div>
-<div class="result-row" data-result-row data-summary="true"><span>Target Range @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="targetRangeAtRollInNm">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Target Distance @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="targetDistanceAtRollInNm">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>Base Distance</span><output class="result-value" data-result-value data-bdp-output="baseDistanceNm">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Roll-in Lateral Distance</span><output class="result-value" data-result-value data-bdp-output="rollInLateralDistanceNm">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>MAP</span><output class="result-value" data-result-value data-bdp-output="groundRangeNm">—</output></div>
@@ -322,8 +322,7 @@
 <div class="result-row" data-result-row data-summary="true"><span>Bomb TOF</span><output class="result-value" data-result-value data-bdp-output="bombTofSec">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>MINALT</span><output class="result-value" data-result-value data-bdp-output="minAltResultMslFt">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Initial Altitude</span><output class="result-value" data-result-value data-bdp-output="resolvedInitialAltitudeMslFt">—</output></div>
-<div class="result-row" data-result-row data-summary="false"><span>Roll-in Range</span><output class="result-value" data-result-value data-bdp-output="rollInRangeNm">—</output></div>
-<div class="result-row" data-result-row data-summary="false"><span>Roll-in Slant Range</span><output class="result-value" data-result-value data-bdp-output="rollInSlantNm">—</output></div>
+<div class="result-row" data-result-row data-summary="false"><span>Target Slant Distance @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="rollInSlantNm">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Roll-in Distance (Shaft legacy)</span><output class="result-value" data-result-value data-bdp-output="rollInRangeProfileFitNm">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Roll-in Longitudinal Distance</span><output class="result-value" data-result-value data-bdp-output="rollInLongitudinalDistanceNm">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span data-safety-release-result-label>NLT Release</span><output class="result-value" data-result-value data-bdp-output="safetyReleaseResultMslFt">—</output></div>
@@ -333,6 +332,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=cc7e9de379c8"></script>
+<script type="module" src="./bdp-app.mjs?v=580326cb9832"></script>
 </body>
 </html>

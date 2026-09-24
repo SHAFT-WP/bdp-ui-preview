@@ -236,7 +236,7 @@
       // BMS readouts reuse the existing solved geometry; no new flight model.
       // The existing local frame measures this from the nose toward the turn side.
       targetRelativeBearingAtRollInDeg: raw.canonicalInputs.angleOffDeg - raw.public.leadAngleDeg,
-      targetRangeAtRollInNm: raw.public.rollInRangeNm
+      targetDistanceAtRollInNm: raw.public.rollInRangeNm
     });
 
     return {
