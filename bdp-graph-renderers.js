@@ -115,7 +115,7 @@
 
   function errorFrame(svg) {
     var id = svg && svg.getAttribute ? svg.getAttribute("id") : "";
-    if (id === "z-diagram") return { viewBox: "0 -62 650 682", x: 0, y: -62, width: 650, height: 682, cx: 325, cy: 252, title: "Z-Diagram" };
+    if (id === "z-diagram") return { viewBox: "0 -62 650 718", x: 0, y: -62, width: 650, height: 718, cx: 325, cy: 252, title: "Z-Diagram" };
     if (id === "profile-diagram") return { viewBox: "0 0 980 700", x: 0, y: 0, width: 980, height: 700, cx: 490, cy: 310, title: "Profile" };
     return { viewBox: "0 0 900 620", x: 0, y: 0, width: 900, height: 620, cx: 450, cy: 270, title: "Top View" };
   }
@@ -280,9 +280,9 @@
       return false;
     }
 
-    svg.setAttribute("viewBox", "0 -62 650 682");
-    svg.dataset.baseViewBox = "0 -62 650 682";
-    append(svg, "rect", { x: 0, y: -62, width: 650, height: 682, fill: "#fff", "data-plot-background": "true" });
+    svg.setAttribute("viewBox", "0 -62 650 718");
+    svg.dataset.baseViewBox = "0 -62 650 718";
+    append(svg, "rect", { x: 0, y: -62, width: 650, height: 718, fill: "#fff", "data-plot-background": "true" });
 
     var left = 50;
     var topX = 360;
@@ -382,6 +382,10 @@
       "font-weight": 900
     });
     movableText(svg, 60, 588, one("Bomb TOF", format(result.bombTofSec, 0) + " s"), "z-bottom", {
+      "font-size": 13,
+      "font-weight": 900
+    });
+    movableText(svg, 60, 624, one("Target Bearing @ Roll-in (Nose)", format(local.targetRelativeBearingAtRollInDeg, 1) + "°"), "z-bottom", {
       "font-size": 13,
       "font-weight": 900
     });

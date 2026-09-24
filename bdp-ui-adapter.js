@@ -341,6 +341,8 @@
     setOutput("minAltMslFt", numberText(result.minAltMslFt, 0, "ft msl"));
     setOutput("safetyReleaseMslFt", numberText(result.safetyReleaseMslFt, 0, "ft msl"));
     setOutput("leadAngleDeg", numberText(result.leadAngleDeg, 1, "deg"));
+    setOutput("targetRelativeBearingAtRollInDeg", numberText(local.targetRelativeBearingAtRollInDeg, 1, "deg"));
+    setOutput("targetRangeAtRollInNm", numberText(local.targetRangeAtRollInNm, 1, "nm"));
     setOutput("rollInAltitudeLossFt", numberText(result.rollInAltitudeLossFt, 0, "ft"));
     setOutput("resolvedInitialAltitudeMslFt", numberText(result.resolvedInitialAltitudeMslFt, 0, "ft msl"));
     setOutput("resolvedInitialSpeedKcas", numberText(result.resolvedInitialSpeedKcas, 1, "kcas"));
@@ -370,6 +372,12 @@
     setOutput("bdpModel", view.model ? view.model.id + " / " + view.model.version : "—");
     setOutput("ballisticModel", view.diagnostics ? view.diagnostics.ballisticModelId + " / " + view.diagnostics.ballisticModelVersion : "—");
     setSafetyLabel(view.safety && view.safety.releaseLabel);
+    if (global.BDPTopLegend) global.BDPTopLegend.update([
+      "Roll-in Point — Target Bearing @ Roll-in (Nose / toward turn): " + numberText(local.targetRelativeBearingAtRollInDeg, 1, "deg"),
+      "Roll-in Point — Target Range @ Roll-in: " + numberText(local.targetRangeAtRollInNm, 1, "nm"),
+      "Roll-in Longitudinal Distance: " + numberText(displacement.forwardNm, 1, "nm"),
+      "Roll-in Lateral Distance: " + numberText(Math.abs(displacement.turnSideNm), 1, "nm")
+    ]);
     state.hasRendered = true;
   }
 
@@ -419,6 +427,7 @@
 
   function clearOutputs() {
     state.hasRendered = false;
+    if (global.BDPTopLegend) global.BDPTopLegend.update([]);
     Array.prototype.slice.call(document.querySelectorAll("[data-bdp-output]")).forEach(function (element) {
       element.textContent = "—";
     });

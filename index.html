@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=69c5c0cc2bb2">
-  <link rel="stylesheet" href="./bdp-ui.css?v=69c5c0cc2bb2">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=cc7e9de379c8">
+  <link rel="stylesheet" href="./bdp-ui.css?v=cc7e9de379c8">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -209,6 +209,14 @@
           <label class="field"><span class="field-label">Release Speed (kcas)</span>
             <input data-key="releaseSpeed" data-bdp-input="releaseSpeedKcas" value="450" inputmode="decimal">
           </label>
+          <div class="field" title="기수 0°부터 선회 방향으로 측정한 상대각입니다. 북쪽 기준 절대방위가 아닙니다.">
+            <span class="field-label">Target Bearing @ Roll-in (deg)</span>
+            <output class="readout" data-bdp-output="targetRelativeBearingAtRollInDeg" aria-label="Target Bearing @ Roll-in, relative to Nose">—</output>
+          </div>
+          <div class="field" title="Roll-in Point에서 Target까지의 수평 직선거리입니다. Slant Range 또는 Aim Off Point까지의 거리가 아닙니다.">
+            <span class="field-label">Target Range @ Roll-in (nm)</span>
+            <output class="readout" data-bdp-output="targetRangeAtRollInNm" aria-label="Target Range @ Roll-in">—</output>
+          </div>
         </div></div>
       </details>
 
@@ -257,7 +265,7 @@
     <div class="card">
       <div class="note">V2 BE 계산값 · USAF Z 표시 adapter</div>
       <div class="canvas" style="margin-top:10px">
-        <svg id="z-diagram" viewBox="0 -62 650 682" role="img" aria-label="Z-Diagram"></svg>
+        <svg id="z-diagram" viewBox="0 -62 650 718" role="img" aria-label="Z-Diagram"></svg>
       </div>
     </div>
   </section>
@@ -302,6 +310,8 @@
 <div class="result-row" data-result-row data-summary="false"><span>Roll-in Start Altitude</span><output class="result-value" data-result-value data-bdp-output="rollInStartAltitudeMslFt">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Track Altitude</span><output class="result-value" data-result-value data-bdp-output="trackPointAltitudeMslFt">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>Release Altitude</span><output class="result-value" data-result-value data-bdp-output="effectiveReleaseAltitudeMslFt">—</output></div>
+<div class="result-row" data-result-row data-summary="true" title="Nose 기준, 선회 방향으로 측정한 상대각"><span>Target Bearing @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="targetRelativeBearingAtRollInDeg">—</output></div>
+<div class="result-row" data-result-row data-summary="true"><span>Target Range @ Roll-in</span><output class="result-value" data-result-value data-bdp-output="targetRangeAtRollInNm">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>Base Distance</span><output class="result-value" data-result-value data-bdp-output="baseDistanceNm">—</output></div>
 <div class="result-row" data-result-row data-summary="false"><span>Roll-in Lateral Distance</span><output class="result-value" data-result-value data-bdp-output="rollInLateralDistanceNm">—</output></div>
 <div class="result-row" data-result-row data-summary="true"><span>MAP</span><output class="result-value" data-result-value data-bdp-output="groundRangeNm">—</output></div>
@@ -323,6 +333,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=69c5c0cc2bb2"></script>
+<script type="module" src="./bdp-app.mjs?v=cc7e9de379c8"></script>
 </body>
 </html>

@@ -1,16 +1,16 @@
-import { installResultPanel } from "./common/ui/result-panel-v0.1.mjs?v=69c5c0cc2bb2";
-import { installSvgLegend } from "./common/diagram/svg-legend-v0.1.mjs?v=69c5c0cc2bb2";
+import { installResultPanel } from "./common/ui/result-panel-v0.1.mjs?v=cc7e9de379c8";
+import { installSvgLegend } from "./common/diagram/svg-legend-v0.1.mjs?v=cc7e9de379c8";
 import {
   SVG_DIAGRAM_PRIMITIVES_V0_1,
   SVG_NS,
   appendGrid,
   createOpenArrowMarker,
   svgNode,
-} from "./common/diagram/svg-primitives-v0.1.mjs?v=69c5c0cc2bb2";
+} from "./common/diagram/svg-primitives-v0.1.mjs?v=cc7e9de379c8";
 import {
   SVG_PNG_EXPORT_V0_1,
   saveSvgAsPng,
-} from "./common/diagram/svg-png-export-v0.1.mjs?v=69c5c0cc2bb2";
+} from "./common/diagram/svg-png-export-v0.1.mjs?v=cc7e9de379c8";
 
 window.BDPCommonDiagram = Object.freeze({
   primitivesModel: SVG_DIAGRAM_PRIMITIVES_V0_1,
@@ -29,15 +29,22 @@ installSvgLegend(document.getElementById('profile-legend'), [
   { label: 'AoD', color: '#a35d00' },
   { label: 'MAP', color: '#d64b4b' },
 ]);
-installSvgLegend(document.getElementById('top-legend'), [
+const topLegendNotes = [];
+const topLegend = installSvgLegend(document.getElementById('top-legend'), [
   { label: 'Initial track', color: '#2f6fc2' },
   { label: 'Roll-in', color: '#c85ac8' },
   { label: 'MAP', color: '#d59400' },
   { label: 'Roll-in / Target', color: '#d64b4b' },
-]);
+], topLegendNotes);
+window.BDPTopLegend = Object.freeze({
+  update(notes) {
+    topLegendNotes.splice(0, topLegendNotes.length, ...notes);
+    topLegend.render();
+  },
+});
 
-await import("./bdp-graph-renderers.js?v=69c5c0cc2bb2");
-await import("./bdp-top-view-visibility.js?v=69c5c0cc2bb2");
-await import("./bdp-ui-adapter.js?v=69c5c0cc2bb2");
-await import("./bdp-v2-core.js?v=69c5c0cc2bb2");
-await import("./bdp-v2-provider.js?v=69c5c0cc2bb2");
+await import("./bdp-graph-renderers.js?v=cc7e9de379c8");
+await import("./bdp-top-view-visibility.js?v=cc7e9de379c8");
+await import("./bdp-ui-adapter.js?v=cc7e9de379c8");
+await import("./bdp-v2-core.js?v=cc7e9de379c8");
+await import("./bdp-v2-provider.js?v=cc7e9de379c8");
