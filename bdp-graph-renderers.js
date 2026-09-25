@@ -379,7 +379,8 @@
       "font-size": 13,
       "font-weight": 900
     });
-    movableText(svg, 60, 516, one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + "°"), "z-bottom", {
+    movableText(svg, 125, 400, format(local.aimOffAngleDeg, 0) + "°", "z-iaa", {
+      "aria-label": one(terms.aimOffAngle, format(local.aimOffAngleDeg, 0) + "°"),
       "font-size": 13,
       "font-weight": 900
     });

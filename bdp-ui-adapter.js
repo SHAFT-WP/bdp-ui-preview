@@ -32,6 +32,10 @@
     return defaults[targetId] || 1;
   }
 
+  function defaultPlotZoom(targetId) {
+    return targetId === "top-diagram" && !isMobileDevice() ? 1.5 : 1;
+  }
+
   var DEFAULTS = Object.freeze({
     weaponId: "M82",
     targetElevationMslFt: "31",
@@ -81,7 +85,7 @@
     zoom: {
       "z-diagram": 1,
       "profile-diagram": 1,
-      "top-diagram": 1
+      "top-diagram": defaultPlotZoom("top-diagram")
     },
     pan: {
       "z-diagram": { x: 0, y: 0 },
@@ -194,7 +198,7 @@
     global.BDPResultPanel?.resetText();
     state.zoom["z-diagram"] = 1;
     state.zoom["profile-diagram"] = 1;
-    state.zoom["top-diagram"] = 1;
+    state.zoom["top-diagram"] = defaultPlotZoom("top-diagram");
     state.pan["z-diagram"] = { x: 0, y: 0 };
     state.pan["profile-diagram"] = { x: 0, y: 0 };
     state.pan["top-diagram"] = { x: 0, y: 0 };
@@ -640,7 +644,7 @@
     if (!state.lastView) return;
     var svg = document.getElementById(targetId);
     if (!svg) return;
-    state.zoom[targetId] = 1;
+    state.zoom[targetId] = defaultPlotZoom(targetId);
     state.pan[targetId] = { x: 0, y: 0 };
     // Preserve the rendered nodes: they hold user font sizes and label offsets.
     applyZoom(targetId);
@@ -778,7 +782,7 @@
       if (action === "out") state.zoom[targetId] -= 0.25;
       if (action === "in") state.zoom[targetId] += 0.25;
       if (action === "reset") {
-        state.zoom[targetId] = 1;
+        state.zoom[targetId] = defaultPlotZoom(targetId);
         state.pan[targetId] = { x: 0, y: 0 };
       }
       applyZoom(targetId);
