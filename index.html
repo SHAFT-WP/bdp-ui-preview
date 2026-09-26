@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>BDP Common UI Preview · V2 Provider</title>
-  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=1aed1af8d664">
-  <link rel="stylesheet" href="./bdp-ui.css?v=1aed1af8d664">
+  <link rel="stylesheet" href="./common/ui/value-states-v0.1.css?v=54c09fd8a636">
+  <link rel="stylesheet" href="./bdp-ui.css?v=54c09fd8a636">
   <style data-bdp-inline-style="direct-file-fallback">
     /* Keeps the reviewed UI visible when a mobile/content preview blocks linked CSS. */
     :root{
@@ -71,7 +71,8 @@
     .app.level-mode .level-only{display:grid!important}
     .app.level-mode .dive-only{display:none!important}
     .level-turn-option{margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;color:var(--blue);font-size:12px;font-weight:850;cursor:pointer}
-    .app.level-mode .level-turn-option{display:inline-grid!important}
+    .level-turn-option{display:none}
+    .app.level-turn-range .level-turn-option{display:inline-grid!important}
     .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
     .dep-flash,.value-dependent-input{color:var(--amber)!important;background:var(--amber-soft)!important}
     .value-dependent-change{color:var(--violet)!important;background:var(--violet-soft)!important;transition:color 1.25s ease,background-color 1.25s ease}
@@ -107,7 +108,7 @@
     }
     @media(prefers-reduced-motion:reduce){.dep-flash,.value-dependent-input,.value-dependent-change,svg .value-dependent-change{transition:none}}
   </style>
-  <link rel="stylesheet" href="./common/ui/result-panel-v0.1.css?v=1aed1af8d664">
+  <link rel="stylesheet" href="./common/ui/result-panel-v0.1.css?v=54c09fd8a636">
 </head>
 <body>
 <main class="app" id="app" data-status="work">
@@ -221,7 +222,7 @@
       </details>
 
       <details class="panel" id="roll-in-turn-panel">
-        <summary><span>Roll-in Turn</span><label class="level-turn-option level-only" id="level-turn-option">
+        <summary><span>Roll-in Turn</span><label class="level-turn-option" id="level-turn-option">
           <input type="checkbox" data-bdp-input="levelTurnEnabled" checked>
           <span>Level Turn</span>
         </label></summary>
@@ -332,6 +333,6 @@
   <div class="sr-only" id="provider-error" role="alert"></div>
 </main>
 
-<script type="module" src="./bdp-app.mjs?v=1aed1af8d664"></script>
+<script type="module" src="./bdp-app.mjs?v=54c09fd8a636"></script>
 </body>
 </html>

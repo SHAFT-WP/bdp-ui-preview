@@ -283,11 +283,17 @@
     throw new Error("Bomb impact integration limit");
   }
 
+  // Roll-in mode follows AG BDP SPEC §5 / §6.2: raw Dive Angle below 10° is a coordinated
+  // level-turn Roll-in (flight path held level, no Roll-in altitude loss); 10° belongs to the slice
+  // turn. Level *delivery* handling (Dive 0°: MAP input, no LOS/AOD) is separate and unchanged.
   function rollIn(profile, initialAltitudeMslFt) {
     var bankRad = profile.rollInBankAngleDeg * Math.PI / 180;
     var headingChangeRad = profile.angleOffDeg * Math.PI / 180;
     var diveRad = profile.diveAngleDeg * Math.PI / 180;
-    var level = Math.abs(profile.diveAngleDeg) < 1e-9;
+    var level = isLevelTurnRollIn(profile.diveAngleDeg);
+    if (level && !(profile.rollInBankAngleDeg > 0 && profile.rollInBankAngleDeg < 90)) {
+      throw new Error("Level-turn Roll-in Bank must be > 0° and < 90° (G × cos(Bank) = 1)");
+    }
     var initialSpeedFps = (profile.initialSpeedMode === "MACH"
       ? machToTas(profile.initialSpeedValue, initialAltitudeMslFt)
       : casToTas(profile.initialSpeedValue, initialAltitudeMslFt)) * KTFPS;
@@ -298,6 +304,9 @@
     var rawSamples = [{ timeSec: 0, diveRad: 0, headingRad: 0 }];
 
     function rates(speed, fpa) {
+      if (level) {
+        return { speedRate: 0, fpaRate: 0, headingRate: G * profile.rollInG * Math.abs(Math.sin(bankRad)) / speed };
+      }
       var cosine = Math.max(0.08, Math.cos(fpa));
       return {
         speedRate: -G * Math.sin(fpa),
@@ -371,6 +380,25 @@
       equivalentRadiusFt: groundArcFt / headingChangeRad,
       samples: samples
     };
+  }
+
+  var ROLL_IN_LOW_ANGLE_BOUNDARY_DEG = 10;
+
+  function isLevelTurnRollIn(diveAngleDeg) {
+    return diveAngleDeg < ROLL_IN_LOW_ANGLE_BOUNDARY_DEG;
+  }
+
+  // Level-turn Bank <-> G coupling: G × cos(Bank) = 1.
+  function levelTurnBankDeg(rollInG) {
+    if (!(rollInG > 1)) throw new Error("Level-turn Roll-in (Dive Angle < 10°) requires Roll-in G > 1");
+    return Math.acos(1 / rollInG) * 180 / Math.PI;
+  }
+
+  function levelTurnRollInG(rollInBankAngleDeg) {
+    if (!(rollInBankAngleDeg > 0 && rollInBankAngleDeg < 90)) {
+      throw new Error("Level-turn Roll-in Bank must be > 0° and < 90° (G × cos(Bank) = 1)");
+    }
+    return 1 / Math.cos(rollInBankAngleDeg * Math.PI / 180);
   }
 
   function geometry(input, bomb, effectiveReleaseAltitudeMslFt) {
@@ -582,7 +610,7 @@
       : along(trackPoint, localResult.aimOffPointRangeNm, input.targetElevationMslFt);
 
     return {
-      model: { id: "bomb-delivery-planner-v0.3-js-facade", version: "0.3.3-ui-preview" },
+      model: { id: "bomb-delivery-planner-v0.3-js-facade", version: "0.3.4-ui-preview" },
       canonicalInputs: input,
       public: publicResult,
       local: localResult,
@@ -632,7 +660,11 @@
 
   global.BDPV2Core = Object.freeze({
     id: "bomb-delivery-planner-v0.3-js-facade",
-    version: "0.3.2",
+    version: "0.3.3",
+    rollInLowAngleBoundaryDeg: ROLL_IN_LOW_ANGLE_BOUNDARY_DEG,
+    isLevelTurnRollIn: isLevelTurnRollIn,
+    levelTurnBankDeg: levelTurnBankDeg,
+    levelTurnRollInG: levelTurnRollInG,
     sourceArtifact: "BDP_V2_REV1.9_ORACLE_FIDELITY_MOBILE_WORK_FIX7-1.html",
     sourceSha256: "82ed448c1cf63ed92c016597a726a37e162b023444921782fa4ed7810b545a20",
     calculate: calculate,

@@ -75,6 +75,7 @@
     changeTimers: {},
     bankLinked: true,
     levelMode: false,
+    levelTurnRange: false,
     topAdvanced: false,
     nonLevelRollInG: "4",
     fontScale: {
@@ -152,7 +153,7 @@
         input[key] = element.value;
         return;
       }
-      var number = Number(element.value);
+      var number = numberInput(key);
       input[key] = Number.isFinite(number) ? number : NaN;
     });
     input.solveMode = solveModeNode.dataset.mode || "initialAltitude";
@@ -166,8 +167,15 @@
     } catch (error) {
       saved = {};
     }
+    clearSolvedInputs();
     Object.keys(DEFAULTS).forEach(function (key) {
-      setControls(key, saved[key] !== undefined ? saved[key] : DEFAULTS[key]);
+      var next = saved[key] !== undefined ? saved[key] : DEFAULTS[key];
+      var full = Number(next);
+      if (SOLVED_KEYS[key] && String(next).trim() !== "" && Number.isFinite(full) && Number(compactNumber(full)) !== full) {
+        setSolvedControl(key, full);
+      } else {
+        setControls(key, next);
+      }
     });
     // A saved manual Bank remains the input when reopening the page.
     state.bankLinked = saved.rollInBankAngleDeg === undefined || levelTurnActive();
@@ -177,7 +185,10 @@
     var saved = {};
     Object.keys(DEFAULTS).forEach(function (key) {
       var element = firstControl(key);
-      if (element) saved[key] = BOOLEAN_KEYS[key] ? Boolean(element.checked) : element.value;
+      if (!element) return;
+      var solved = solvedInputs[key];
+      saved[key] = BOOLEAN_KEYS[key] ? Boolean(element.checked)
+        : solved && element.value === solved.text ? String(solved.value) : element.value;
     });
     global.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   }
@@ -188,8 +199,10 @@
     });
     solveModeNode.dataset.mode = "initialAltitude";
     solveModeNode.textContent = "Initial Altitude 기준";
+    clearSolvedInputs();
     state.bankLinked = true;
     state.levelMode = false;
+    state.levelTurnRange = false;
     state.topAdvanced = false;
     state.nonLevelRollInG = DEFAULTS.rollInG;
     state.fontScale["z-diagram"] = defaultFontScale("z-diagram");
@@ -251,9 +264,40 @@
     return String(Math.round(Number(value) * 10) / 10);
   }
 
+  // Level-turn Roll-in range: raw Dive Angle below 10° (AG BDP SPEC §5 / §6.2). BDPV2Core owns the
+  // boundary and the G × cos(Bank) = 1 helpers. Dive 0° additionally selects level delivery (MAP
+  // input), which stays tied to state.levelMode.
+  function inLevelTurnRange(diveAngle) {
+    return Number.isFinite(diveAngle) && global.BDPV2Core.isLevelTurnRollIn(diveAngle);
+  }
+
+  // Level Turn On: G drives Bank = acos(1/G). Off: Bank is the input and G = 1/cos(Bank).
   function levelTurnActive() {
     var control = firstControl("levelTurnEnabled");
-    return state.levelMode && Boolean(control && control.checked);
+    return state.levelTurnRange && Boolean(control && control.checked);
+  }
+
+  // Derived Bank / G show the compact text but keep their full value behind it until the user
+  // edits that field, so display rounding never feeds calculation (docs/FE-BE-RULES.md).
+  var SOLVED_KEYS = { rollInBankAngleDeg: true, rollInG: true };
+  var solvedInputs = {};
+
+  function clearSolvedInputs() {
+    Object.keys(solvedInputs).forEach(function (key) { delete solvedInputs[key]; });
+  }
+
+  function setSolvedControl(key, fullValue, flash) {
+    var text = compactNumber(fullValue);
+    setControls(key, text, null, flash);
+    solvedInputs[key] = { text: text, value: fullValue };
+  }
+
+  function numberInput(key) {
+    var element = firstControl(key);
+    if (!element) return NaN;
+    var solved = solvedInputs[key];
+    if (solved && element.value === solved.text) return solved.value;
+    return Number(element.value);
   }
 
   function setControlDisabled(key, disabled) {
@@ -273,38 +317,49 @@
   }
 
   function syncAutomaticBank(flash) {
-    if (!state.bankLinked) return;
-    var bankAngle;
-    if (levelTurnActive()) {
-      var turnG = Number(firstControl("rollInG") && firstControl("rollInG").value);
-      if (!(turnG >= 1)) return;
-      bankAngle = Math.acos(1 / turnG) * 180 / Math.PI;
-    } else {
-      var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
-      if (!Number.isFinite(diveAngle)) return;
-      bankAngle = 90 + diveAngle / 2;
+    if (state.levelTurnRange) {
+      if (levelTurnActive()) {
+        var turnG = numberInput("rollInG");
+        if (!(turnG > 1)) return;
+        setSolvedControl("rollInBankAngleDeg", global.BDPV2Core.levelTurnBankDeg(turnG), flash);
+      } else {
+        var bank = numberInput("rollInBankAngleDeg");
+        if (!(bank > 0 && bank < 90)) return;
+        setSolvedControl("rollInG", global.BDPV2Core.levelTurnRollInG(bank), flash);
+      }
+      return;
     }
-    setControls("rollInBankAngleDeg", compactNumber(bankAngle), null, flash);
+    if (!state.bankLinked) return;
+    var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
+    if (!Number.isFinite(diveAngle)) return;
+    delete solvedInputs.rollInBankAngleDeg;
+    setControls("rollInBankAngleDeg", compactNumber(90 + diveAngle / 2), null, flash);
   }
 
   function applyLevelMode(flash) {
     var diveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
     var nextLevelMode = Number.isFinite(diveAngle) && Math.abs(diveAngle) < 0.001;
+    var nextLevelTurnRange = inLevelTurnRange(diveAngle);
     var levelTurnControl = firstControl("levelTurnEnabled");
-    if (nextLevelMode && !state.levelMode) {
+    if (nextLevelTurnRange && !state.levelTurnRange) {
       var currentG = firstControl("rollInG");
       if (currentG && Number.isFinite(Number(currentG.value))) state.nonLevelRollInG = currentG.value;
       if (levelTurnControl && levelTurnControl.checked) setControls("rollInG", "2", null, flash);
-    } else if (!nextLevelMode && state.levelMode) {
+    } else if (!nextLevelTurnRange && state.levelTurnRange) {
+      delete solvedInputs.rollInG;
       setControls("rollInG", state.nonLevelRollInG || DEFAULTS.rollInG, null, flash);
     }
     state.levelMode = nextLevelMode;
+    state.levelTurnRange = nextLevelTurnRange;
     if (nextLevelMode) app.classList.add("level-mode");
     else app.classList.remove("level-mode");
-    if (levelTurnControl) levelTurnControl.disabled = !nextLevelMode;
+    if (nextLevelTurnRange) app.classList.add("level-turn-range");
+    else app.classList.remove("level-turn-range");
+    if (levelTurnControl) levelTurnControl.disabled = !nextLevelTurnRange;
     setControlDisabled("trackingTimeSec", nextLevelMode);
     setControlDisabled("levelMapNm", !nextLevelMode);
     setControlDerived("rollInBankAngleDeg", levelTurnActive());
+    setControlDerived("rollInG", nextLevelTurnRange && !levelTurnActive());
     if (nextLevelMode) {
       solveModeNode.dataset.mode = "levelMap";
       solveModeNode.textContent = "MAP 기준";
@@ -729,6 +784,7 @@
   app.addEventListener("input", function (event) {
     var key = event.target && event.target.getAttribute("data-bdp-input");
     if (!key) return;
+    delete solvedInputs[key];
     if (key === "angleOffDeg") {
       setControls(key, event.target.value, event.target, true);
     }
@@ -736,12 +792,15 @@
       state.bankLinked = true;
       applyLevelMode(true);
     }
-    if (key === "rollInBankAngleDeg") state.bankLinked = false;
+    if (key === "rollInBankAngleDeg") {
+      state.bankLinked = false;
+      if (state.levelTurnRange) syncAutomaticBank(true);
+    }
     if (key === "rollInG") {
       if (levelTurnActive()) {
         state.bankLinked = true;
         syncAutomaticBank(true);
-      } else if (!state.levelMode) {
+      } else if (!state.levelTurnRange) {
         state.nonLevelRollInG = event.target.value;
       }
     }
@@ -825,7 +884,7 @@
   loadInput();
   var loadedRollInG = firstControl("rollInG");
   var loadedDiveAngle = Number(firstControl("diveAngleDeg") && firstControl("diveAngleDeg").value);
-  if (loadedRollInG && Math.abs(loadedDiveAngle) >= 0.001) {
+  if (loadedRollInG && Number.isFinite(loadedDiveAngle) && !inLevelTurnRange(loadedDiveAngle)) {
     state.nonLevelRollInG = loadedRollInG.value || DEFAULTS.rollInG;
   }
   solveModeNode.dataset.mode = "initialAltitude";

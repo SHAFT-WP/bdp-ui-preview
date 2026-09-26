@@ -100,7 +100,9 @@ body.show-advanced section.advanced-only,body.show-advanced details.advanced-onl
   margin-left:auto;margin-right:10px;align-items:center;grid-template-columns:auto auto;gap:7px;
   color:var(--blue);font-size:12px;font-weight:850;cursor:pointer
 }
-.app.level-mode .level-turn-option{display:inline-grid!important}
+.level-turn-option{display:none}
+/* Level Turn applies to the whole level-turn Roll-in range (raw Dive < 10°), not only Dive 0°. */
+.app.level-turn-range .level-turn-option{display:inline-grid!important}
 .adv-tag{font-size:10px;font-weight:900;color:var(--violet);margin-left:5px}
 .dep-flash,.value-dependent-input{
   color:var(--amber)!important;background:var(--amber-soft)!important
